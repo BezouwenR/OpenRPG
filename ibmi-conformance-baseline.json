@@ -2777,13 +2777,6 @@
    "verdict": "accept",
    "verified": "2026-09-25"
   },
-  "test290_ds_blank_inz.rpgle": {
-   "codes": [],
-   "rpgc": "accept",
-   "sha256": "8e9fe65f4295ecfbf98212262235350a4087cc90275afa6706fdeaab060120f7",
-   "verdict": "accept",
-   "verified": "2026-09-26"
-  },
   "test290_err_test_d_on_date.rpgle": {
    "codes": [
     "RNF7523"
@@ -2803,13 +2796,6 @@
    "verdict": "reject",
    "verified": "2026-09-25"
   },
-  "test291_edit_codes.rpgle": {
-   "codes": [],
-   "rpgc": "accept",
-   "sha256": "375dae4156ef34ee3c3dec8573b619d563e4246e7609b992218a7274cb05064f",
-   "verdict": "accept",
-   "verified": "2026-09-26"
-  },
   "test291_err_two_statements_line.rpgle": {
    "codes": [
     "RNF5508"
@@ -2828,25 +2814,6 @@
    "sha256": "a86bb989b9d102ef0628131f3c084ec3d9aff8981b3025a6cc92def7b06377b6",
    "verdict": "reject",
    "verified": "2026-09-25"
-  },
-  "test292_err_editc_variable.rpgle": {
-   "codes": [
-    "RNF0355"
-   ],
-   "messages": [
-    {
-     "code": "RNF0355",
-     "line": 7,
-     "severity": 20,
-     "text": "The second parameter CODE for %EDITC is not a character constant of length 1."
-    }
-   ],
-   "reason": "RNF0355: The second parameter CODE for %EDITC is not a character constant of length n.",
-   "reason_detail": "line 7: The second parameter CODE for %EDITC is not a character constant of length 1. \u2014 `line = %EDITC(amt : code);`",
-   "rpgc": "reject",
-   "sha256": "f0212a12e3b9f576497b0793536c0abc6e088f1047afd2d46137d4c7b0222c50",
-   "verdict": "reject",
-   "verified": "2026-09-26"
   },
   "test292_err_write_program_described.rpgle": {
    "codes": [
@@ -3118,6 +3085,138 @@
    "sha256": "562e6264e0a96abaad9b6afc4d3aeb52643d2a6fae23e01df8ff9d36735788ef",
    "verdict": "reject",
    "verified": "2026-09-25"
+  },
+  "test302_ds_blank_inz.rpgle": {
+   "codes": [],
+   "rpgc": "accept",
+   "sha256": "8e9fe65f4295ecfbf98212262235350a4087cc90275afa6706fdeaab060120f7",
+   "verdict": "accept",
+   "verified": "2026-09-26"
+  },
+  "test303_edit_codes.rpgle": {
+   "codes": [],
+   "rpgc": "accept",
+   "sha256": "375dae4156ef34ee3c3dec8573b619d563e4246e7609b992218a7274cb05064f",
+   "verdict": "accept",
+   "verified": "2026-09-26"
+  },
+  "test304_err_editc_variable.rpgle": {
+   "codes": [
+    "RNF0355"
+   ],
+   "messages": [
+    {
+     "code": "RNF0355",
+     "line": 7,
+     "severity": 20,
+     "text": "The second parameter CODE for %EDITC is not a character constant of length 1."
+    }
+   ],
+   "reason": "RNF0355: The second parameter CODE for %EDITC is not a character constant of length n.",
+   "reason_detail": "line 7: The second parameter CODE for %EDITC is not a character constant of length 1. \u2014 `line = %EDITC(amt : code);`",
+   "rpgc": "reject",
+   "sha256": "f0212a12e3b9f576497b0793536c0abc6e088f1047afd2d46137d4c7b0222c50",
+   "verdict": "reject",
+   "verified": "2026-09-26"
+  },
+  "test305_on_error_codes.rpgle": {
+   "codes": [],
+   "rpgc": "accept",
+   "sha256": "c7597b3d2b6e095914e19e6ba17c5476aee4989739dbebf18697e419a1064d49",
+   "verdict": "accept",
+   "verified": "2026-09-26"
+  },
+  "test306_keyword_names.rpgle": {
+   "codes": [],
+   "rpgc": "accept",
+   "sha256": "5c8bb5c16d9265d78726f5cd0edfd4f5c918ec8f03a7d5314468c7aa3f181003",
+   "verdict": "accept",
+   "verified": "2026-09-26"
+  },
+  "test307_err_opcode_name_assign.rpgle": {
+   "codes": [
+    "RNF5008",
+    "RNF7260"
+   ],
+   "messages": [
+    {
+     "code": "RNF5008",
+     "line": 6,
+     "severity": 20,
+     "text": "Factor 1 operand is not valid; defaults to blanks."
+    },
+    {
+     "code": "RNF7260",
+     "line": 6,
+     "severity": 30,
+     "text": "The Factor 2 operand 5 is not valid for the specified operation."
+    }
+   ],
+   "reason": "RNF5008: Factor n operand is not valid; defaults to blanks.",
+   "reason_detail": "line 6: Factor 1 operand is not valid; defaults to blanks. \u2014 `out = 5;`",
+   "rpgc": "reject",
+   "sha256": "b1bc2c217abf155b5ef74cd7975199eed4c9cbeff765ece5798a337bfc7637a5",
+   "verdict": "reject",
+   "verified": "2026-09-26"
+  },
+  "test308_err_opcode_subfield.rpgle": {
+   "codes": [
+    "RNF0724",
+    "RNF3556",
+    "RNF7030",
+    "RNF7503"
+   ],
+   "messages": [
+    {
+     "code": "RNF3556",
+     "line": 5,
+     "severity": 20,
+     "text": "END-DS statement missing for a group containing free-form statements."
+    },
+    {
+     "code": "RNF7030",
+     "line": 6,
+     "severity": 30,
+     "text": "The name or indicator INT is not defined."
+    },
+    {
+     "code": "RNF7503",
+     "line": 6,
+     "severity": 30,
+     "text": "Expression contains an operand that is not defined."
+    },
+    {
+     "code": "RNF0724",
+     "line": 7,
+     "severity": 30,
+     "text": "The statement type is out of sequence for the main procedure."
+    }
+   ],
+   "reason": "RNF3556: END-DS statement missing for a group containing free-form statements.",
+   "reason_detail": "line 5: END-DS statement missing for a group containing free-form statements. \u2014 `DCL-DS rec QUALIFIED;`",
+   "rpgc": "reject",
+   "sha256": "93636d6a561c6f4ca887499e966ccf59417697ee6e1f6d26c2266872fdf559a7",
+   "verdict": "reject",
+   "verified": "2026-09-26"
+  },
+  "test309_err_not_name.rpgle": {
+   "codes": [
+    "RNF3301"
+   ],
+   "messages": [
+    {
+     "code": "RNF3301",
+     "line": 3,
+     "severity": 30,
+     "text": "The Name entry is not valid; specification ignored."
+    }
+   ],
+   "reason": "RNF3301: The Name entry is not valid; specification ignored.",
+   "reason_detail": "line 3: The Name entry is not valid; specification ignored. \u2014 `DCL-S not INT(10);`",
+   "rpgc": "reject",
+   "sha256": "e6e9dfaf5bb5072a4ed51713805c2b9648d8a5a2d7d153b6538152d41db74ea4",
+   "verdict": "reject",
+   "verified": "2026-09-26"
   },
   "test30_like.rpgle": {
    "codes": [],
@@ -3735,5 +3834,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-09-26T20:25:45+00:00"
+ "generated": "2026-09-26T23:36:53+00:00"
 }

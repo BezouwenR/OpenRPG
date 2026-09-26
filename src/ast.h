@@ -527,10 +527,20 @@ public:
 
 // --- Phase 8: Monitor, Subroutines, Indicators ---
 
+// One ON-ERROR clause: the errors it handles, and what it does. A code is
+// a status number, a named constant, or *FILE / *PROGRAM / *ALL; no codes
+// at all means *ALL.
+struct OnErrorClause {
+    std::vector<std::unique_ptr<Expression>> codes;
+    std::vector<std::string> special;   // "*FILE", "*PROGRAM", "*ALL"
+    std::vector<std::unique_ptr<Statement>> body;
+};
+
 class MonitorStmt : public Statement {
 public:
     std::vector<std::unique_ptr<Statement>> try_body;
-    std::vector<std::unique_ptr<Statement>> on_error_body;
+    // Tried in order; the first clause that lists the error handles it.
+    std::vector<OnErrorClause> clauses;
     MonitorStmt();
     void accept(ASTVisitor& visitor) override;
 };

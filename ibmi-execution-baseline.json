@@ -1689,7 +1689,20 @@
    "test": "28",
    "verified": "2026-09-26"
   },
-  "test290_ds_blank_inz.rpgle": {
+  "test29_dclsubf_parm.rpgle": {
+   "error": "",
+   "output": [
+    "Alice                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "30                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ",
+    "75000.50                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
+    "30                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       "
+   ],
+   "sha256": "c0d8d8f5e1013c5314eb562b5ac7eccb25a2552369659c4c9d3287f501fa86c2",
+   "status": "same",
+   "test": "29",
+   "verified": "2026-09-26"
+  },
+  "test302_ds_blank_inz.rpgle": {
    "error": "",
    "output": [
     "1077952576|16448|   |LBLX|7                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ",
@@ -1701,10 +1714,10 @@
    ],
    "sha256": "8e9fe65f4295ecfbf98212262235350a4087cc90275afa6706fdeaab060120f7",
    "status": "same",
-   "test": "290",
+   "test": "302",
    "verified": "2026-09-26"
   },
-  "test291_edit_codes.rpgle": {
+  "test303_edit_codes.rpgle": {
    "error": "",
    "output": [
     "1[ 1,234.50][ 1,234.50]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ",
@@ -1753,20 +1766,33 @@
    ],
    "sha256": "375dae4156ef34ee3c3dec8573b619d563e4246e7609b992218a7274cb05064f",
    "status": "same",
-   "test": "291",
+   "test": "303",
    "verified": "2026-09-26"
   },
-  "test29_dclsubf_parm.rpgle": {
+  "test305_on_error_codes.rpgle": {
    "error": "",
    "output": [
-    "Alice                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
-    "30                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ",
-    "75000.50                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
-    "30                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       "
+    "RESULT:CODE=102                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+    "RESULT:CONST=DIVZERO                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ",
+    "RESULT:PROGRAM=121                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ",
+    "RESULT:OUTER=112                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ",
+    "RESULT:ALL                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
    ],
-   "sha256": "c0d8d8f5e1013c5314eb562b5ac7eccb25a2552369659c4c9d3287f501fa86c2",
+   "sha256": "c7597b3d2b6e095914e19e6ba17c5476aee4989739dbebf18697e419a1064d49",
    "status": "same",
-   "test": "29",
+   "test": "305",
+   "verified": "2026-09-26"
+  },
+  "test306_keyword_names.rpgle": {
+   "error": "",
+   "output": [
+    "7LBL  6A1.25txt                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+    "B11xyz132026-09-26                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ",
+    "if ok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    "
+   ],
+   "sha256": "5c8bb5c16d9265d78726f5cd0edfd4f5c918ec8f03a7d5314468c7aa3f181003",
+   "status": "same",
+   "test": "306",
    "verified": "2026-09-26"
   },
   "test30_like.rpgle": {

@@ -1726,17 +1726,33 @@ triage, not yet investigated test by test:
 | One-off behaviours | 26 (`%SIZE` of pointer 16), 33 (`%REPLACE`), 50, 69 (`%SCANR`), 67 (*PSSR), 90 (PSDS user/job), 93/96 (data areas), 102 (SND-MSG escape), 155/216 (I-spec record ID), 193/196/208/212 (MOVE), 228 (loops forever), 267, 283, 87/88 |
 | Probably platform divergence | DATA-INTO/DATA-GEN name rpgc's built-in parsers (RNX0355: 99, 100, 112, 113, 114, 180, 87?); 54 (program name); 115 (DUMP goes to spool) |
 
-Found alongside:
-- rpgc reserves operation-code names that IBM accepts as variable names:
-  `ind`, `tag` and `out` are all syntax errors in rpgc.
-- `ON-ERROR 907;` (a status list) is a syntax error in rpgc; only a bare
-  `ON-ERROR;` parses.
+**Fixed 2026-09-26: ON-ERROR codes, keyword names, array bounds (150 of 180).**
+- `ON-ERROR` takes status codes, named constants, `*PROGRAM` (100-999),
+  `*FILE` (1000-9999) and `*ALL`, and a MONITOR may have several clauses.
+  The first match handles the error; an error no clause lists goes on up
+  (test305). Only a bare `ON-ERROR;` parsed before.
+- **Names:** IBM reserves almost no words (probed on PUB400: every keyword
+  and operation code tried was a valid DCL-S name except NOT). rpgc
+  reserved 139. Now a keyword is a name everywhere, with IBM's two
+  exceptions for free-form operation codes (IN, OUT, READ, TEST...): at the
+  start of a statement one is that operation, so the assignment needs EVAL
+  (test307), and as a subfield it needs DCL-SUBF (test308). The grammar's
+  `kw_name`/`op_name` rules are generated from the lexer's keyword list.
+  MOVE, MOVEL, CALL and GOTO count as operation codes here (IBM i does not
+  have them in free form), since rpgc parses them as free-form statements.
+  `TYPE(` and `CONST(` cannot start a call or array element, where they
+  are keywords (SND-MSG TYPE, an enum's CONST).
+- Array indexes are checked: out of range is status 121, not a read or
+  write past the end. A DIM(*AUTO) array grows to the index, up to its
+  maximum.
+- `<windows.h>` defines IN, OUT, DELETE and CONST as macros; the SQL
+  runtime #undefs them so fields with those names survive on Windows.
 
 **Fixed 2026-09-26: formatting and INZ (124 -> 148 of 178 same).**
 - `%EDITC` lays out the field's full edited width for every edit code
   (1-4, A-D, J-Q, X, Y, Z): commas, zero suppression, CR / trailing /
   floating minus. Codes 3 and 4 had wrongly attached `CR`. The code must be
-  a literal or named constant (RNF0355, now enforced; test292). `%EDITW`
+  a literal or named constant (RNF0355, now enforced; test304). `%EDITW`
   uses the operand's decimals, not a fixed two. O-spec edited fields end at
   their end position.
 - `%CHAR` of a decimal has no leading zero (`.00`, `-.05`) and keeps an

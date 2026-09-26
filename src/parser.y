@@ -359,6 +359,8 @@ static rpg::DclPR* make_overload_pr(char* name, int ret, std::vector<std::string
     std::vector<std::string>* str_list;
     DclSKws* dcl_kws;
     rpg::DclDS* ds_hdr;
+    rpg::MonitorStmt* monitor;
+    rpg::OnErrorClause* on_error;
 }
 
 %code {
@@ -370,6 +372,18 @@ static std::string qualified_name(rpg::Expression* e) {
         return base.empty() ? "" : base + "." + dot->field;
     }
     return "";
+}
+
+// An ON-ERROR code: *FILE, *PROGRAM and *ALL are kept by name, anything
+// else (a status number or a named constant) as an expression.
+static void add_on_error_code(rpg::OnErrorClause* c, rpg::Expression* e) {
+    auto* id = dynamic_cast<rpg::Identifier*>(e);
+    if (id && !id->name.empty() && id->name[0] == '*') {
+        c->special.push_back(id->name);
+        delete e;
+        return;
+    }
+    c->codes.emplace_back(e);
 }
 
 // Combines the header keywords written before and after LIKEDS or PSDS.
@@ -427,7 +441,7 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %token KW_FOR KW_ENDFOR KW_TO KW_DOWNTO KW_BY
 %token KW_SELECT KW_WHEN KW_OTHER KW_ENDSL
 %token KW_ITER KW_LEAVE
-%token KW_MONITOR KW_ON_ERROR KW_ENDMON
+%token KW_MONITOR KW_ON_ERROR KW_ENDMON KW_STAR_FILE KW_STAR_PROGRAM
 %token KW_BEGSR KW_ENDSR KW_EXSR
 %token KW_GOTO KW_TAG KW_MOVE KW_MOVEL KW_MOVE_PAD KW_MOVEL_PAD KW_CALL
 %token KW_OFF KW_RESET KW_CLEAR KW_SORTA KW_DUMP KW_DUMP_A
@@ -490,6 +504,9 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %type <stmt> if_stmt dow_stmt dou_stmt for_stmt for_each_stmt select_stmt iter_stmt leave_stmt
 %type <stmt> dcl_proc_stmt dcl_pr_stmt dcl_ds_stmt dcl_enum_stmt
 %type <str_list> call_parm_list
+%type <monitor> on_error_clauses
+%type <on_error> on_error_clause on_error_codes on_error_code_list
+%type <expr> on_error_code
 %type <stmt> monitor_stmt begsr_stmt exsr_stmt goto_stmt tag_stmt move_stmt call_stmt exec_sql_stmt xml_into_stmt
 %type <stmt> in_da_stmt out_da_stmt unlock_da_stmt data_into_stmt data_gen_stmt snd_msg_stmt except_stmt
 %type <sval> snd_msg_type da_name like_name
@@ -515,7 +532,8 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %type <param_decl> dcl_type
 %type <dcl_kws> dcl_kws
 %type <ds_hdr> ds_hdr_kws
-%type <sval> ident
+%type <expr> eval_any_target
+%type <sval> ident plain_name kw_name op_name call_kw_name
 %type <enum_const_list> enum_constants enum_constant
 %type <str_list> overload_list
 
@@ -971,7 +989,7 @@ dcl_kws:
 
 /* DCL-C: named constants */
 dcl_c_stmt:
-    KW_DCL_C IDENTIFIER expression SEMICOLON {
+    KW_DCL_C ident expression SEMICOLON {
         $$ = new rpg::DclC($2, std::unique_ptr<rpg::Expression>($3));
         free($2);
     }
@@ -982,20 +1000,10 @@ eval_target:
         $$ = new rpg::Identifier($1);
         free($1);
     }
-    | KW_POS { $$ = new rpg::Identifier("POS"); }
-    | KW_OVERLAY { $$ = new rpg::Identifier("OVERLAY"); }
-    | KW_PREFIX { $$ = new rpg::Identifier("PREFIX"); }
-    | KW_UNS { $$ = new rpg::Identifier("UNS"); }
-    | KW_FLOAT_TYPE { $$ = new rpg::Identifier("FLOAT"); }
-    | KW_GRAPH { $$ = new rpg::Identifier("GRAPH"); }
-    | KW_ASCEND { $$ = new rpg::Identifier("ASCEND"); }
-    | KW_DESCEND { $$ = new rpg::Identifier("DESCEND"); }
-    | KW_RTNPARM { $$ = new rpg::Identifier("RTNPARM"); }
-    | KW_OPDESC { $$ = new rpg::Identifier("OPDESC"); }
-    | KW_NULLIND { $$ = new rpg::Identifier("NULLIND"); }
-    | KW_DATFMT { $$ = new rpg::Identifier("DATFMT"); }
-    | KW_TIMFMT { $$ = new rpg::Identifier("TIMFMT"); }
-    | KW_EXTNAME { $$ = new rpg::Identifier("EXTNAME"); }
+    | kw_name {
+        $$ = new rpg::Identifier($1);
+        free($1);
+    }
     | INDICATOR {
         if ($1 == rpg::IndicatorExpr::LR) g_lr_set = true;
         $$ = new rpg::IndicatorExpr($1);
@@ -1003,11 +1011,15 @@ eval_target:
     /* Qualified targets chain to any depth: ds.f, ds.sub.f, ds(i).sub.f.
        Only one level used to be accepted, so assigning to a subfield of a
        LIKEDS subfield — readable as an expression — was a syntax error. */
-    | eval_target DOT IDENTIFIER {
+    | eval_target DOT ident {
         $$ = new rpg::DotExpr(std::unique_ptr<rpg::Expression>($1), $3);
         free($3);
     }
     | IDENTIFIER LPAREN expression RPAREN {
+        $$ = new rpg::ArrayAccess($1, std::unique_ptr<rpg::Expression>($3));
+        free($1);
+    }
+    | call_kw_name LPAREN expression RPAREN {
         $$ = new rpg::ArrayAccess($1, std::unique_ptr<rpg::Expression>($3));
         free($1);
     }
@@ -1016,7 +1028,7 @@ eval_target:
        field itself is DIM(n). Part of the same chain as the rule above;
        as a separate IDENTIFIER DOT ... rule it made the parser commit
        before it could see whether a `(` followed. */
-    | eval_target DOT IDENTIFIER LPAREN expression RPAREN {
+    | eval_target DOT ident LPAREN expression RPAREN {
         std::string base = qualified_name($1);
         if (base.empty()) yyerror("an element of a DIM subfield of an array element is not supported as an assignment target");
         $$ = new rpg::ArrayAccess(base + "." + $3, std::unique_ptr<rpg::Expression>($5));
@@ -1028,6 +1040,17 @@ eval_target:
     }
     ;
 
+/* After EVAL, a target may be named like an operation code: EVAL out = 1.
+   Without EVAL, IBM reads the statement as that operation. */
+eval_any_target:
+    eval_target { $$ = $1; }
+    | op_name { $$ = new rpg::Identifier($1); free($1); }
+    | op_name LPAREN expression RPAREN {
+        $$ = new rpg::ArrayAccess($1, std::unique_ptr<rpg::Expression>($3));
+        free($1);
+    }
+    ;
+
 eval_stmt:
     /* Compound assignment: target op= value is target = target op (value).
        The value is one operand, whatever its own operators: x *= a + b
@@ -1036,11 +1059,11 @@ eval_stmt:
         $$ = new rpg::EvalStmt(std::unique_ptr<rpg::Expression>($1),
                                std::unique_ptr<rpg::Expression>(compound_value($1, $2, $3)));
     }
-    | KW_EVAL eval_target COMPOUND_ASSIGN expression SEMICOLON {
+    | KW_EVAL eval_any_target COMPOUND_ASSIGN expression SEMICOLON {
         $$ = new rpg::EvalStmt(std::unique_ptr<rpg::Expression>($2),
                                std::unique_ptr<rpg::Expression>(compound_value($2, $3, $4)));
     }
-    | KW_EVAL_EXT eval_target COMPOUND_ASSIGN expression SEMICOLON {
+    | KW_EVAL_EXT eval_any_target COMPOUND_ASSIGN expression SEMICOLON {
         check_extenders("EVAL", $1, "HMR");
         auto* s = new rpg::EvalStmt(std::unique_ptr<rpg::Expression>($2),
                                     std::unique_ptr<rpg::Expression>(compound_value($2, $3, $4)));
@@ -1053,13 +1076,13 @@ eval_stmt:
             std::unique_ptr<rpg::Expression>($3)
         );
     }
-    | KW_EVAL eval_target EQUALS expression SEMICOLON {
+    | KW_EVAL eval_any_target EQUALS expression SEMICOLON {
         $$ = new rpg::EvalStmt(
             std::unique_ptr<rpg::Expression>($2),
             std::unique_ptr<rpg::Expression>($4)
         );
     }
-    | KW_EVAL_EXT eval_target EQUALS expression SEMICOLON {
+    | KW_EVAL_EXT eval_any_target EQUALS expression SEMICOLON {
         /* (T) is internal: the fixed-format transpiler marks the EVAL an
            ADD/SUB/MULT/DIV/Z-ADD/Z-SUB becomes with it, so the result
            drops excess high-order digits as those opcodes do instead of
@@ -1206,13 +1229,13 @@ da_name:
     ;
 
 evalr_stmt:
-    KW_EVALR eval_target EQUALS expression SEMICOLON {
+    KW_EVALR eval_any_target EQUALS expression SEMICOLON {
         $$ = new rpg::EvalRStmt(
             std::unique_ptr<rpg::Expression>($2),
             std::unique_ptr<rpg::Expression>($4)
         );
     }
-    | KW_EVALR_EXT eval_target EQUALS expression SEMICOLON {
+    | KW_EVALR_EXT eval_any_target EQUALS expression SEMICOLON {
         check_extenders("EVALR", $1, "MR");
         auto* s = new rpg::EvalRStmt(
             std::unique_ptr<rpg::Expression>($2),
@@ -1541,14 +1564,14 @@ param_decl:
     IDENTIFIER param_type param_kws SEMICOLON {
         $$ = $2; $$->name = $1; apply_param_kws($$, $3); free($1);
     }
-    | KW_DCL_PARM IDENTIFIER param_type param_kws SEMICOLON {
+    | KW_DCL_PARM ident param_type param_kws SEMICOLON {
         $$ = $3; $$->name = $2; apply_param_kws($$, $4); free($2);
     }
     | IDENTIFIER KW_LIKEDS LPAREN IDENTIFIER RPAREN param_kws SEMICOLON {
         $$ = new rpg::ParamDecl{$1, rpg::RPGType::CHAR, 0, 0, 0, false, std::string($4)};
         apply_param_kws($$, $6); free($1); free($4);
     }
-    | KW_DCL_PARM IDENTIFIER KW_LIKEDS LPAREN IDENTIFIER RPAREN param_kws SEMICOLON {
+    | KW_DCL_PARM ident KW_LIKEDS LPAREN IDENTIFIER RPAREN param_kws SEMICOLON {
         $$ = new rpg::ParamDecl{$2, rpg::RPGType::CHAR, 0, 0, 0, false, std::string($5)};
         apply_param_kws($$, $7); free($2); free($5);
     }
@@ -1602,15 +1625,48 @@ param_opt:
 
 /* --- Monitor / Subroutines --- */
 
+/* MONITOR ... ON-ERROR {codes}; ... {ON-ERROR ...} ENDMON. Each clause
+   lists status codes, named constants, *FILE, *PROGRAM or *ALL, separated
+   by colons; none at all means *ALL. The clauses are collected onto the
+   MonitorStmt as they are parsed. */
 monitor_stmt:
-    KW_MONITOR SEMICOLON statement_list KW_ON_ERROR SEMICOLON statement_list KW_ENDMON SEMICOLON {
-        auto* node = new rpg::MonitorStmt();
+    KW_MONITOR SEMICOLON statement_list on_error_clauses KW_ENDMON SEMICOLON {
+        auto* node = $4;
         for (auto* s : $3->stmts) node->try_body.emplace_back(s);
         delete $3;
-        for (auto* s : $6->stmts) node->on_error_body.emplace_back(s);
-        delete $6;
         $$ = node;
     }
+    ;
+
+on_error_clauses:
+    on_error_clause { $$ = new rpg::MonitorStmt(); $$->clauses.push_back(std::move(*$1)); delete $1; }
+    | on_error_clauses on_error_clause { $$ = $1; $$->clauses.push_back(std::move(*$2)); delete $2; }
+    ;
+
+on_error_clause:
+    KW_ON_ERROR on_error_codes SEMICOLON statement_list {
+        $$ = $2;
+        for (auto* s : $4->stmts) $$->body.emplace_back(s);
+        delete $4;
+    }
+    ;
+
+on_error_codes:
+    /* empty */ { $$ = new rpg::OnErrorClause(); }
+    | on_error_code_list { $$ = $1; }
+    ;
+
+on_error_code_list:
+    on_error_code { $$ = new rpg::OnErrorClause(); add_on_error_code($$, $1); }
+    | on_error_code_list COLON on_error_code { $$ = $1; add_on_error_code($$, $3); }
+    ;
+
+on_error_code:
+    INTEGER_LITERAL   { $$ = new rpg::IntLiteral($1); }
+    | IDENTIFIER      { $$ = new rpg::Identifier($1); free($1); }
+    | KW_STAR_FILE    { $$ = new rpg::Identifier("*FILE"); }
+    | KW_STAR_PROGRAM { $$ = new rpg::Identifier("*PROGRAM"); }
+    | KW_ALL          { $$ = new rpg::Identifier("*ALL"); }
     ;
 
 begsr_stmt:
@@ -1864,17 +1920,17 @@ enum_constant:
    it, which is not valid RPG and made a PSDS's first subfield ambiguous
    with a statement once the header keywords were generalized. */
 dcl_ds_stmt:
-    KW_DCL_DS IDENTIFIER ds_hdr_kws SEMICOLON ds_fields KW_END_DS SEMICOLON {
+    KW_DCL_DS ident ds_hdr_kws SEMICOLON ds_fields KW_END_DS SEMICOLON {
         auto* ds = $3; ds->name = $2; free($2);
         ds->fields = std::move($5->fields); delete $5;
         $$ = ds;
     }
-    | KW_DCL_DS IDENTIFIER ds_hdr_kws KW_LIKEDS LPAREN IDENTIFIER RPAREN ds_hdr_kws SEMICOLON {
+    | KW_DCL_DS ident ds_hdr_kws KW_LIKEDS LPAREN IDENTIFIER RPAREN ds_hdr_kws SEMICOLON {
         auto* ds = merge_ds_hdr($3, $8); ds->name = $2; ds->like_ds = $6;
         free($2); free($6);
         $$ = ds;
     }
-    | KW_DCL_DS IDENTIFIER ds_hdr_kws psds_kw ds_hdr_kws SEMICOLON ds_fields KW_END_DS SEMICOLON {
+    | KW_DCL_DS ident ds_hdr_kws psds_kw ds_hdr_kws SEMICOLON ds_fields KW_END_DS SEMICOLON {
         auto* ds = merge_ds_hdr($3, $5); ds->name = $2; ds->is_psds = true; free($2);
         ds->fields = std::move($7->fields); delete $7;
         $$ = ds;
@@ -1924,22 +1980,22 @@ psds_kw:
    fixed set of keywords, so a ZONED, IND, DATE, UNS or FLOAT subfield was
    a syntax error, as was any keyword combination not spelled out. */
 ds_field:
-    IDENTIFIER param_type ds_kws SEMICOLON {
+    plain_name param_type ds_kws SEMICOLON {
         $$ = make_ds_field($1, $2, $3); free($1);
     }
-    | KW_DCL_SUBF IDENTIFIER param_type ds_kws SEMICOLON {
+    | KW_DCL_SUBF ident param_type ds_kws SEMICOLON {
         $$ = make_ds_field($2, $3, $4); free($2);
     }
-    | IDENTIFIER KW_LIKEDS LPAREN IDENTIFIER RPAREN ds_kws SEMICOLON {
+    | plain_name KW_LIKEDS LPAREN IDENTIFIER RPAREN ds_kws SEMICOLON {
         $$ = make_ds_field($1, nullptr, $6); $$->likeds = $4; free($1); free($4);
     }
-    | KW_DCL_SUBF IDENTIFIER KW_LIKEDS LPAREN IDENTIFIER RPAREN ds_kws SEMICOLON {
+    | KW_DCL_SUBF ident KW_LIKEDS LPAREN IDENTIFIER RPAREN ds_kws SEMICOLON {
         $$ = make_ds_field($2, nullptr, $7); $$->likeds = $5; free($2); free($5);
     }
-    | IDENTIFIER KW_LIKE LPAREN like_name RPAREN ds_kws SEMICOLON {
+    | plain_name KW_LIKE LPAREN like_name RPAREN ds_kws SEMICOLON {
         $$ = make_ds_field($1, nullptr, $6); $$->like_var = $4; free($1); free($4);
     }
-    | KW_DCL_SUBF IDENTIFIER KW_LIKE LPAREN like_name RPAREN ds_kws SEMICOLON {
+    | KW_DCL_SUBF ident KW_LIKE LPAREN like_name RPAREN ds_kws SEMICOLON {
         $$ = make_ds_field($2, nullptr, $7); $$->like_var = $5; free($2); free($5);
     }
     ;
@@ -2259,14 +2315,14 @@ unary_expr:
 
 postfix_expr:
     primary_expr { $$ = $1; }
-    | postfix_expr DOT IDENTIFIER {
+    | postfix_expr DOT ident {
         $$ = new rpg::DotExpr(std::unique_ptr<rpg::Expression>($1), $3);
         free($3);
     }
     /* Per-subfield array element (read): ds.field(idx), ds.sub.field(idx) —
        the field itself is DIM(n). The base may be any chain of names; an
        indexed base (items(1).field(idx)) still isn't supported. */
-    | postfix_expr DOT IDENTIFIER LPAREN expression RPAREN {
+    | postfix_expr DOT ident LPAREN expression RPAREN {
         std::string baseName = qualified_name($1);
         if (baseName.empty()) {
             yyerror("an element of a DIM subfield of an array element (items(1).field(idx)) is not supported");
@@ -2290,44 +2346,210 @@ like_name:
     }
     ;
 
+/* Names. IBM i reserves almost no words: a field may be named CHAR, TYPE,
+   VALUE, IND or TAG (verified on PUB400, 2026-09-26; only NOT is refused).
+   A name that is a free-form operation code (op_name) is the one exception
+   at the start of a statement, which IBM reads as that operation -- there
+   the assignment needs EVAL -- and as a subfield or parameter, which then
+   needs DCL-SUBF or DCL-PARM. kw_name and op_name are generated from the
+   lexer's keywords. */
 ident:
     IDENTIFIER { $$ = $1; }
+    | kw_name { $$ = $1; }
+    | op_name { $$ = $1; }
+    ;
+
+plain_name:
+    IDENTIFIER { $$ = $1; }
+    | kw_name { $$ = $1; }
+    ;
+
+kw_name:
+      KW_CHAR { $$ = strdup("CHAR"); }
+    | KW_VARCHAR { $$ = strdup("VARCHAR"); }
+    | KW_INT { $$ = strdup("INT"); }
+    | KW_PACKED { $$ = strdup("PACKED"); }
+    | KW_ZONED { $$ = strdup("ZONED"); }
+    | KW_CONST { $$ = strdup("CONST"); }
+    | KW_DATE { $$ = strdup("DATE"); }
+    | KW_TIME { $$ = strdup("TIME"); }
+    | KW_TIMESTAMP { $$ = strdup("TIMESTAMP"); }
+    | KW_IND { $$ = strdup("IND"); }
+    | KW_POINTER { $$ = strdup("POINTER"); }
+    | KW_DISK { $$ = strdup("DISK"); }
+    | KW_PRINTER { $$ = strdup("PRINTER"); }
+    | KW_WORKSTN { $$ = strdup("WORKSTN"); }
+    | KW_USAGE { $$ = strdup("USAGE"); }
+    | KW_KEYED { $$ = strdup("KEYED"); }
+    | KW_EXTDESC { $$ = strdup("EXTDESC"); }
+    | KW_USROPN { $$ = strdup("USROPN"); }
+    | KW_TYPE { $$ = strdup("TYPE"); }
+    | KW_INZ { $$ = strdup("INZ"); }
+    | KW_STATIC { $$ = strdup("STATIC"); }
+    | KW_TEMPLATE { $$ = strdup("TEMPLATE"); }
+    | KW_BASED { $$ = strdup("BASED"); }
+    | KW_EXPORT { $$ = strdup("EXPORT"); }
+    | KW_IMPORT { $$ = strdup("IMPORT"); }
+    | KW_EXTPGM { $$ = strdup("EXTPGM"); }
+    | KW_EXTPROC { $$ = strdup("EXTPROC"); }
+    | KW_OVERLOAD { $$ = strdup("OVERLOAD"); }
+    | KW_OPTIONS { $$ = strdup("OPTIONS"); }
+    | KW_VALUE { $$ = strdup("VALUE"); }
+    | KW_QUALIFIED { $$ = strdup("QUALIFIED"); }
+    | KW_DIM { $$ = strdup("DIM"); }
+    | KW_LIKEDS { $$ = strdup("LIKEDS"); }
+    | KW_LIKE { $$ = strdup("LIKE"); }
     | KW_UNS { $$ = strdup("UNS"); }
     | KW_FLOAT_TYPE { $$ = strdup("FLOAT"); }
+    | KW_BINDEC { $$ = strdup("BINDEC"); }
+    | KW_UCS2 { $$ = strdup("UCS2"); }
     | KW_GRAPH { $$ = strdup("GRAPH"); }
-    | KW_ASCEND { $$ = strdup("ASCEND"); }
-    | KW_DESCEND { $$ = strdup("DESCEND"); }
-    | KW_IN { $$ = strdup("IN"); }
-    | KW_RTNPARM { $$ = strdup("RTNPARM"); }
-    | KW_OPDESC { $$ = strdup("OPDESC"); }
-    | KW_NULLIND { $$ = strdup("NULLIND"); }
+    | KW_OBJECT { $$ = strdup("OBJECT"); }
     | KW_DATFMT { $$ = strdup("DATFMT"); }
     | KW_TIMFMT { $$ = strdup("TIMFMT"); }
-    | KW_EXTNAME { $$ = strdup("EXTNAME"); }
     | KW_OVERLAY { $$ = strdup("OVERLAY"); }
     | KW_POS { $$ = strdup("POS"); }
     | KW_PREFIX { $$ = strdup("PREFIX"); }
+    | KW_EXTNAME { $$ = strdup("EXTNAME"); }
+    | KW_PSDS { $$ = strdup("PSDS"); }
+    | KW_SDS { $$ = strdup("SDS"); }
+    | KW_DTAARA { $$ = strdup("DTAARA"); }
+    | KW_RTNPARM { $$ = strdup("RTNPARM"); }
+    | KW_OPDESC { $$ = strdup("OPDESC"); }
+    | KW_ASCEND { $$ = strdup("ASCEND"); }
+    | KW_CTDATA { $$ = strdup("CTDATA"); }
+    | KW_PERRCD { $$ = strdup("PERRCD"); }
+    | KW_DESCEND { $$ = strdup("DESCEND"); }
+    | KW_NULLIND { $$ = strdup("NULLIND"); }
+    | KW_TO { $$ = strdup("TO"); }
+    | KW_DOWNTO { $$ = strdup("DOWNTO"); }
+    | KW_BY { $$ = strdup("BY"); }
+    | KW_TAG { $$ = strdup("TAG"); }
+    ;
+
+/* kw_name, less TYPE and CONST: a name written with ( after it. TYPE(
+   and CONST( are keywords there (SND-MSG TYPE(...), an enum CONST(...)). */
+call_kw_name:
+      KW_CHAR { $$ = strdup("CHAR"); }
+    | KW_VARCHAR { $$ = strdup("VARCHAR"); }
+    | KW_INT { $$ = strdup("INT"); }
+    | KW_PACKED { $$ = strdup("PACKED"); }
+    | KW_ZONED { $$ = strdup("ZONED"); }
+    | KW_DATE { $$ = strdup("DATE"); }
+    | KW_TIME { $$ = strdup("TIME"); }
+    | KW_TIMESTAMP { $$ = strdup("TIMESTAMP"); }
+    | KW_IND { $$ = strdup("IND"); }
+    | KW_POINTER { $$ = strdup("POINTER"); }
+    | KW_DISK { $$ = strdup("DISK"); }
+    | KW_PRINTER { $$ = strdup("PRINTER"); }
+    | KW_WORKSTN { $$ = strdup("WORKSTN"); }
+    | KW_USAGE { $$ = strdup("USAGE"); }
+    | KW_KEYED { $$ = strdup("KEYED"); }
+    | KW_EXTDESC { $$ = strdup("EXTDESC"); }
+    | KW_USROPN { $$ = strdup("USROPN"); }
+    | KW_INZ { $$ = strdup("INZ"); }
+    | KW_STATIC { $$ = strdup("STATIC"); }
+    | KW_TEMPLATE { $$ = strdup("TEMPLATE"); }
+    | KW_BASED { $$ = strdup("BASED"); }
+    | KW_EXPORT { $$ = strdup("EXPORT"); }
+    | KW_IMPORT { $$ = strdup("IMPORT"); }
+    | KW_EXTPGM { $$ = strdup("EXTPGM"); }
+    | KW_EXTPROC { $$ = strdup("EXTPROC"); }
+    | KW_OVERLOAD { $$ = strdup("OVERLOAD"); }
+    | KW_OPTIONS { $$ = strdup("OPTIONS"); }
+    | KW_VALUE { $$ = strdup("VALUE"); }
+    | KW_QUALIFIED { $$ = strdup("QUALIFIED"); }
+    | KW_DIM { $$ = strdup("DIM"); }
+    | KW_LIKEDS { $$ = strdup("LIKEDS"); }
+    | KW_LIKE { $$ = strdup("LIKE"); }
+    | KW_UNS { $$ = strdup("UNS"); }
+    | KW_FLOAT_TYPE { $$ = strdup("FLOAT"); }
+    | KW_BINDEC { $$ = strdup("BINDEC"); }
+    | KW_UCS2 { $$ = strdup("UCS2"); }
+    | KW_GRAPH { $$ = strdup("GRAPH"); }
+    | KW_OBJECT { $$ = strdup("OBJECT"); }
+    | KW_DATFMT { $$ = strdup("DATFMT"); }
+    | KW_TIMFMT { $$ = strdup("TIMFMT"); }
+    | KW_OVERLAY { $$ = strdup("OVERLAY"); }
+    | KW_POS { $$ = strdup("POS"); }
+    | KW_PREFIX { $$ = strdup("PREFIX"); }
+    | KW_EXTNAME { $$ = strdup("EXTNAME"); }
+    | KW_PSDS { $$ = strdup("PSDS"); }
+    | KW_SDS { $$ = strdup("SDS"); }
+    | KW_DTAARA { $$ = strdup("DTAARA"); }
+    | KW_RTNPARM { $$ = strdup("RTNPARM"); }
+    | KW_OPDESC { $$ = strdup("OPDESC"); }
+    | KW_ASCEND { $$ = strdup("ASCEND"); }
+    | KW_CTDATA { $$ = strdup("CTDATA"); }
+    | KW_PERRCD { $$ = strdup("PERRCD"); }
+    | KW_DESCEND { $$ = strdup("DESCEND"); }
+    | KW_NULLIND { $$ = strdup("NULLIND"); }
+    | KW_TO { $$ = strdup("TO"); }
+    | KW_DOWNTO { $$ = strdup("DOWNTO"); }
+    | KW_BY { $$ = strdup("BY"); }
+    | KW_TAG { $$ = strdup("TAG"); }
+    ;
+
+op_name:
+      KW_READE { $$ = strdup("READE"); }
+    | KW_READPE { $$ = strdup("READPE"); }
+    | KW_READP { $$ = strdup("READP"); }
+    | KW_EXFMT { $$ = strdup("EXFMT"); }
+    | KW_READC { $$ = strdup("READC"); }
+    | KW_READ { $$ = strdup("READ"); }
+    | KW_CHAIN { $$ = strdup("CHAIN"); }
+    | KW_WRITE { $$ = strdup("WRITE"); }
+    | KW_EXCEPT { $$ = strdup("EXCEPT"); }
+    | KW_UPDATE { $$ = strdup("UPDATE"); }
+    | KW_DELETE { $$ = strdup("DELETE"); }
+    | KW_SETLL { $$ = strdup("SETLL"); }
+    | KW_SETGT { $$ = strdup("SETGT"); }
+    | KW_DSPLY { $$ = strdup("DSPLY"); }
+    | KW_EVALR { $$ = strdup("EVALR"); }
+    | KW_EVAL { $$ = strdup("EVAL"); }
+    | KW_CALLP { $$ = strdup("CALLP"); }
+    | KW_CALL { $$ = strdup("CALL"); }
+    | KW_LEAVESR { $$ = strdup("LEAVESR"); }
+    | KW_DEALLOC { $$ = strdup("DEALLOC"); }
+    | KW_TEST { $$ = strdup("TEST"); }
+    | KW_RETURN { $$ = strdup("RETURN"); }
+    | KW_OUT { $$ = strdup("OUT"); }
+    | KW_UNLOCK { $$ = strdup("UNLOCK"); }
+    | KW_IN { $$ = strdup("IN"); }
+    | KW_IF { $$ = strdup("IF"); }
+    | KW_ELSEIF { $$ = strdup("ELSEIF"); }
+    | KW_ELSE { $$ = strdup("ELSE"); }
+    | KW_ENDIF { $$ = strdup("ENDIF"); }
+    | KW_DOU { $$ = strdup("DOU"); }
+    | KW_DOW { $$ = strdup("DOW"); }
+    | KW_ENDDO { $$ = strdup("ENDDO"); }
+    | KW_FOR { $$ = strdup("FOR"); }
+    | KW_ENDFOR { $$ = strdup("ENDFOR"); }
+    | KW_SELECT { $$ = strdup("SELECT"); }
+    | KW_WHEN { $$ = strdup("WHEN"); }
+    | KW_OTHER { $$ = strdup("OTHER"); }
+    | KW_ENDSL { $$ = strdup("ENDSL"); }
+    | KW_ITER { $$ = strdup("ITER"); }
+    | KW_LEAVE { $$ = strdup("LEAVE"); }
+    | KW_MONITOR { $$ = strdup("MONITOR"); }
+    | KW_ENDMON { $$ = strdup("ENDMON"); }
+    | KW_BEGSR { $$ = strdup("BEGSR"); }
+    | KW_ENDSR { $$ = strdup("ENDSR"); }
+    | KW_EXSR { $$ = strdup("EXSR"); }
+    | KW_GOTO { $$ = strdup("GOTO"); }
+    | KW_MOVEL { $$ = strdup("MOVEL"); }
+    | KW_MOVE { $$ = strdup("MOVE"); }
+    | KW_RESET { $$ = strdup("RESET"); }
+    | KW_SORTA { $$ = strdup("SORTA"); }
+    | KW_CLEAR { $$ = strdup("CLEAR"); }
+    | KW_DUMP { $$ = strdup("DUMP"); }
     ;
 
 primary_expr:
-    IDENTIFIER {
+    ident {
         $$ = new rpg::Identifier($1);
         free($1);
     }
-    | KW_UNS { $$ = new rpg::Identifier("UNS"); }
-    | KW_FLOAT_TYPE { $$ = new rpg::Identifier("FLOAT"); }
-    | KW_GRAPH { $$ = new rpg::Identifier("GRAPH"); }
-    | KW_ASCEND { $$ = new rpg::Identifier("ASCEND"); }
-    | KW_DESCEND { $$ = new rpg::Identifier("DESCEND"); }
-    | KW_RTNPARM { $$ = new rpg::Identifier("RTNPARM"); }
-    | KW_OPDESC { $$ = new rpg::Identifier("OPDESC"); }
-    | KW_NULLIND { $$ = new rpg::Identifier("NULLIND"); }
-    | KW_DATFMT { $$ = new rpg::Identifier("DATFMT"); }
-    | KW_OVERLAY { $$ = new rpg::Identifier("OVERLAY"); }
-    | KW_POS { $$ = new rpg::Identifier("POS"); }
-    | KW_PREFIX { $$ = new rpg::Identifier("PREFIX"); }
-    | KW_TIMFMT { $$ = new rpg::Identifier("TIMFMT"); }
-    | KW_EXTNAME { $$ = new rpg::Identifier("EXTNAME"); }
     | INTEGER_LITERAL {
         $$ = new rpg::IntLiteral($1);
     }
@@ -2339,6 +2561,14 @@ primary_expr:
         free($1);
     }
     | IDENTIFIER LPAREN call_args_opt RPAREN {
+        $$ = make_func($1, $3);
+        free($1);
+    }
+    | call_kw_name LPAREN call_args_opt RPAREN {
+        $$ = make_func($1, $3);
+        free($1);
+    }
+    | op_name LPAREN call_args_opt RPAREN {
         $$ = make_func($1, $3);
         free($1);
     }

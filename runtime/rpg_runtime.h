@@ -608,6 +608,37 @@ struct RpgError : std::runtime_error {
     throw RpgError(status, msg);
 }
 
+// An array element as RPG indexes it: from 1, and an index outside the
+// array is status 121 (RNX0121), not a read or write past its end.
+template <class A, class I>
+inline auto& rpg_elem(A& a, I index) {
+    long long i = static_cast<long long>(index);
+    if (i < 1 || i > static_cast<long long>(a.size()))
+        rpg_raise(121, "RNX0121: Array index not valid.");
+    return a[static_cast<size_t>(i - 1)];
+}
+// DIM(*AUTO:max): an index past the current end extends the array, up to
+// its maximum; new elements take the array's initial value.
+template <class V, class I, class T>
+inline auto& rpg_elem_auto(V& v, I index, long long max, const T& fill) {
+    long long i = static_cast<long long>(index);
+    if (i < 1 || i > max) rpg_raise(121, "RNX0121: Array index not valid.");
+    if (i > static_cast<long long>(v.size())) v.resize(static_cast<size_t>(i), fill);
+    return v[static_cast<size_t>(i - 1)];
+}
+template <class V, class I>
+inline auto& rpg_elem_auto(V& v, I index, long long max) {
+    return rpg_elem_auto(v, index, max, typename V::value_type{});
+}
+
+// The status of the error being handled, inside a catch: the RpgError's
+// own, else the last status the runtime set.
+inline int rpg_caught_status() {
+    try { throw; }
+    catch (const RpgError& e) { return e.status; }
+    catch (...) { return rpg_status_code(); }
+}
+
 [[noreturn]] inline void rpg__unhandled_error() {
     if (std::exception_ptr ep = std::current_exception()) {
         try { std::rethrow_exception(ep); }

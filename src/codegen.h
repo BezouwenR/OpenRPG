@@ -248,6 +248,10 @@ private:
     int displayLength(Expression& e);
     std::map<std::string, std::string> vector_fill_; // varying array -> new-element value
     std::set<std::string> varying_arrays_; // DIM(*VAR) / DIM(*AUTO), held as std::vector
+    std::map<std::string, int> auto_arrays_;  // DIM(*AUTO:max): name -> max
+    // An element of array `arr`, 1-based and bounds-checked (status 121).
+    std::string elemRef(const std::string& arr, const std::string& index) const;
+    std::string subExpr(Expression& expr);
     // Subfield name -> its DS, for a DS without QUALIFIED, whose subfields
     // are referenced by bare name in RPG.
     std::map<std::string, std::string> unqualified_subfields_;

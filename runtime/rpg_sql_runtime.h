@@ -10,6 +10,18 @@
 #endif
 #include <sql.h>
 #include <sqlext.h>
+#ifdef _WIN32
+// RPG names a field IN, OUT, DELETE or CONST freely (IBM i reserves none
+// of them), and the program is C++ that names it the same. <windows.h>
+// defines these as macros, which would silently rewrite such a name.
+// Nothing below uses them.
+#  undef IN
+#  undef OUT
+#  undef OPTIONAL
+#  undef DELETE
+#  undef CONST
+#  undef ERROR
+#endif
 #include <cstring>
 #include <iostream>
 #include <map>

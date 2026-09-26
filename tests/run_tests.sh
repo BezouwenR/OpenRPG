@@ -845,9 +845,6 @@ run_test "286" "Reject a character value in a numeric field" "$TESTDIR/test286_e
 run_test "287" "Reject UNLOCK of the local data area" "$TESTDIR/test287_err_unlock_lda.rpgle" "error"
 run_test "288" "Reject a data area name over 10 characters" "$TESTDIR/test288_err_dtaara_name_length.rpgle" "error"
 run_test "289" "Reject TEST without (E)" "$TESTDIR/test289_err_test_no_e.rpgle" "error"
-run_test "290" "DS without INZ starts as blanks" "$TESTDIR/test290_ds_blank_inz.rpgle" "run"
-run_test "291" "Edit codes, DSPLY and %CHAR formats" "$TESTDIR/test291_edit_codes.rpgle" "run"
-run_test "292" "Reject %EDITC with a variable edit code" "$TESTDIR/test292_err_editc_variable.rpgle" "error"
 run_test "290" "Reject TEST(D) on a date field" "$TESTDIR/test290_err_test_d_on_date.rpgle" "error"
 run_test "291" "Reject two statements on one line" "$TESTDIR/test291_err_two_statements_line.rpgle" "error"
 run_test "292" "Reject WRITE to a program-described file" "$TESTDIR/test292_err_write_program_described.rpgle" "error"
@@ -860,6 +857,14 @@ run_test "298" "Reject POS in a fixed-form definition" "$TESTDIR/test298_err_fix
 run_test "299" "Reject CAB without its factors" "$TESTDIR/test299_err_cab_no_factors.rpgle" "error"
 run_test "300" "Reject a fixed-format copy member in free form" "$TESTDIR/test300_err_copy_not_free.rpgle" "error"
 run_test "301" "Reject entries beside a continued name" "$TESTDIR/test301_err_name_continuation.rpgle" "error"
+run_test "302" "DS without INZ starts as blanks" "$TESTDIR/test302_ds_blank_inz.rpgle" "run"
+run_test "303" "Edit codes, DSPLY and %CHAR formats" "$TESTDIR/test303_edit_codes.rpgle" "run"
+run_test "304" "Reject %EDITC with a variable edit code" "$TESTDIR/test304_err_editc_variable.rpgle" "error"
+run_test "305" "ON-ERROR status codes, *PROGRAM, *FILE, *ALL" "$TESTDIR/test305_on_error_codes.rpgle" "run"
+run_test "306" "Keywords and op codes as names" "$TESTDIR/test306_keyword_names.rpgle" "run"
+run_test "307" "Reject assigning an op-code name without EVAL" "$TESTDIR/test307_err_opcode_name_assign.rpgle" "error"
+run_test "308" "Reject an op-code subfield without DCL-SUBF" "$TESTDIR/test308_err_opcode_subfield.rpgle" "error"
+run_test "309" "Reject NOT as a name" "$TESTDIR/test309_err_not_name.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

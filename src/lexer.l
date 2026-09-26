@@ -616,6 +616,8 @@ static void parse_ctlopt(const char* text) {
 "*HIVAL"            { return KW_HIVAL; }
 "*LOVAL"            { return KW_LOVAL; }
 "*ALL"              { return KW_ALL; }
+"*FILE"             { return KW_STAR_FILE; }
+"*PROGRAM"          { return KW_STAR_PROGRAM; }
 "*DAYS"             { return KW_DAYS; }
 "*MONTHS"           { return KW_MONTHS; }
 "*YEARS"            { return KW_YEARS; }

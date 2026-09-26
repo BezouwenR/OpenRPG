@@ -39,6 +39,17 @@ std::string CodeGen::emitExpr(Expression& expr) {
     return expr_.str();
 }
 
+// emitExpr for use while an expression is being written: the text emitted
+// so far is set aside and restored, where emitExpr would discard it.
+std::string CodeGen::subExpr(Expression& expr) {
+    std::ostringstream saved;
+    std::swap(saved, expr_);
+    expr.accept(*this);
+    std::string r = expr_.str();
+    std::swap(saved, expr_);
+    return r;
+}
+
 static std::string stripOuterParens(const std::string& s) {
     if (s.size() >= 2 && s.front() == '(' && s.back() == ')') {
         int depth = 0;
@@ -1802,6 +1813,7 @@ void CodeGen::visit(DclS& node) {
             // DIM(*VAR:max) or DIM(*AUTO:max) — use std::vector
             out_ << "std::vector<" << typeToString(node.type, node.length) << "> " << node.name << ";\n";
             varying_arrays_.insert(node.name);
+            if (node.dim_type == 2) auto_arrays_[node.name] = node.dim;
             std::string init = arrayElementInit(node);
             if (!init.empty()) vector_fill_[node.name] = init;
             // Reserving capacity is a statement, not part of the
@@ -2990,9 +3002,7 @@ void CodeGen::visit(DotExpr& node) {
     // Check if object is a FuncCall — treat as array(idx).field
     auto* fc = dynamic_cast<FuncCall*>(node.object.get());
     if (fc && fc->args.size() == 1) {
-        expr_ << fc->name << "[";
-        fc->args[0]->accept(*this);
-        expr_ << " - 1]." << node.field;
+        expr_ << elemRef(fc->name, subExpr(*fc->args[0])) << "." << node.field;
         if (isOverlay(fc->name)) expr_ << "()";
     } else {
         node.object->accept(*this);
@@ -3017,9 +3027,20 @@ void CodeGen::visit(ArrayAccess& node) {
                 " begins with TAB, so an index is not allowed; fill a table from "
                 "compile-time data (CTDATA), and search it with %TLOOKUP (IBM: RNF0752)");
     }
-    expr_ << node.name << "[";
-    node.index->accept(*this);
-    expr_ << " - 1]";  // RPG arrays are 1-based
+    expr_ << elemRef(node.name, subExpr(*node.index));
+}
+
+// RPG indexes from 1, and an index outside the array is an error (status
+// 121), not a read or write of whatever lies beyond it. A DIM(*AUTO)
+// array grows to the index instead, up to its maximum.
+std::string CodeGen::elemRef(const std::string& arr, const std::string& index) const {
+    auto a = auto_arrays_.find(arr);
+    if (a != auto_arrays_.end()) {
+        auto f = vector_fill_.find(arr);
+        return "rpg_elem_auto(" + arr + ", " + index + ", " + std::to_string(a->second) +
+               (f != vector_fill_.end() ? ", " + f->second : std::string()) + ")";
+    }
+    return "rpg_elem(" + arr + ", " + index + ")";
 }
 
 void CodeGen::visit(MonitorStmt& node) {
@@ -3032,7 +3053,42 @@ void CodeGen::visit(MonitorStmt& node) {
     out_ << "} catch (...) {\n";
     indent_++;
     if (uses_psds_) { emitIndent(); out_ << "rpg_psds_sync();\n"; }
-    emitStatements(node.on_error_body);
+    // The first ON-ERROR that lists the error's status handles it. One
+    // that lists none, or *ALL, handles everything; *PROGRAM is status
+    // 100-999, *FILE 1000-9999. An error no clause lists is not handled
+    // here: it goes on up, as if there were no MONITOR (IBM i).
+    bool catchAll = false;
+    emitIndent();
+    out_ << "const int __mon_st = rpg_caught_status();\n";
+    for (size_t i = 0; i < node.clauses.size() && !catchAll; i++) {
+        auto& c = node.clauses[i];
+        std::vector<std::string> tests;
+        bool all = c.codes.empty() && c.special.empty();
+        for (auto& s : c.special) {
+            if (s == "*ALL") all = true;
+            else if (s == "*PROGRAM") tests.push_back("(__mon_st >= 100 && __mon_st <= 999)");
+            else if (s == "*FILE") tests.push_back("(__mon_st >= 1000 && __mon_st <= 9999)");
+        }
+        for (auto& e : c.codes) tests.push_back("__mon_st == " + emitExpr(*e));
+        emitIndent();
+        if (all) {
+            out_ << (i == 0 ? "{\n" : "else {\n");
+            catchAll = true;
+        } else {
+            std::string cond;
+            for (auto& s : tests) cond += (cond.empty() ? "" : " || ") + s;
+            out_ << (i == 0 ? "if (" : "else if (") << cond << ") {\n";
+        }
+        indent_++;
+        emitStatements(c.body);
+        indent_--;
+        emitIndent();
+        out_ << "}\n";
+    }
+    if (!catchAll) {
+        emitIndent();
+        out_ << "else throw;\n";
+    }
     indent_--;
     emitIndent();
     out_ << "}\n";
@@ -4141,9 +4197,7 @@ std::string CodeGen::resolveOverload(const FuncCall& call) {
 void CodeGen::visit(FuncCall& node) {
     // Check if this is actually an array access
     if (array_vars_.count(node.name) && node.args.size() == 1) {
-        expr_ << node.name << "[";
-        node.args[0]->accept(*this);
-        expr_ << " - 1]";
+        expr_ << elemRef(node.name, subExpr(*node.args[0]));
         return;
     }
     // An overloaded name calls the one candidate the arguments fit.
