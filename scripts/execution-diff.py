@@ -222,12 +222,17 @@ def main():
                 **({"listing": r["listing"]} if r["listing"] else {}),
                 "verified": today,
             }
-        if skipped_from(a.skipped):
-            baseline["skipped"] = [list(s) for s in skipped_from(a.skipped)]
+        # A partial run (--only) reports only its own skips: merge them, and
+        # drop any program that has since run or no longer exists.
+        skips = {n: why for n, why in baseline.get("skipped", [])}
+        skips.update(dict(skipped_from(a.skipped)))
+        baseline["skipped"] = [[n, why] for n, why in sorted(skips.items())
+                               if n not in order and os.path.exists(os.path.join(a.tests, n))]
         baseline["generated"] = today
         json.dump(baseline, open(bpath, "w"), indent=1, sort_keys=True)
         open(bpath, "a").write("\n")
-    skipped = [tuple(s) for s in baseline.get("skipped", [])]
+    skipped = [tuple(s) for s in baseline.get("skipped", [])
+               if s[0] not in baseline["files"] and os.path.exists(os.path.join(a.tests, s[0]))]
     counts = report(baseline, a.tests, os.path.join(a.out, "ibmi-execution-differences.md"), skipped)
     print("IBM i execution: " + ", ".join(f"{v} {k}" for k, v in counts.items() if v))
 

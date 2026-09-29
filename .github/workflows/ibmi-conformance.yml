@@ -290,3 +290,31 @@ jobs:
             sleep 5
           done
           echo "::warning::could not push the results; they are in the run's artifact"
+
+      # The wiki's IBM-i-Execution-Results page: what each program displayed
+      # on IBM i beside what it displays with rpgc, and why they differ
+      # (tests/ibmi-execution-notes.txt). Published even when the run failed
+      # part way: the baseline still holds every earlier result.
+      - name: Publish the results page to the wiki
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git clone --depth 1 \
+            "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git" wiki
+          python3 scripts/execution-wiki.py \
+            --out wiki/IBM-i-Execution-Results.md \
+            --sidebar wiki/_Sidebar.md \
+            --commit "${{ github.sha }}" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --repo "${{ github.repository }}"
+          cd wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add IBM-i-Execution-Results.md _Sidebar.md
+          if git diff --cached --quiet; then
+            echo "results page unchanged"
+          else
+            git commit -q -m "IBM i execution results, run ${{ github.run_id }}"
+            git push -q
+          fi

@@ -1691,7 +1691,11 @@ is the oracle for behaviour: the compile check cannot see a program both
 compilers accept but run differently, and `expected_output/` is written by
 rpgc itself. On demand: `gh workflow run ibmi-conformance.yml -f mode=execute`.
 Results: `ibmi-execution-differences.md`, from `ibmi-execution-baseline.json`
-(IBM's output per source, keyed by SHA-256).
+(IBM's output per source, keyed by SHA-256), and the wiki page
+**IBM-i-Execution-Results** (`scripts/execution-wiki.py`, published by the
+`execute` run). **Why** each program differs is kept by hand in
+`tests/ibmi-execution-notes.txt` (rpgc / platform / test / open); its
+`rpgc` entries are the work queue, and a fix deletes its line.
 
 How, all verified on the machine first:
 - **DSPLY goes to a message queue, not `printf`.** DSPLY's second operand
