@@ -16,7 +16,6 @@
 # no note, and a stale one hides a regression.
 
 # --- rpgc: work to do --------------------------------------------------------
-test33_replace.rpgle                  rpgc      %REPLACE without a length replaces as many characters as the replacement is long; rpgc inserts instead
 test50_numeric_bifs.rpgle             rpgc      %DECPOS returns the field's declared decimal positions (2); rpgc returns the scale of the value last assigned (1)
 test69_scanr.rpgle                    rpgc      %SCANR's start begins the search range, searched backward from its end; rpgc searches only up to the start
 test67_pssr_error.rpgle               rpgc      a *PSSR that ends at ENDSR with no return point ends the program in error (RNX9001); rpgc ends normally

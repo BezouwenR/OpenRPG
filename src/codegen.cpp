@@ -4553,13 +4553,16 @@ void CodeGen::visit(BIFCall& node) {
         }
         expr_ << ")";
     } else if (node.name == "REPLACE") {
-        // %REPLACE(new : source : start {: length})
+        // %REPLACE(replacement : source {: start {: length}}); the runtime
+        // supplies IBM's defaults for what is left out.
         expr_ << "rpg_replace(";
         node.args[0]->accept(*this);
         expr_ << ", ";
         node.args[1]->accept(*this);
-        expr_ << ", ";
-        node.args[2]->accept(*this);
+        if (node.args.size() > 2) {
+            expr_ << ", ";
+            node.args[2]->accept(*this);
+        }
         if (node.args.size() > 3) {
             expr_ << ", ";
             node.args[3]->accept(*this);

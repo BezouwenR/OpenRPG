@@ -229,15 +229,28 @@ inline int rpg_checkr(const std::string& comp, const std::string& base, int star
 }
 
 // %REPLACE(new : source : start {: length})
-inline std::string rpg_replace(const std::string& newstr, const std::string& source, int start, int length = -1) {
+// Defined with RpgError below; declared here for the helpers that raise.
+[[noreturn]] inline void rpg_raise(int status, const std::string& msg);
+
+// %REPLACE(replacement : source {: start {: length}}), as IBM i does it:
+// `length` characters of the source, from `start`, give way to the
+// replacement. The start defaults to 1, and the length to the
+// replacement's own length, cut off at the end of the source -- so
+// 'Beautiful ' over 'Hello World' at 7 is 'Hello Beautiful ', not an
+// insertion. A length of 0 inserts. A start outside 1 .. length + 1 of the
+// source, or a length given explicitly that runs past its end, is status
+// 100. All verified on PUB400 (test33).
+constexpr long long RPG_REPLACE_DEFAULT = LLONG_MIN;
+inline std::string rpg_replace(const std::string& repl, const std::string& source,
+                               long long start = 1, long long length = RPG_REPLACE_DEFAULT) {
+    long long n = static_cast<long long>(source.size());
+    bool given = length != RPG_REPLACE_DEFAULT;
+    if (!given) length = static_cast<long long>(repl.size());
+    if (start < 1 || start > n + 1 || length < 0 || (given && start - 1 + length > n))
+        rpg_raise(100, "RNX0100: Value out of range for string operation.");
     std::string result = source;
-    int pos = start - 1; // 1-based to 0-based
-    if (length < 0) {
-        // Insert mode: insert at position without removing
-        result.insert(pos, newstr);
-    } else {
-        result.replace(pos, length, newstr);
-    }
+    result.replace(static_cast<size_t>(start - 1),
+                   static_cast<size_t>(std::min(length, n - (start - 1))), repl);
     return result;
 }
 
@@ -410,7 +423,6 @@ inline std::string rpg_fit_varchar(const std::string& v, int maxLen) {
 // subfield holds no valid decimal data at all -- using it is a decimal data
 // error (MCH1202, status 907). Here that blank decimal state is a NaN, and
 // every place that consumes a decimal value checks for it.
-[[noreturn]] inline void rpg_raise(int status, const std::string& msg);
 inline double rpg_blank_dec() { return std::numeric_limits<double>::quiet_NaN(); }
 inline float rpg_blank_float4() {
     uint32_t b = 0x40404040u; float f; std::memcpy(&f, &b, sizeof f); return f;

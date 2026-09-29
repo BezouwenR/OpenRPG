@@ -1846,14 +1846,19 @@
   "test33_replace.rpgle": {
    "error": "",
    "output": [
-    "Hello RPG                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ",
-    "Hello Beautiful                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
-    "Goodbye World                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            "
+    "[Hello RPG]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ",
+    "[Hello Beautiful ]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ",
+    "[Goodbye World]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+    "[Hello Big World]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ",
+    "[Jello World]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ",
+    "[Hello World!]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ",
+    "status 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+    "status 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
    ],
-   "sha256": "f613dd01a2544d8d24a39d2866359af2b6fc419d4178dcd857fc0e5b15c11017",
+   "sha256": "f877fa3930a5dfc560847ce49c59e27b8c69c37bcb6c55155707f1bc25bf2ae6",
    "status": "same",
    "test": "33",
-   "verified": "2026-09-26"
+   "verified": "2026-09-28"
   },
   "test34_check.rpgle": {
    "error": "",
@@ -2467,20 +2472,8 @@
    "verified": "2026-09-26"
   }
  },
- "generated": "2026-09-26",
+ "generated": "2026-09-28",
  "skipped": [
-  [
-   "test49_extproc.rpgle",
-   "links a second object; not run standalone"
-  ],
-  [
-   "test61_no_free.rpgle",
-   "IBM i does not compile it"
-  ],
-  [
-   "test85_getenv.rpgle",
-   "IBM i does not compile it"
-  ],
   [
    "test175_fixed_cspec_call_parm.rpgle",
    "links a second object; not run standalone"
@@ -2506,11 +2499,15 @@
    "IBM i does not compile it"
   ],
   [
-   "test290_ds_blank_inz.rpgle",
+   "test49_extproc.rpgle",
+   "links a second object; not run standalone"
+  ],
+  [
+   "test61_no_free.rpgle",
    "IBM i does not compile it"
   ],
   [
-   "test291_edit_codes.rpgle",
+   "test85_getenv.rpgle",
    "IBM i does not compile it"
   ]
  ]

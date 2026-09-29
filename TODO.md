@@ -1730,6 +1730,11 @@ triage, not yet investigated test by test:
 | One-off behaviours | 26 (`%SIZE` of pointer 16), 33 (`%REPLACE`), 50, 69 (`%SCANR`), 67 (*PSSR), 90 (PSDS user/job), 93/96 (data areas), 102 (SND-MSG escape), 155/216 (I-spec record ID), 193/196/208/212 (MOVE), 228 (loops forever), 267, 283, 87/88 |
 | Probably platform divergence | DATA-INTO/DATA-GEN name rpgc's built-in parsers (RNX0355: 99, 100, 112, 113, 114, 180, 87?); 54 (program name); 115 (DUMP goes to spool) |
 
+**Fixed 2026-09-28: %REPLACE (test33).** Without a length it replaces as many
+characters as the replacement has, cut off at the end of the source; it had
+inserted. An omitted start is 1; a start outside the source, or a length
+given that runs past its end, is status 100 (all verified on PUB400).
+
 **Fixed 2026-09-26: ON-ERROR codes, keyword names, array bounds (150 of 180).**
 - `ON-ERROR` takes status codes, named constants, `*PROGRAM` (100-999),
   `*FILE` (1000-9999) and `*ALL`, and a MONITOR may have several clauses.

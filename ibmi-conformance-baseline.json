@@ -3242,9 +3242,9 @@
   "test33_replace.rpgle": {
    "codes": [],
    "rpgc": "accept",
-   "sha256": "f613dd01a2544d8d24a39d2866359af2b6fc419d4178dcd857fc0e5b15c11017",
+   "sha256": "f877fa3930a5dfc560847ce49c59e27b8c69c37bcb6c55155707f1bc25bf2ae6",
    "verdict": "accept",
-   "verified": "2026-09-25"
+   "verified": "2026-09-29"
   },
   "test34_check.rpgle": {
    "codes": [],
@@ -3834,5 +3834,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-09-26T23:36:53+00:00"
+ "generated": "2026-09-29T02:35:34+00:00"
 }
