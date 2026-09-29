@@ -1779,23 +1779,18 @@ DSPLY %SUBST(MyConfig: 1: 11);   // VERSION=2.0
 
 ## SND-MSG
 
-`SND-MSG` sends a message to the program message queue. The message type is one
-of `*INFO` (the default), `*DIAG`, `*COMP`, `*STATUS`, `*NOTIFY` or `*ESCAPE`. In
-OpenRPG every message is written to stderr, prefixed with its type, and
-`*ESCAPE` also raises a catchable exception.
+`SND-MSG` sends a message. The message type is one of `*INFO` (the default),
+`*DIAG`, `*COMP`, `*STATUS`, `*NOTIFY` or `*ESCAPE`. IBM i writes the others to
+the job log; OpenRPG has no job log, so it prints them to stderr, prefixed with
+their type. `*ESCAPE` behaves as on IBM i: it is an error, sent to a call-stack
+entry.
 
 ### Syntax
 
 ```rpgle
 SND-MSG *INFO 'Informational message';
 SND-MSG *DIAG 'Diagnostic detail';
-SND-MSG *ESCAPE 'Fatal error text';
-
 SND-MSG *COMP 'Processing complete';
-
-// %TARGET names the receiving call-stack entry. It is accepted and has no
-// effect here, since every message goes to stderr.
-SND-MSG *INFO 'Sent to the caller' %TARGET(*CALLER);
 
 // Bare form — defaults to *INFO
 SND-MSG 'Something happened';
@@ -1809,18 +1804,34 @@ SND-MSG *DIAG msg;
 The type is written directly after `SND-MSG`. `SND-MSG TYPE(*INFO) 'text'` is
 rejected: IBM i reads `TYPE` as a variable name (RNF0203).
 
-### Catching \*ESCAPE with MONITOR
+### \*ESCAPE
 
-`*ESCAPE` is the only message type that can interrupt normal flow. Wrap it in a
-`MONITOR` block to handle it gracefully:
+By default an `*ESCAPE` message goes to the **caller** of the procedure that
+sends it, as on IBM i: that procedure ends at once -- its own `MONITOR` and
+`*PSSR` do not see the message -- and in the caller it is an error with status
+202, message `CPF9898` (in the PSDS). This is how a procedure reports failure:
 
 ```rpgle
+DCL-PROC checkQty;
+  DCL-PI *N;
+    qty INT(10) VALUE;
+  END-PI;
+  IF qty < 0;
+    SND-MSG *ESCAPE 'Quantity cannot be negative';   // checkQty ends here
+  ENDIF;
+END-PROC;
+
 MONITOR;
-  SND-MSG *ESCAPE 'Validation failed';
+  checkQty(-1);
 ON-ERROR;
-  DSPLY ('Caught: ' + %CHAR(%STATUS));
+  DSPLY ('Caught: ' + %CHAR(%STATUS));   // Caught: 202
 ENDMON;
 ```
+
+`%TARGET(*SELF)` sends it to the procedure itself instead, where its own
+`MONITOR` handles it, with status 9999. Sent from the main procedure to its
+caller, an `*ESCAPE` ends the program, printing its text. `%TARGET` does not
+change where the other message types go.
 
 ---
 

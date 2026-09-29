@@ -1,6 +1,7 @@
 **FREE
 
-// Test 102: SND-MSG — send messages to stderr
+// Test 102: SND-MSG — send messages to stderr. IBM i writes *INFO, *DIAG
+// and *COMP to the job log; rpgc has none, so it prints them.
 
 DCL-S msg VARCHAR(100);
 
@@ -17,12 +18,8 @@ SND-MSG *COMP 'Processing complete' %TARGET(*CALLER);
 // Plain form — defaults to *INFO
 SND-MSG 'Default info message';
 
-// *ESCAPE inside MONITOR — should be caught
-MONITOR;
-  SND-MSG *ESCAPE 'Something went wrong';
-ON-ERROR;
-  DSPLY 'Caught escape message';
-ENDMON;
+// *ESCAPE goes to the caller and ends the procedure, as on IBM i:
+// test312.
 
 DSPLY 'Done';
 

@@ -94,9 +94,9 @@
   "test102_snd_msg.rpgle": {
    "codes": [],
    "rpgc": "accept",
-   "sha256": "ee8de0b6e53a2ef809abe1508019fd3b93aaf5346d84cf0d0e02662400dae711",
+   "sha256": "59fc0740b1bbf0c88e6524773020e59c11e1c5c0f678007ed366a2b17ebccc5e",
    "verdict": "accept",
-   "verified": "2026-09-25"
+   "verified": "2026-09-29"
   },
   "test103_rla_chain.rpgle": {
    "codes": [],
@@ -3239,6 +3239,13 @@
    "verdict": "accept",
    "verified": "2026-09-29"
   },
+  "test312_snd_msg_escape.rpgle": {
+   "codes": [],
+   "rpgc": "accept",
+   "sha256": "7c3e5a8eeccf07f9dc85cddd1e9855d4d4d1f659096725377e58e27f83a1056a",
+   "verdict": "accept",
+   "verified": "2026-09-29"
+  },
   "test31_lookup_sorta.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -3848,5 +3855,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-09-29T13:57:07+00:00"
+ "generated": "2026-09-29T14:21:29+00:00"
 }

@@ -139,12 +139,14 @@
    "verified": "2026-09-26"
   },
   "test102_snd_msg.rpgle": {
-   "error": "CEE9901 Application error. CPF9898 unmonitored by RPGCXRUN at statement *N, instruction X'0000'..",
-   "output": [],
-   "sha256": "ee8de0b6e53a2ef809abe1508019fd3b93aaf5346d84cf0d0e02662400dae711",
-   "status": "runtime-error",
+   "error": "",
+   "output": [
+    "Done                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     "
+   ],
+   "sha256": "59fc0740b1bbf0c88e6524773020e59c11e1c5c0f678007ed366a2b17ebccc5e",
+   "status": "same",
    "test": "102",
-   "verified": "2026-09-26"
+   "verified": "2026-09-29"
   },
   "test10_bifs_expanded.rpgle": {
    "error": "",
@@ -1831,6 +1833,18 @@
    "sha256": "b226789ac67aa0d16b5a7e5c89ec083cf08744e24488ff8ca0497bf33f71e4ee",
    "status": "same",
    "test": "311",
+   "verified": "2026-09-29"
+  },
+  "test312_snd_msg_escape.rpgle": {
+   "error": "",
+   "output": [
+    "CALLER status 202 CPF9898                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ",
+    "SELF status 9999 CPF9898                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
+    "DONE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     "
+   ],
+   "sha256": "7c3e5a8eeccf07f9dc85cddd1e9855d4d4d1f659096725377e58e27f83a1056a",
+   "status": "same",
+   "test": "312",
    "verified": "2026-09-29"
   },
   "test31_lookup_sorta.rpgle": {

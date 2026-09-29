@@ -534,6 +534,7 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %type <ds_hdr> ds_hdr_kws
 %type <expr> eval_any_target
 %type <ival> da_lock_opt
+%type <sval> snd_msg_target snd_target_entry
 %type <sval> ident plain_name kw_name op_name call_kw_name
 %type <enum_const_list> enum_constants enum_constant
 %type <str_list> overload_list
@@ -1159,11 +1160,14 @@ data_gen_stmt:
    TYPE as a variable name (RNF0203/RNF7030). */
 snd_msg_stmt:
     KW_SND_MSG snd_msg_type expression snd_msg_target SEMICOLON {
-        $$ = new rpg::SndMsgStmt($2, std::unique_ptr<rpg::Expression>($3));
-        free($2);
+        auto* s = new rpg::SndMsgStmt($2, std::unique_ptr<rpg::Expression>($3));
+        s->target = $4; $$ = s;
+        free($2); free($4);
     }
     | KW_SND_MSG expression snd_msg_target SEMICOLON {
-        $$ = new rpg::SndMsgStmt("INFO", std::unique_ptr<rpg::Expression>($2));
+        auto* s = new rpg::SndMsgStmt("INFO", std::unique_ptr<rpg::Expression>($2));
+        s->target = $3; $$ = s;
+        free($3);
     }
     | KW_SND_MSG KW_TYPE LPAREN snd_msg_type RPAREN expression SEMICOLON {
         yyerror("SND-MSG: write the message type directly, e.g. SND-MSG *INFO 'text'; "
@@ -1182,17 +1186,20 @@ snd_msg_type:
     | KW_STAR_NOTIFY { $$ = strdup("NOTIFY"); }
     ;
 
-/* %TARGET names a call-stack entry or the external message queue. Here every
-   message goes to stderr, so the target is accepted and has no effect. */
+/* %TARGET names a call-stack entry or the external message queue. It
+   decides where an *ESCAPE message goes (SndMsgStmt::target); other messages
+   go to stderr here, whatever the target. */
 snd_msg_target:
-    /* empty */ %empty
-    | BIF_TARGET LPAREN snd_target_entry RPAREN
-    | BIF_TARGET LPAREN snd_target_entry COLON expression RPAREN { delete $5; }
+    %empty { $$ = strdup(""); }
+    | BIF_TARGET LPAREN snd_target_entry RPAREN { $$ = $3; }
+    | BIF_TARGET LPAREN snd_target_entry COLON expression RPAREN { $$ = $3; delete $5; }
     ;
 
 snd_target_entry:
-    KW_STAR_CALLER | KW_STAR_SELF | KW_STAR_EXT
-    | expression { delete $1; }
+    KW_STAR_CALLER { $$ = strdup("*CALLER"); }
+    | KW_STAR_SELF { $$ = strdup("*SELF"); }
+    | KW_STAR_EXT  { $$ = strdup("*EXT"); }
+    | expression   { $$ = strdup(""); delete $1; }
     ;
 
 /* IN{(E)} {*LOCK} name, OUT{(E)} {*LOCK} name, UNLOCK{(E)} name. The name may

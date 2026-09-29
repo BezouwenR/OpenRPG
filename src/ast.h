@@ -740,6 +740,7 @@ class SndMsgStmt : public Statement {
 public:
     std::string msg_type;                   // "INFO", "DIAG", or "ESCAPE"
     std::unique_ptr<Expression> message;
+    std::string target;                     // %TARGET: "" (default), "*CALLER", "*SELF", ...
     SndMsgStmt(std::string msg_type, std::unique_ptr<Expression> message);
     void accept(ASTVisitor& visitor) override;
 };

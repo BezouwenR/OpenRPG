@@ -103,7 +103,7 @@ def classify(entry, tests, src_sha):
         # rpgc writes its runtime error into its output: the same lines,
         # then an error of its own, is the same behaviour.
         e = norm(exp)
-        if e and re.match(r"RNX\d{4}", e[-1]) and e[:-1] == norm(entry["output"]):
+        if e and re.match(r"[A-Z]{3}\d{4}", e[-1]) and e[:-1] == norm(entry["output"]):
             return "same-error"
         return "runtime-error"
     return "same" if same else "differs"

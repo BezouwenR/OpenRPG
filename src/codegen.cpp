@@ -1190,7 +1190,7 @@ void CodeGen::visit(Program& node) {
         s->accept(*this);
     }
     if (pssr_stmt) {
-        indent_--; emitIndent(); out_ << "} catch (...) {\n";
+        indent_--; emitIndent(); out_ << "} catch (const RpgCallerEscape&) { throw; } catch (...) {\n";
         indent_++;
         if (uses_psds_) { emitIndent(); out_ << "rpg_psds_sync(); rpg_psds_fill();\n"; }
         // Reaching the *PSSR's ENDSR (no RETURN) ends the program in error,
@@ -1466,7 +1466,7 @@ void CodeGen::visit(DclProc& node) {
             }
         }
         if (proc_pssr_stmt) {
-            indent_--; emitIndent(); out_ << "} catch (...) {\n";
+            indent_--; emitIndent(); out_ << "} catch (const RpgCallerEscape&) { throw; } catch (...) {\n";
             // A RETURN in the *PSSR returns from the procedure; reaching
             // its ENDSR ends the procedure in error, which its caller sees
             // as status 202 (IBM i).
@@ -1498,7 +1498,7 @@ void CodeGen::visit(DclProc& node) {
                     s->accept(*this);
                 }
             }
-            indent_--; emitIndent(); out_ << "} catch (...) {\n";
+            indent_--; emitIndent(); out_ << "} catch (const RpgCallerEscape&) { throw; } catch (...) {\n";
             // A RETURN in the *PSSR returns from the procedure; reaching
             // its ENDSR ends the procedure in error, which its caller sees
             // as status 202 (IBM i).
@@ -1525,7 +1525,8 @@ void CodeGen::visit(DclProc& node) {
     has_nopass_params_ = false;
     current_proc_name_.clear();
     void_return_ = false;
-    out_ << "    } catch (const RpgError& __e) { rpg_procedure_failed(__e); }\n";
+    out_ << "    } catch (const RpgCallerEscape& __e) { rpg_escape_arrives(__e); }\n";
+    out_ << "      catch (const RpgError& __e) { rpg_procedure_failed(__e); }\n";
     out_ << "}\n";
 }
 
@@ -3114,7 +3115,7 @@ void CodeGen::visit(MonitorStmt& node) {
     emitStatements(node.try_body);
     indent_--;
     emitIndent();
-    out_ << "} catch (...) {\n";
+    out_ << "} catch (const RpgCallerEscape&) { throw; } catch (...) {\n";
     indent_++;
     if (uses_psds_) { emitIndent(); out_ << "rpg_psds_sync(); rpg_psds_fill();\n"; }
     // The first ON-ERROR that lists the error's status handles it. One
@@ -5067,10 +5068,12 @@ void CodeGen::visit(EvalCorrStmt& node) {
 void CodeGen::visit(SndMsgStmt& node) {
     std::string msg_expr = emitExpr(*node.message);
     if (node.msg_type == "ESCAPE") {
+        // To the caller unless %TARGET(*SELF) (rpg_escape_to_caller). A
+        // handled escape shows nothing; an unhandled one ends the program
+        // with its text, like any other error.
         emitIndent();
-        out_ << "std::cerr << \"ESCAPE: \" << " << msg_expr << " << std::endl;\n";
-        emitIndent();
-        out_ << "throw std::runtime_error(" << msg_expr << ");\n";
+        out_ << (node.target == "*SELF" ? "rpg_escape_to_self(" : "rpg_escape_to_caller(")
+             << "rpg_trimr(std::string(" << msg_expr << ")));\n";
     } else {
         emitIndent();
         out_ << "std::cerr << \"" << node.msg_type << ": \" << " << msg_expr << " << std::endl;\n";

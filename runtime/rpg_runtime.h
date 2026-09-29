@@ -684,6 +684,24 @@ inline auto& rpg_elem_auto(V& v, I index, long long max) {
     return rpg_elem_auto(v, index, max, typename V::value_type{});
 }
 
+// SND-MSG *ESCAPE, as IBM i sends it (verified on PUB400, test312). By
+// default it goes to the procedure's caller: the sending procedure ends,
+// and none of its own handlers (MONITOR, *PSSR) sees the message -- so it
+// is its own type, which they pass on. At the procedure's boundary it
+// becomes an error in the caller, status 202, message CPF9898; from the
+// main procedure it ends the program. %TARGET(*SELF) sends it to the
+// procedure itself instead: an ordinary error there, status 9999.
+struct RpgCallerEscape : RpgError { using RpgError::RpgError; };
+[[noreturn]] inline void rpg_escape_to_caller(const std::string& text) {
+    throw RpgCallerEscape(202, "CPF9898: " + text);
+}
+[[noreturn]] inline void rpg_escape_to_self(const std::string& text) {
+    rpg_raise(9999, "CPF9898: " + text);
+}
+[[noreturn]] inline void rpg_escape_arrives(const RpgCallerEscape& e) {
+    rpg_raise(202, e.what());
+}
+
 // Set when a RETURN runs inside one of the program's subroutines: the
 // program returns too, once the subroutine does.
 inline bool rpg_sr_returned = false;

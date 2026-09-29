@@ -214,7 +214,7 @@ def rpgc_ran(e):
     """How the program runs compiled with rpgc: its recorded output ends in the
     runtime error that stopped it, if one did."""
     lines = xd.norm(xd.expected_lines(a.tests, e["test"]) or [])
-    return "❌" if lines and re.match(r"RNX\d{4}", lines[-1]) else "✅"
+    return "❌" if lines and re.match(r"[A-Z]{3}\d{4}", lines[-1]) else "✅"
 
 
 w(f"## All programs ({len(rows)})\n")

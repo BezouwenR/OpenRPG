@@ -1703,6 +1703,14 @@ triage, not yet investigated test by test:
 | One-off behaviours | 26 (`%SIZE` of pointer 16), 33 (`%REPLACE`), 50, 69 (`%SCANR`), 67 (*PSSR), 90 (PSDS user/job), 93/96 (data areas), 102 (SND-MSG escape), 155/216 (I-spec record ID), 193/196/208/212 (MOVE), 228 (loops forever), 267, 283, 87/88 |
 | Probably platform divergence | DATA-INTO/DATA-GEN name rpgc's built-in parsers (RNX0355: 99, 100, 112, 113, 114, 180, 87?); 54 (program name); 115 (DUMP goes to spool) |
 
+**Fixed 2026-09-29: SND-MSG *ESCAPE (test312; test102 partly).** By default an
+*ESCAPE goes to the caller: the sending procedure ends and its own MONITOR
+and *PSSR do not see it; the caller gets status 202 (CPF9898 in the PSDS),
+and from the main procedure it ends the program. %TARGET(*SELF) sends it to
+the procedure itself, status 9999. rpgc had thrown it at the sender's own
+MONITOR and printed it. Verified on PUB400. *INFO/*DIAG/*COMP still print to
+stderr, by decision: rpgc has no job log (test102 is a platform difference).
+
 **Fixed 2026-09-29: data area locks and errors (test93, test96).** OUT needs
 the data area locked (IN *LOCK) -- status 412 without; OUT releases the lock,
 OUT *LOCK keeps it, UNLOCK releases it (unlocking one not locked is not an
