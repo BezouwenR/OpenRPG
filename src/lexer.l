@@ -849,14 +849,16 @@ static void parse_ctlopt(const char* text) {
     }
 }
 
-[0-9]+\.[0-9]+      { yylval.fval = atof(yytext); return FLOAT_LITERAL; }
+    /* A decimal literal keeps its text: its scale is the digits written
+       after the point, so 1.50 has two decimal positions where 1.5 has one. */
+[0-9]+\.[0-9]+      { yylval.sval = strdup(yytext); return FLOAT_LITERAL; }
 [0-9]+              {
     /* A literal beyond int's range was atoi'd into it and silently wrapped
        (3000000000 became -1294967296). Such a literal is a numeric value,
        not a size or an index, so it is returned as a decimal literal,
        which a double holds exactly up to 2**53. */
     long long v = strtoll(yytext, nullptr, 10);
-    if (v > INT_MAX) { yylval.fval = static_cast<double>(v); return FLOAT_LITERAL; }
+    if (v > INT_MAX) { yylval.sval = strdup(yytext); return FLOAT_LITERAL; }
     yylval.ival = static_cast<int>(v);
     return INTEGER_LITERAL;
 }

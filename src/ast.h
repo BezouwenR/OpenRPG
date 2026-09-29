@@ -47,6 +47,7 @@ public:
 class FloatLiteral : public Expression {
 public:
     double value;
+    int scale = -1;  // digits written after the point; -1 when not known
     explicit FloatLiteral(double value);
     void accept(ASTVisitor& visitor) override;
 };

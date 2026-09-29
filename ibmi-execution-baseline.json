@@ -2037,12 +2037,13 @@
     "3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ",
     "3.50                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ",
     "2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ",
+    "4 2 4 6 3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ",
     "42                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       "
    ],
-   "sha256": "70c343b87859333125d8dec4b23a06ead4e8f2018fc43c3af7ee7462c9603fb5",
+   "sha256": "0b84c54c565d05a1cb91097ac7251e1ea1b5cd6547fdb53c17c1119e851ecc68",
    "status": "same",
    "test": "50",
-   "verified": "2026-09-26"
+   "verified": "2026-09-28"
   },
   "test51_string_bifs.rpgle": {
    "error": "",

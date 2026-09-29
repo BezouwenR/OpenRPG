@@ -3361,9 +3361,9 @@
   "test50_numeric_bifs.rpgle": {
    "codes": [],
    "rpgc": "accept",
-   "sha256": "70c343b87859333125d8dec4b23a06ead4e8f2018fc43c3af7ee7462c9603fb5",
+   "sha256": "0b84c54c565d05a1cb91097ac7251e1ea1b5cd6547fdb53c17c1119e851ecc68",
    "verdict": "accept",
-   "verified": "2026-09-25"
+   "verified": "2026-09-29"
   },
   "test51_string_bifs.rpgle": {
    "codes": [],
@@ -3834,5 +3834,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-09-29T02:35:34+00:00"
+ "generated": "2026-09-29T02:55:21+00:00"
 }

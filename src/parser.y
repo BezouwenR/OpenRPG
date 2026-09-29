@@ -491,7 +491,7 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %token <sval> KW_WRITE_EXT KW_UPDATE_EXT KW_DELETE_EXT
 %token <sval> IDENTIFIER
 %token <ival> INTEGER_LITERAL
-%token <fval> FLOAT_LITERAL
+%token <sval> FLOAT_LITERAL
 %token <sval> STRING_LITERAL DATE_LITERAL TIME_LITERAL TIMESTAMP_LITERAL
 
 %token SEMICOLON EQUALS LPAREN RPAREN COLON
@@ -2554,7 +2554,11 @@ primary_expr:
         $$ = new rpg::IntLiteral($1);
     }
     | FLOAT_LITERAL {
-        $$ = new rpg::FloatLiteral($1);
+        auto* lit = new rpg::FloatLiteral(atof($1));
+        const char* pt = strchr($1, '.');
+        lit->scale = pt ? static_cast<int>(strlen(pt + 1)) : 0;
+        $$ = lit;
+        free($1);
     }
     | STRING_LITERAL {
         $$ = new rpg::StringLiteral(rpg::rpg_decode_lexed_string($1));

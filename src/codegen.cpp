@@ -1703,6 +1703,7 @@ bool CodeGen::decimalScale(const rpg::Expression& e, int& dec, bool& decimal) co
     if (auto* fl = dynamic_cast<const FloatLiteral*>(&e)) {
         // A numeric literal with a point is a decimal literal in RPG; its
         // scale is the digits written after the point.
+        if (fl->scale >= 0) { dec = fl->scale; decimal = true; return true; }
         char buf[64];
         std::snprintf(buf, sizeof(buf), "%.15g", fl->value);
         const char* pt = std::strchr(buf, '.');
@@ -1717,6 +1718,20 @@ bool CodeGen::decimalScale(const rpg::Expression& e, int& dec, bool& decimal) co
         if (!decimalScale(*be->left, l, decimal) || !decimalScale(*be->right, r, decimal)) return false;
         dec = be->op == BinOp::MUL ? std::min(l + r, 63) : std::max(l, r);
         return true;
+    }
+    // %DEC/%DECH(x : digits : decimals) have the scale they are given;
+    // %INT/%INTH/%UNS/%UNSH have none.
+    if (auto* bif = dynamic_cast<const BIFCall*>(&e)) {
+        if ((bif->name == "DEC" || bif->name == "DECH") && bif->args.size() >= 3) {
+            if (auto* il = dynamic_cast<const IntLiteral*>(bif->args[2].get())) {
+                dec = il->value; decimal = true; return true;
+            }
+            return false;
+        }
+        if (bif->name == "INT" || bif->name == "INTH" || bif->name == "UNS" || bif->name == "UNSH") {
+            dec = 0; return true;
+        }
+        return false;
     }
     FieldAttrs a = attrsOf(e);
     if (!a.known) return false;
@@ -4650,9 +4665,18 @@ void CodeGen::visit(BIFCall& node) {
         }
         expr_ << ")";
     } else if (node.name == "DECPOS") {
-        expr_ << "rpg_decpos(";
-        node.args[0]->accept(*this);
-        expr_ << ")";
+        // The operand's declared decimal positions, a constant: %DECPOS of a
+        // PACKED(7:2) is 2 whatever it holds (IBM i). Only an operand whose
+        // scale cannot be worked out here falls back to the value's own.
+        int dec = 0;
+        bool decimal = false;
+        if (decimalScale(*node.args[0], dec, decimal)) {
+            expr_ << dec;
+        } else {
+            expr_ << "rpg_decpos(";
+            node.args[0]->accept(*this);
+            expr_ << ")";
+        }
     } else if (node.name == "SPLIT") {
         expr_ << "rpg_split(";
         node.args[0]->accept(*this);
