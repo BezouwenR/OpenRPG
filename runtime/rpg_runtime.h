@@ -259,6 +259,19 @@ inline int rpg_checkr(const std::string& comp, const std::string& base, int star
 }
 
 // %REPLACE(new : source : start {: length})
+// %SUBST(string : start {: length}): `length` characters from `start`, or
+// the rest of the string without one. A start outside the string, a
+// negative length, or one that runs past the end is status 100, as on IBM
+// i -- not a C++ exception, and not a quietly shorter result.
+constexpr long long RPG_SUBST_TO_END = LLONG_MIN;
+inline std::string rpg_subst(const std::string& s, long long start, long long length = RPG_SUBST_TO_END) {
+    long long n = static_cast<long long>(s.size());
+    if (length == RPG_SUBST_TO_END) length = n - start + 1;
+    if (start < 1 || start > n || length < 0 || start - 1 + length > n)
+        rpg_raise(100, "RNX0100: Length or start position is out of range for the string operation.");
+    return s.substr(static_cast<size_t>(start - 1), static_cast<size_t>(length));
+}
+
 // %REPLACE(replacement : source {: start {: length}}), as IBM i does it:
 // `length` characters of the source, from `start`, give way to the
 // replacement. The start defaults to 1, and the length to the
@@ -787,17 +800,26 @@ inline int rpg_get_pid() { return _getpid(); }
 inline int rpg_get_pid() { return (int)getpid(); }
 #endif
 
+// The Program Status Data Structure, laid out as IBM i lays it out (ILE RPG
+// Reference, "Program Status Data Structure"). A PSDS subfield names its
+// field by starting position; rpg_psds_field_str/int below answer for each
+// position IBM i defines that this runtime can supply.
 struct RpgPsds {
-    std::string proc_name;        // pos 1-10:   procedure/program name
-    int         status_code = 0;  // pos 11-15:  last status code
-    int         prev_status = 0;  // pos 16-20:  previous status code
-    std::string routine_name;     // pos 21-28:  routine name
-    int         parm_count = 0;   // pos 37-39:  parameter count
-    std::string program_name;     // pos 81-90:  program name
-    std::string user_profile;     // pos 91-100: user profile
-    std::string job_number;       // pos 101-108: job number (PID)
-    std::string run_date;         // pos 109-118: run date YYYYMMDD
-    std::string run_time;         // pos 119-124: run time HHMMSS
+    std::string proc_name;        // 1-10    procedure name
+    int         status_code = 0;  // 11-15   status code (zoned 5,0)
+    int         prev_status = 0;  // 16-20   previous status code
+    std::string stmt_number;      // 21-28   statement number of the error
+    std::string routine_name;     // 29-36   routine the error occurred in
+    int         parm_count = 0;   // 37-39   number of parameters (zoned 3,0)
+    std::string exc_type;         // 40-42   exception type: MCH, CPF, RNX, ...
+    std::string exc_number;       // 43-46   exception number
+    std::string exc_data;         // 91-170  exception data (message text)
+    std::string job_name;         // 244-253 job name
+    std::string user_profile;     // 254-263 user name; 358-367 current user
+    int         job_number = 0;   // 264-269 job number (zoned 6,0)
+    int         run_date = 0;     // 276-281 date the program ran, MMDDYY
+    int         run_time = 0;     // 282-287 time the program ran, HHMMSS
+    std::string program_name;     // 334-343 program; 344-353 module
 };
 
 inline RpgPsds& rpg_psds() { static RpgPsds p; return p; }
@@ -830,42 +852,74 @@ inline void rpg_psds_init(const char* argv0) {
     auto& p = rpg_psds();
     p.proc_name = rpg_basename_prog(argv0);
     p.program_name = p.proc_name;
-    p.routine_name = p.proc_name;
+    p.job_name = p.proc_name;
     p.user_profile = rpg_user_profile();
-    char buf[32];
-    std::snprintf(buf, sizeof(buf), "%08d", rpg_get_pid());
-    p.job_number = buf;
+    p.job_number = rpg_get_pid() % 1000000;
     std::time_t now = std::time(nullptr);
     std::tm* t = std::localtime(&now);
-    std::snprintf(buf, sizeof(buf), "%04d%02d%02d",
-        t->tm_year + 1900, t->tm_mon + 1, t->tm_mday);
-    p.run_date = buf;
-    std::snprintf(buf, sizeof(buf), "%02d%02d%02d",
-        t->tm_hour, t->tm_min, t->tm_sec);
-    p.run_time = buf;
+    p.run_date = (t->tm_mon + 1) * 10000 + t->tm_mday * 100 + t->tm_year % 100;
+    p.run_time = t->tm_hour * 10000 + t->tm_min * 100 + t->tm_sec;
 }
 
+// Called where an error is handled (ON-ERROR, *PSSR): the status moves to
+// the previous-status field, and the error's status, message ID and text
+// are recorded. An RpgError's message starts with its ID ("RNX0100: ...").
 inline void rpg_psds_sync() {
-    rpg_psds().status_code = rpg_status_code();
-    rpg_psds().prev_status = rpg_status_code();
+    auto& p = rpg_psds();
+    p.prev_status = p.status_code;
+    p.status_code = rpg_status_code();
+    std::string msg;
+    if (std::exception_ptr ep = std::current_exception()) {
+        try { std::rethrow_exception(ep); }
+        catch (const std::exception& e) { msg = e.what(); }
+        catch (...) {}
+    }
+    if (msg.size() >= 7 && std::isalpha((unsigned char)msg[0]) &&
+        std::isdigit((unsigned char)msg[3]) && std::isdigit((unsigned char)msg[6])) {
+        p.exc_type = msg.substr(0, 3);
+        p.exc_number = msg.substr(3, 4);
+        size_t colon = msg.find(':');
+        p.exc_data = colon == std::string::npos ? msg : msg.substr(colon + 1);
+        size_t first = p.exc_data.find_first_not_of(' ');
+        p.exc_data = first == std::string::npos ? "" : p.exc_data.substr(first);
+    } else {
+        p.exc_type.clear();
+        p.exc_number.clear();
+        p.exc_data = msg;
+    }
 }
 
+// A PSDS subfield's value, by the position it starts at. Positions IBM i
+// defines that this runtime cannot supply (the program's library, the
+// statement number, file information, ...) read as blanks or zero.
 inline std::string rpg_psds_field_str(int pos) {
     auto& p = rpg_psds();
-    if (pos >= 1   && pos <= 10)  return p.proc_name;
-    if (pos >= 21  && pos <= 28)  return p.routine_name;
-    if (pos >= 81  && pos <= 90)  return p.program_name;
-    if (pos >= 91  && pos <= 100) return p.user_profile;
-    if (pos >= 101 && pos <= 108) return p.job_number;
-    if (pos >= 109 && pos <= 118) return p.run_date;
-    if (pos >= 119 && pos <= 124) return p.run_time;
-    return "";
+    switch (pos) {
+        case 1:   return p.proc_name;
+        case 21:  return p.stmt_number;
+        case 29:  return p.routine_name;
+        case 40:  return p.exc_type;
+        case 43:  return p.exc_number;
+        case 91:  return p.exc_data;
+        case 244: return p.job_name;
+        case 254: return p.user_profile;
+        case 334: return p.program_name;
+        case 344: return p.program_name;
+        case 358: return p.user_profile;
+        default:  return "";
+    }
 }
-inline int rpg_psds_field_int(int pos) {
-    if (pos >= 11 && pos <= 15) return rpg_status_code();
-    if (pos >= 16 && pos <= 20) return rpg_psds().prev_status;
-    if (pos >= 37 && pos <= 39) return rpg_psds().parm_count;
-    return 0;
+inline long long rpg_psds_field_int(int pos) {
+    auto& p = rpg_psds();
+    switch (pos) {
+        case 11:  return p.status_code;
+        case 16:  return p.prev_status;
+        case 37:  return p.parm_count;
+        case 264: return p.job_number;
+        case 276: return p.run_date;
+        case 282: return p.run_time;
+        default:  return 0;
+    }
 }
 
 // --- Data Areas ---

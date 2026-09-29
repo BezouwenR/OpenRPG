@@ -1,52 +1,78 @@
 **FREE
 
-// Test 90: PSDS — Program Status Data Structure
-// Tests that PSDS fields are populated at program start
+// Test 90: the Program Status Data Structure, at the positions IBM i gives
+// its subfields. What depends on where the program runs (the names, the
+// user, the job, the date) is checked for being set and consistent, not
+// displayed. After an error the PSDS holds its status, the previous status
+// and the exception ID.
 
 DCL-DS PgmInfo PSDS QUALIFIED;
-  PgmName CHAR(10) POS(81);
-  UserID  CHAR(10) POS(91);
-  JobNum  CHAR(8)  POS(101);
-  RunDate CHAR(8)  POS(109);
-  RunTime CHAR(6)  POS(119);
+  ProcName  CHAR(10)   POS(1);
+  Status    ZONED(5:0) POS(11);
+  PrvStatus ZONED(5:0) POS(16);
+  Parms     ZONED(3:0) POS(37);
+  ExcType   CHAR(3)    POS(40);
+  ExcNbr    CHAR(4)    POS(43);
+  ExcData   CHAR(80)   POS(91);
+  JobName   CHAR(10)   POS(244);
+  UserName  CHAR(10)   POS(254);
+  JobNum    ZONED(6:0) POS(264);
+  RunDate   ZONED(6:0) POS(276);
+  RunTime   ZONED(6:0) POS(282);
+  PgmName   CHAR(10)   POS(334);
+  ModName   CHAR(10)   POS(344);
+  CurUser   CHAR(10)   POS(358);
 END-DS;
 
-DCL-S len INT(10);
+DCL-S line VARCHAR(52);
+DCL-S s VARCHAR(5) INZ('ABC');
+DCL-S a INT(10) INZ(0);
+DCL-S b INT(10);
+DCL-S st INT(10) INZ(9);
 
-// Program name should be non-empty
-IF %TRIM(PgmInfo.PgmName) <> '';
-  DSPLY 'PGMNAME SET';
+line = 'STATUS ' + %CHAR(PgmInfo.Status) + ' ' + %CHAR(PgmInfo.PrvStatus) +
+       ' PARMS ' + %CHAR(PgmInfo.Parms) + ' EXC [' + PgmInfo.ExcType +
+       PgmInfo.ExcNbr + ']';
+DSPLY line;
+
+IF PgmInfo.ProcName <> *BLANKS AND PgmInfo.PgmName = PgmInfo.ProcName
+   AND PgmInfo.ModName = PgmInfo.ProcName;
+  DSPLY 'NAMES SET AND AGREE';
 ELSE;
-  DSPLY 'PGMNAME EMPTY';
+  DSPLY 'NAMES DIFFER';
 ENDIF;
 
-// User profile should be non-empty
-IF %TRIM(PgmInfo.UserID) <> '';
-  DSPLY 'USER SET';
+// The job's user (254) and the current user profile (358) are both set;
+// they can differ -- a job can run on behalf of another profile.
+line = 'JOB ' + %CHAR(PgmInfo.JobName <> *BLANKS) + ' USER ' +
+       %CHAR(PgmInfo.UserName <> *BLANKS) + ' CURUSER ' +
+       %CHAR(PgmInfo.CurUser <> *BLANKS) + ' JOBNUM ' + %CHAR(PgmInfo.JobNum > 0);
+DSPLY line;
+
+IF PgmInfo.RunDate > 0 AND PgmInfo.RunTime >= 0 AND PgmInfo.RunTime <= 235959;
+  DSPLY 'DATE TIME OK';
 ELSE;
-  DSPLY 'USER EMPTY';
+  DSPLY 'DATE TIME BAD';
 ENDIF;
 
-// Job number should be 8 characters (PID zero-padded)
-len = %LEN(%TRIM(PgmInfo.JobNum));
-IF len > 0;
-  DSPLY 'JOBNUM SET';
-ELSE;
-  DSPLY 'JOBNUM EMPTY';
-ENDIF;
+MONITOR;
+  // A variable start: a constant one past the string is refused when the
+  // program is compiled (IBM: RNF0364).
+  s = %SUBST(s : st : 1);
+ON-ERROR;
+  line = 'ERROR ' + %CHAR(PgmInfo.Status) + ' ' + %CHAR(PgmInfo.PrvStatus) +
+         ' ' + PgmInfo.ExcType + PgmInfo.ExcNbr;
+  DSPLY line;
+  IF PgmInfo.ExcData <> *BLANKS;
+    DSPLY 'EXCEPTION DATA SET';
+  ENDIF;
+ENDMON;
 
-// Run date should be 8 characters (YYYYMMDD)
-IF %LEN(PgmInfo.RunDate) = 8;
-  DSPLY 'DATE OK';
-ELSE;
-  DSPLY 'DATE BAD';
-ENDIF;
-
-// Run time should be 6 characters (HHMMSS)
-IF %LEN(PgmInfo.RunTime) = 6;
-  DSPLY 'TIME OK';
-ELSE;
-  DSPLY 'TIME BAD';
-ENDIF;
+MONITOR;
+  b = 10 / a;
+ON-ERROR;
+  line = 'ERROR ' + %CHAR(PgmInfo.Status) + ' ' + %CHAR(PgmInfo.PrvStatus);
+  DSPLY line;
+ENDMON;
 
 *INLR = *ON;

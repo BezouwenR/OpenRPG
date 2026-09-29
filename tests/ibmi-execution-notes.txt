@@ -18,8 +18,6 @@
 # --- rpgc: work to do --------------------------------------------------------
 test87.rpgle                          rpgc      XML-INTO: IBM rejects XML that does not match the data structure (RNX0353) unless allowmissing/allowextra say so; rpgc accepts it
 test88.rpgle                          rpgc      XML-INTO: IBM rejects XML that does not match the data structure (RNX0353) unless allowmissing/allowextra say so; rpgc accepts it
-test90_psds_basic.rpgle               rpgc      PSDS layout: the user is at positions 254-263 and the job number at 264-269 on IBM i; rpgc's layout (and the test) use 91 and 101, which hold exception data
-test91_psds_monitor.rpgle             rpgc      PSDS layout: rpgc's subfield positions are not IBM's, so a numeric subfield reads bytes that are not decimal data (MCH1202)
 test93_data_area_named.rpgle          rpgc      OUT needs the data area locked first (IN *LOCK); IBM ends with RNX0412, rpgc writes it anyway
 test96_da_status401.rpgle             rpgc      IN of a missing data area without (E) or MONITOR ends the program on IBM i (CPF1015); rpgc sets %STATUS 401 and continues
 test102_snd_msg.rpgle                 rpgc      SND-MSG *ESCAPE goes to the caller by default, so it ends the procedure rather than reaching its own MONITOR (CPF9898); *INFO/*DIAG/*COMP go to the job log on IBM i, rpgc prints them

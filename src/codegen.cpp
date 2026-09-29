@@ -1011,6 +1011,29 @@ void CodeGen::visit(Program& node) {
             out_ << "const bool __rpg_inz_" << ds->name << " = [] {\n" << body.str()
                  << "    return true;\n}();\n";
     }
+    // The PSDS's subfields, copied from the runtime's program status by the
+    // position each starts at: at program start, and again wherever an
+    // error is handled (visit(MonitorStmt), the *PSSR), so they read the
+    // status and exception of the error being handled, as on IBM i.
+    if (uses_psds_) {
+        out_ << "void rpg_psds_fill() {\n";
+        for (auto* s : ds_stmts) {
+            auto* ds = dynamic_cast<DclDS*>(s);
+            if (!ds->is_psds || ds->dim != 0) continue;
+            for (auto& f : ds->fields) {
+                if (f.pos <= 0) continue;
+                bool is_numeric = (f.type == RPGType::INT10 || f.type == RPGType::PACKED ||
+                                   f.type == RPGType::ZONED || f.type == RPGType::FLOAT8 ||
+                                   f.type == RPGType::UNS);
+                std::string src = is_numeric
+                    ? "static_cast<double>(rpg_psds_field_int(" + std::to_string(f.pos) + "))"
+                    : "rpg_psds_field_str(" + std::to_string(f.pos) + ")";
+                out_ << "    " << ds->name << "." << f.name << " = "
+                     << fitValue(f.type, f.length, f.decimals, src) << ";\n";
+            }
+        }
+        out_ << "}\n";
+    }
     at_file_scope_ = false;
     out_ << "} // namespace\n\n";
 
@@ -1109,24 +1132,9 @@ void CodeGen::visit(Program& node) {
             emitIndent();
             out_ << ds->name << ".reserve(" << ds->dim << ");\n";
         }
-        // If this is a PSDS, initialize POS-mapped subfields from runtime
-        if (ds->is_psds && ds->dim == 0) {
-            for (auto& f : ds->fields) {
-                if (f.pos <= 0) continue;
-                emitIndent();
-                bool is_numeric = (f.type == RPGType::INT10 || f.type == RPGType::PACKED ||
-                                   f.type == RPGType::ZONED || f.type == RPGType::FLOAT8 ||
-                                   f.type == RPGType::UNS);
-                // Fitted like any store into a declared subfield: a
-                // CHAR(10) program-name field holds the name padded to 10.
-                std::string src = is_numeric
-                    ? "rpg_psds_field_int(" + std::to_string(f.pos) + ")"
-                    : "rpg_psds_field_str(" + std::to_string(f.pos) + ")";
-                out_ << ds->name << "." << f.name << " = "
-                     << fitValue(f.type, f.length, f.decimals, src) << ";\n";
-            }
-        }
+        // A PSDS's subfields are filled from the runtime (rpg_psds_fill).
     }
+    if (uses_psds_) { emitIndent(); out_ << "rpg_psds_fill();\n"; }
 
     // Subroutines were split out and defined at file scope above; what is
     // left in main_stmts is the mainline's executable statements.
@@ -1184,7 +1192,7 @@ void CodeGen::visit(Program& node) {
     if (pssr_stmt) {
         indent_--; emitIndent(); out_ << "} catch (...) {\n";
         indent_++;
-        if (uses_psds_) { emitIndent(); out_ << "rpg_psds_sync();\n"; }
+        if (uses_psds_) { emitIndent(); out_ << "rpg_psds_sync(); rpg_psds_fill();\n"; }
         // Reaching the *PSSR's ENDSR (no RETURN) ends the program in error,
         // as on IBM i (RNX9001); a RETURN in it ends the program normally.
         emitIndent(); out_ << "sr__PSSR();\n";
@@ -3108,7 +3116,7 @@ void CodeGen::visit(MonitorStmt& node) {
     emitIndent();
     out_ << "} catch (...) {\n";
     indent_++;
-    if (uses_psds_) { emitIndent(); out_ << "rpg_psds_sync();\n"; }
+    if (uses_psds_) { emitIndent(); out_ << "rpg_psds_sync(); rpg_psds_fill();\n"; }
     // The first ON-ERROR that lists the error's status handles it. One
     // that lists none, or *ALL, handles everything; *PROGRAM is status
     // 100-999, *FILE 1000-9999. An error no clause lists is not handled
@@ -4355,13 +4363,12 @@ void CodeGen::visit(BIFCall& node) {
         node.args[0]->accept(*this);
         expr_ << ".size())";
     } else if (node.name == "SUBST") {
+        // %SUBST(string : start {: length}), range-checked (rpg_subst).
+        expr_ << "rpg_subst(";
         node.args[0]->accept(*this);
-        expr_ << ".substr(";
-        node.args[1]->accept(*this);
-        expr_ << " - 1";
-        if (node.args.size() > 2) {
+        for (size_t i = 1; i < node.args.size() && i < 3; i++) {
             expr_ << ", ";
-            node.args[2]->accept(*this);
+            node.args[i]->accept(*this);
         }
         expr_ << ")";
     } else if (node.name == "SCAN") {

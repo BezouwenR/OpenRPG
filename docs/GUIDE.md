@@ -1602,40 +1602,57 @@ ENDIF;
 
 ## Program Status Data Structure
 
-The PSDS (`PSDS`) keyword on a `DCL-DS` declares the Program Status Data Structure.
-OpenRPG populates it at startup with process and environment information, mirroring
-the IBM i layout at the well-known POS offsets.
+The PSDS (`PSDS`) keyword on a `DCL-DS` declares the Program Status Data
+Structure. Its subfields are placed at the positions IBM i defines, with `POS`,
+and hold the same information there: code written for IBM i reads the same
+fields.
 
 ```rpgle
 DCL-DS PgmInfo PSDS QUALIFIED;
-  PgmName CHAR(10) POS(81);    // program name (source file stem)
-  UserID  CHAR(10) POS(91);    // current OS user
-  JobNum  CHAR(8)  POS(101);   // process ID (zero-padded)
-  RunDate CHAR(8)  POS(109);   // YYYYMMDD
-  RunTime CHAR(6)  POS(119);   // HHMMSS
+  ProcName CHAR(10)   POS(1);     // procedure name
+  Status   ZONED(5:0) POS(11);    // status code
+  ExcType  CHAR(3)    POS(40);    // exception type, e.g. RNX
+  ExcNbr   CHAR(4)    POS(43);    // exception number, e.g. 0100
+  UserName CHAR(10)   POS(254);   // user
+  JobNum   ZONED(6:0) POS(264);   // job number
+  PgmName  CHAR(10)   POS(334);   // program
 END-DS;
 ```
 
-| POS | Length | Content |
-|-----|--------|---------|
-| 1   | 10     | Current procedure name |
-| 11  | 5      | Current status code (PACKED 5,0) |
-| 81  | 10     | Program name |
-| 91  | 10     | User profile / OS username |
-| 101 | 8      | Job number (PID, zero-padded) |
-| 109 | 8      | Run date (YYYYMMDD) |
-| 119 | 6      | Run time (HHMMSS) |
+| POS | Type | Content | OpenRPG supplies |
+|-----|------|---------|------------------|
+| 1   | CHAR(10)   | Procedure name | the program's name |
+| 11  | ZONED(5:0) | Status code | ✅ |
+| 16  | ZONED(5:0) | Previous status code | ✅ |
+| 37  | ZONED(3:0) | Number of parameters | ✅ |
+| 40  | CHAR(3)    | Exception type (`RNX`, `MCH`, `CPF`...) | ✅ for errors with an ID |
+| 43  | CHAR(4)    | Exception number | ✅ |
+| 91  | CHAR(80)   | Exception data: the message text | ✅ |
+| 244 | CHAR(10)   | Job name | the program's name |
+| 254 | CHAR(10)   | User | the login name, upper case |
+| 264 | ZONED(6:0) | Job number | the process ID (last six digits) |
+| 276 | ZONED(6:0) | Date the program ran | MMDDYY |
+| 282 | ZONED(6:0) | Time the program ran | HHMMSS |
+| 334 | CHAR(10)   | Program name | ✅ |
+| 344 | CHAR(10)   | Module name | the program's name |
+| 358 | CHAR(10)   | Current user profile | the login name |
+
+Positions IBM i defines that have no equivalent here -- the program's library
+(81), the statement number (21), file information -- read as blanks or zero.
+Numeric subfields are **zoned**, as on IBM i: a status declared `PACKED(5:0)`
+at position 11 reads bytes that are not packed decimal data there.
+
+The PSDS is refreshed when an error is handled -- at the start of every
+`ON-ERROR` and of the `*PSSR` -- so inside a handler it holds that error's
+status, the previous status and the exception:
 
 ```rpgle
-IF %TRIM(PgmInfo.UserID) <> '';
-  DSPLY ('Running as: ' + PgmInfo.UserID);
-ENDIF;
-
-DSPLY ('Started: ' + PgmInfo.RunDate + ' ' + PgmInfo.RunTime);
+MONITOR;
+  x = 10 / zero;
+ON-ERROR;
+  DSPLY ('status ' + %CHAR(PgmInfo.Status));   // status 102
+ENDMON;
 ```
-
-The PSDS also syncs before every `ON-ERROR` handler fires, so you can read
-`StatusCode` inside `MONITOR` blocks to identify the error.
 
 ---
 

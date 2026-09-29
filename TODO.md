@@ -1703,6 +1703,22 @@ triage, not yet investigated test by test:
 | One-off behaviours | 26 (`%SIZE` of pointer 16), 33 (`%REPLACE`), 50, 69 (`%SCANR`), 67 (*PSSR), 90 (PSDS user/job), 93/96 (data areas), 102 (SND-MSG escape), 155/216 (I-spec record ID), 193/196/208/212 (MOVE), 228 (loops forever), 267, 283, 87/88 |
 | Probably platform divergence | DATA-INTO/DATA-GEN name rpgc's built-in parsers (RNX0355: 99, 100, 112, 113, 114, 180, 87?); 54 (program name); 115 (DUMP goes to spool) |
 
+**Fixed 2026-09-29: the PSDS, and %SUBST out of range (test90, test91,
+test311).** The PSDS used an invented layout (program name at 81, user at
+91, job number at 101...), where IBM i has the library at 81 and exception
+data at 91. It now uses IBM's positions -- status 11, previous status 16,
+parameters 37, exception type/number 40/43, exception data 91, job 244-269,
+run date/time 276/282, program 334, module 344, current user 358 -- and is
+refreshed at every ON-ERROR and *PSSR, so a handler sees the error's status
+and ID; it had been filled once, at start. %SUBST was plain substr(): a start
+past the end threw a C++ exception (status 0 in a MONITOR, an abort
+outside one) and a length past the end quietly shortened the result. Both
+are status 100 now. All verified on PUB400.
+
+Found alongside: `%SUBST(x : 1 : 3) = ...` (%SUBST as an assignment target)
+is not supported; and IBM rejects a constant %SUBST start beyond the declared
+length at compile time (RNF0364), which rpgc does not check.
+
 **Fixed 2026-09-29: *PSSR endings and errors leaving a procedure (test67,
 test239, test310).** A *PSSR run because of an error that reaches ENDSR (no
 RETURN) ends the program in error (RNX9001) -- rpgc had ended normally, so

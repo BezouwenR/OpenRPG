@@ -1819,6 +1819,20 @@
    "test": "310",
    "verified": "2026-09-29"
   },
+  "test311_subst_range.rpgle": {
+   "error": "",
+   "output": [
+    "[BCD] [CDE] [E] []                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ",
+    "START6 status 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ",
+    "START6 LEN0 status 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+    "PAST END status 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ",
+    "START0 status 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "
+   ],
+   "sha256": "b226789ac67aa0d16b5a7e5c89ec083cf08744e24488ff8ca0497bf33f71e4ee",
+   "status": "same",
+   "test": "311",
+   "verified": "2026-09-29"
+  },
   "test31_lookup_sorta.rpgle": {
    "error": "",
    "output": [
@@ -2409,26 +2423,31 @@
   "test90_psds_basic.rpgle": {
    "error": "",
    "output": [
-    "PGMNAME SET                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ",
-    "USER EMPTY                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
-    "JOBNUM EMPTY                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ",
-    "DATE OK                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ",
-    "TIME OK                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  "
+    "STATUS 0 0 PARMS 0 EXC [       ]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ",
+    "NAMES SET AND AGREE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ",
+    "JOB 1 USER 1 CURUSER 1 JOBNUM 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ",
+    "DATE TIME OK                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ",
+    "ERROR 100 0 RNX0100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ",
+    "EXCEPTION DATA SET                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ",
+    "ERROR 102 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            "
    ],
-   "sha256": "160ec2c8deaec73b4a7f75d36579080726bc704904ea96ab7697056358a9e10c",
+   "sha256": "2b149898e717b56538dbf131265da611d1cecec97f8063b00e3fbfb2c880a670",
    "status": "same",
    "test": "90",
-   "verified": "2026-09-26"
+   "verified": "2026-09-29"
   },
   "test91_psds_monitor.rpgle": {
-   "error": "CEE9901 Application error. MCH1202 unmonitored by RPGCXRUN at statement 0000000021, instruction X'0000'..",
+   "error": "",
    "output": [
-    "PROCNAME SET                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "
+    "PROCNAME SET                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ",
+    "STATUS INIT OK                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ",
+    "MONITOR OK                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+    "HANDLER STATUS 102                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       "
    ],
-   "sha256": "e0feb90d876d264577f9a0400efb532d79b304575c84c6d19ab4c36bdb21f86d",
-   "status": "runtime-error",
+   "sha256": "ac432bc2904fffcd8d74f948eb6451d2532291ce36cec2f869031a8aca7b4bfd",
+   "status": "same",
    "test": "91",
-   "verified": "2026-09-26"
+   "verified": "2026-09-29"
   },
   "test92_data_area_lda.rpgle": {
    "error": "",
