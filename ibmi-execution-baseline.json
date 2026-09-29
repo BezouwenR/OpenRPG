@@ -1339,7 +1339,7 @@
    "sha256": "85fea203811af7c372a69bdc75eed79fbd3cf0cc3fa11488f07809ad24e86415",
    "status": "same",
    "test": "239",
-   "verified": "2026-09-26"
+   "verified": "2026-09-29"
   },
   "test23_reset_clear.rpgle": {
    "error": "",
@@ -1807,6 +1807,18 @@
    "test": "30",
    "verified": "2026-09-26"
   },
+  "test310_pssr_proc.rpgle": {
+   "error": "",
+   "output": [
+    "PSSR in divide                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ",
+    "CALLER status 202                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ",
+    "CALLER continues                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         "
+   ],
+   "sha256": "ec4db5a5323b9b72efa543b11bc8f98b7ac8c4c989d82e961fc2f29a90ca36f3",
+   "status": "same",
+   "test": "310",
+   "verified": "2026-09-29"
+  },
   "test31_lookup_sorta.rpgle": {
    "error": "",
    "output": [
@@ -2223,7 +2235,7 @@
    "sha256": "9d25ff9946e9ad68aa93e1da25174039c215a7acae5bbb94c80b35739a4cca22",
    "status": "runtime-error",
    "test": "67",
-   "verified": "2026-09-26"
+   "verified": "2026-09-29"
   },
   "test68_bitwise_power.rpgle": {
    "error": "",
@@ -2477,7 +2489,7 @@
    "verified": "2026-09-26"
   }
  },
- "generated": "2026-09-28",
+ "generated": "2026-09-29",
  "skipped": [
   [
    "test175_fixed_cspec_call_parm.rpgle",

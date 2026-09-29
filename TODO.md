@@ -1730,6 +1730,19 @@ triage, not yet investigated test by test:
 | One-off behaviours | 26 (`%SIZE` of pointer 16), 33 (`%REPLACE`), 50, 69 (`%SCANR`), 67 (*PSSR), 90 (PSDS user/job), 93/96 (data areas), 102 (SND-MSG escape), 155/216 (I-spec record ID), 193/196/208/212 (MOVE), 228 (loops forever), 267, 283, 87/88 |
 | Probably platform divergence | DATA-INTO/DATA-GEN name rpgc's built-in parsers (RNX0355: 99, 100, 112, 113, 114, 180, 87?); 54 (program name); 115 (DUMP goes to spool) |
 
+**Fixed 2026-09-29: *PSSR endings and errors leaving a procedure (test67,
+test239, test310).** A *PSSR run because of an error that reaches ENDSR (no
+RETURN) ends the program in error (RNX9001) -- rpgc had ended normally, so
+nothing could tell the program failed. In a procedure, the procedure ends in
+error instead. An error that leaves a procedure reaches its caller as status
+202 ("called program or procedure failed"), whatever it was inside; fitting a
+VALUE argument is part of the call and keeps its own status (103). RETURN in
+any subroutine now returns from the procedure or program (above). All
+verified on PUB400.
+
+Found alongside: the one-line `DCL-PI *N INT(10) END-PI;` (no parameters) is
+valid on IBM i and a syntax error in rpgc.
+
 **Fixed 2026-09-28: %SCAN / %SCANR (test69).** Both search a portion: from the
 start (default 1) for the length (default: to the end), and a match must fit
 inside it. A %SCANR start begins the portion; rpgc had searched only up to it.
@@ -2561,12 +2574,11 @@ it, plus a `Ping`/`Pong` pair that call each other, which no ordering of
 definitions can satisfy. Without the change it fails to compile with
 `use of undeclared identifier 'sr_LEAF'`.
 
-**Not fixed, and now pinned rather than assumed:** `RETURN` inside a
-subroutine returns from the *subroutine*, where IBM returns from the
-*procedure* and ends the program. The lambda did the same thing, so this
-preserves the behaviour rather than changing it silently while moving the
-code — the file-scope function is emitted with `void_return_` set so a bare
-RETURN stays `return;`. Worth a separate pass.
+**Fixed 2026-09-29:** `RETURN` inside a subroutine returned only from the
+*subroutine*; IBM returns from the procedure, or ends the program. It now
+records the return (and its value) and the EXSR that called the subroutine
+returns in turn. A procedure's `*PSSR` doing `RETURN -1` had returned
+garbage.
 
 ### Assignment fits the declaration ✅ (2026-09-22)
 

@@ -3225,6 +3225,13 @@
    "verdict": "accept",
    "verified": "2026-09-25"
   },
+  "test310_pssr_proc.rpgle": {
+   "codes": [],
+   "rpgc": "accept",
+   "sha256": "ec4db5a5323b9b72efa543b11bc8f98b7ac8c4c989d82e961fc2f29a90ca36f3",
+   "verdict": "accept",
+   "verified": "2026-09-29"
+  },
   "test31_lookup_sorta.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -3834,5 +3841,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-09-29T03:16:44+00:00"
+ "generated": "2026-09-29T04:55:51+00:00"
 }

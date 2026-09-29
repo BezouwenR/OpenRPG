@@ -865,6 +865,7 @@ run_test "306" "Keywords and op codes as names" "$TESTDIR/test306_keyword_names.
 run_test "307" "Reject assigning an op-code name without EVAL" "$TESTDIR/test307_err_opcode_name_assign.rpgle" "error"
 run_test "308" "Reject an op-code subfield without DCL-SUBF" "$TESTDIR/test308_err_opcode_subfield.rpgle" "error"
 run_test "309" "Reject NOT as a name" "$TESTDIR/test309_err_not_name.rpgle" "error"
+run_test "310" "*PSSR in a procedure reaching ENDSR" "$TESTDIR/test310_pssr_proc.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

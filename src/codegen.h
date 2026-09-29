@@ -167,6 +167,12 @@ private:
     std::vector<std::string> dspf_includes_; // WORKSTN files whose _dspf.h to include, in source order
     bool at_file_scope_ = false;             // emitting the module-global block
     bool sr_at_file_scope_ = false;          // emitting the mainline's subroutines as functions
+    // Emitting a subroutine's body: a RETURN there returns from the program
+    // or procedure, not just the subroutine (the subroutine is a C++
+    // function or lambda), so it records that and the caller of EXSR acts
+    // on it. See visit(ReturnStmt) and visit(ExSR).
+    bool in_subroutine_ = false;
+    std::string afterSubroutine() const;
     std::vector<std::string> deferred_init_; // statements a file-scope decl needs run in main()
     std::map<std::string, DclF*> file_defs_;  // DCL-F nodes by name
     // Program-described I-spec/O-spec layouts, collected in a first pass

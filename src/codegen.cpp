@@ -1185,7 +1185,11 @@ void CodeGen::visit(Program& node) {
         indent_--; emitIndent(); out_ << "} catch (...) {\n";
         indent_++;
         if (uses_psds_) { emitIndent(); out_ << "rpg_psds_sync();\n"; }
+        // Reaching the *PSSR's ENDSR (no RETURN) ends the program in error,
+        // as on IBM i (RNX9001); a RETURN in it ends the program normally.
         emitIndent(); out_ << "sr__PSSR();\n";
+        emitIndent(); out_ << "if (rpg_sr_returned) return 0;\n";
+        emitIndent(); out_ << "rpg_pssr_ended();\n";
         indent_--; emitIndent(); out_ << "}\n";
     }
     out_ << "}\n";
@@ -1391,6 +1395,17 @@ void CodeGen::visit(DclProc& node) {
         std::string fitted = fitValue(pa, p.name, FitMode::Overflow);
         if (fitted != p.name) { emitIndent(); out_ << p.name << " = " << fitted << ";\n"; }
     }
+    // An error that leaves a procedure reaches its caller as status 202,
+    // "called program or procedure failed" (IBM i; test239, test310). Fitting
+    // the arguments above is part of the call, so an error there keeps its
+    // own status (103 for a VALUE parameter too small: test239).
+    out_ << "    try {\n";
+    indent_ = 2;
+    if (std::any_of(node.body.begin(), node.body.end(),
+                    [](const std::unique_ptr<Statement>& s) { return dynamic_cast<BegSR*>(s.get()); })) {
+        emitIndent(); out_ << "bool __sr_ret = false;\n";
+        if (!void_return_) { emitIndent(); out_ << ret << " __sr_val{};\n"; }
+    }
     current_return_attrs_ = FieldAttrs{};
     if (node.interface.has_return) {
         current_return_attrs_.known    = true;
@@ -1444,7 +1459,12 @@ void CodeGen::visit(DclProc& node) {
         }
         if (proc_pssr_stmt) {
             indent_--; emitIndent(); out_ << "} catch (...) {\n";
+            // A RETURN in the *PSSR returns from the procedure; reaching
+            // its ENDSR ends the procedure in error, which its caller sees
+            // as status 202 (IBM i).
             indent_++; emitIndent(); out_ << "sr__PSSR();\n";
+            emitIndent(); out_ << (void_return_ ? "if (__sr_ret) return;\n" : "if (__sr_ret) return __sr_val;\n");
+            emitIndent(); out_ << "throw;\n";
             indent_--; emitIndent(); out_ << "}\n";
         }
     } else {
@@ -1471,7 +1491,12 @@ void CodeGen::visit(DclProc& node) {
                 }
             }
             indent_--; emitIndent(); out_ << "} catch (...) {\n";
+            // A RETURN in the *PSSR returns from the procedure; reaching
+            // its ENDSR ends the procedure in error, which its caller sees
+            // as status 202 (IBM i).
             indent_++; emitIndent(); out_ << "sr__PSSR();\n";
+            emitIndent(); out_ << (void_return_ ? "if (__sr_ret) return;\n" : "if (__sr_ret) return __sr_val;\n");
+            emitIndent(); out_ << "throw;\n";
             indent_--; emitIndent(); out_ << "}\n";
         } else {
             emitStatements(node.body);
@@ -1492,6 +1517,7 @@ void CodeGen::visit(DclProc& node) {
     has_nopass_params_ = false;
     current_proc_name_.clear();
     void_return_ = false;
+    out_ << "    } catch (const RpgError& __e) { rpg_procedure_failed(__e); }\n";
     out_ << "}\n";
 }
 
@@ -2497,6 +2523,21 @@ void CodeGen::visit(DsplyStmt& node) {
 
 void CodeGen::visit(ReturnStmt& node) {
     emitIndent();
+    if (in_subroutine_) {
+        // A RETURN in a subroutine returns from the procedure or program:
+        // record it (and the value) and leave the subroutine; the EXSR that
+        // called it returns in turn (afterSubroutine).
+        if (in_procedure_) {
+            out_ << "{ ";
+            if (node.has_expr)
+                out_ << "__sr_val = " << fitValue(current_return_attrs_, emitExpr(*node.expr),
+                                                  FitMode::Overflow) << "; ";
+            out_ << "__sr_ret = true; return; }\n";
+        } else {
+            out_ << "{ rpg_sr_returned = true; return; }\n";
+        }
+        return;
+    }
     if (node.has_expr) {
         // A procedure returns a value of its declared return type: RETURN
         // 'AB' from one declared CHAR(10) returns 'AB' plus eight blanks.
@@ -3130,14 +3171,15 @@ void CodeGen::visit(BegSR& node) {
         out_ << "static void sr_" << sanitizeSRName(node.name) << "() {\n";
         int saved_indent = indent_;
         bool saved_void = void_return_;
-        // The function returns void, so a bare RETURN cannot carry main()'s
-        // exit status. That matches what the lambda did — return from the
-        // subroutine, not from the program — which is not what IBM does
-        // (see TODO.md); this preserves the behaviour rather than changing
-        // it silently while moving the code.
+        // The function returns void, so a RETURN in it cannot end main()
+        // directly: it sets rpg_sr_returned and leaves the subroutine, and
+        // the EXSR that called it returns from the program (visit(ExSR)).
         indent_ = 1;
         void_return_ = true;
+        bool saved_in_sr = in_subroutine_;
+        in_subroutine_ = true;
         emitStatements(node.body);
+        in_subroutine_ = saved_in_sr;
         void_return_ = saved_void;
         indent_ = saved_indent;
         out_ << "}\n";
@@ -3147,7 +3189,10 @@ void CodeGen::visit(BegSR& node) {
     emitIndent();
     out_ << "auto sr_" << sanitizeSRName(node.name) << " = [&]() {\n";
     indent_++;
+    bool saved_in_sr = in_subroutine_;
+    in_subroutine_ = true;
     emitStatements(node.body);
+    in_subroutine_ = saved_in_sr;
     indent_--;
     emitIndent();
     out_ << "};\n";
@@ -3155,7 +3200,16 @@ void CodeGen::visit(BegSR& node) {
 
 void CodeGen::visit(ExSR& node) {
     emitIndent();
-    out_ << "sr_" << sanitizeSRName(node.name) << "();\n";
+    out_ << "sr_" << sanitizeSRName(node.name) << "(); " << afterSubroutine() << "\n";
+}
+
+// What follows a call to a subroutine: if a RETURN ran inside it, return
+// from here too -- out of the enclosing subroutine, the procedure (with the
+// value RETURN gave), or the program.
+std::string CodeGen::afterSubroutine() const {
+    if (in_subroutine_) return in_procedure_ ? "if (__sr_ret) return;" : "if (rpg_sr_returned) return;";
+    if (in_procedure_) return void_return_ ? "if (__sr_ret) return;" : "if (__sr_ret) return __sr_val;";
+    return "if (rpg_sr_returned) return 0;";
 }
 
 void CodeGen::visit(GotoStmt& node) {

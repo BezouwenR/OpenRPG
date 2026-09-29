@@ -670,6 +670,23 @@ inline auto& rpg_elem_auto(V& v, I index, long long max) {
     return rpg_elem_auto(v, index, max, typename V::value_type{});
 }
 
+// Set when a RETURN runs inside one of the program's subroutines: the
+// program returns too, once the subroutine does.
+inline bool rpg_sr_returned = false;
+
+// A *PSSR run because of an error that reaches its ENDSR, with no RETURN,
+// ends the program in error (IBM i: RNX9001).
+[[noreturn]] inline void rpg_pssr_ended() {
+    rpg_raise(9001, "RNX9001: The *PSSR ended without a RETURN; the program ends in error.");
+}
+
+// An error that leaves a procedure reaches its caller as status 202,
+// "called program or procedure failed" (IBM i), whatever it was inside.
+[[noreturn]] inline void rpg_procedure_failed(const RpgError& e) {
+    if (e.status == 202) throw e;
+    rpg_raise(202, "RNX0202: The call to a procedure ended in error: " + std::string(e.what()));
+}
+
 // The status of the error being handled, inside a catch: the RpgError's
 // own, else the last status the runtime set.
 inline int rpg_caught_status() {
