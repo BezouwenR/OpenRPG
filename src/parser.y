@@ -430,7 +430,7 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %token KW_STAR_EXTDFT KW_STAR_LIKEDS
 %token KW_DSPLY
 %token KW_EVAL KW_EVAL_CORR KW_EVALR KW_CALLP KW_LEAVESR KW_ON_EXIT KW_DEALLOC KW_TEST
-%token <sval> KW_EVAL_EXT KW_EVALR_EXT KW_CALLP_EXT
+%token <sval> KW_EVAL_EXT KW_EVALR_EXT KW_CALLP_EXT KW_IN_EXT KW_OUT_EXT KW_UNLOCK_EXT
 %token KW_STATIC KW_TEMPLATE KW_BASED KW_OPTIONS KW_NOPASS KW_OMIT
 %token KW_EXPORT KW_IMPORT KW_EXTPGM KW_EXTPROC KW_CTLOPT KW_OVERLOAD
 %token KW_RETURN
@@ -533,6 +533,7 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %type <dcl_kws> dcl_kws
 %type <ds_hdr> ds_hdr_kws
 %type <expr> eval_any_target
+%type <ival> da_lock_opt
 %type <sval> ident plain_name kw_name op_name call_kw_name
 %type <enum_const_list> enum_constants enum_constant
 %type <str_list> overload_list
@@ -1194,20 +1195,29 @@ snd_target_entry:
     | expression { delete $1; }
     ;
 
-/* IN {*LOCK} name, OUT {*LOCK} name, UNLOCK name. The name may be *DTAARA,
-   every data area the program defines. *LOCK is accepted; data areas here are
-   files with no record locks, so it has no effect. */
+/* IN{(E)} {*LOCK} name, OUT{(E)} {*LOCK} name, UNLOCK{(E)} name. The name may
+   be *DTAARA, every data area the program defines. *LOCK on IN takes the
+   data area's lock, which OUT needs; OUT *LOCK keeps it, OUT and UNLOCK
+   release it (runtime: rpg_da_in/out/unlock). */
 in_da_stmt:
     KW_IN da_lock_opt da_name SEMICOLON {
-        $$ = new rpg::DataInStmt($3);
+        auto* s = new rpg::DataInStmt($3); s->lock = $2; $$ = s;
         free($3);
+    }
+    | KW_IN_EXT da_lock_opt da_name SEMICOLON {
+        auto* s = new rpg::DataInStmt($3); s->lock = $2; s->extenders = $1; $$ = s;
+        free($1); free($3);
     }
     ;
 
 out_da_stmt:
     KW_OUT da_lock_opt da_name SEMICOLON {
-        $$ = new rpg::DataOutStmt($3);
+        auto* s = new rpg::DataOutStmt($3); s->lock = $2; $$ = s;
         free($3);
+    }
+    | KW_OUT_EXT da_lock_opt da_name SEMICOLON {
+        auto* s = new rpg::DataOutStmt($3); s->lock = $2; s->extenders = $1; $$ = s;
+        free($1); free($3);
     }
     ;
 
@@ -1216,11 +1226,15 @@ unlock_da_stmt:
         $$ = new rpg::DataUnlockStmt($2);
         free($2);
     }
+    | KW_UNLOCK_EXT da_name SEMICOLON {
+        auto* s = new rpg::DataUnlockStmt($2); s->extenders = $1; $$ = s;
+        free($1); free($2);
+    }
     ;
 
 da_lock_opt:
-    %empty
-    | KW_STAR_LOCK
+    %empty { $$ = 0; }
+    | KW_STAR_LOCK { $$ = 1; }
     ;
 
 da_name:

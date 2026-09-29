@@ -5631,15 +5631,20 @@ void CodeGen::visit(DataInStmt& node) {
         int len = 0;
         auto lit = var_lengths_.find(var);
         if (lit != var_lengths_.end()) len = lit->second;
+        bool ext = node.extenders.find('E') != std::string::npos;
         emitIndent();
-        out_ << var << " = rpg_da_read(" << da << ", " << len << ");\n";
+        out_ << "{ std::string __da; if (rpg_da_in(" << da << ", " << len << ", "
+             << (node.lock ? "true" : "false") << ", " << (ext ? "true" : "false")
+             << ", __da)) " << var << " = __da; }\n";
     }
 }
 
 void CodeGen::visit(DataOutStmt& node) {
     for (auto& [var, da] : dataAreasOf(node.var_name, false)) {
+        bool ext = node.extenders.find('E') != std::string::npos;
         emitIndent();
-        out_ << "rpg_da_write(" << da << ", " << var << ");\n";
+        out_ << "rpg_da_out(" << da << ", " << var << ", " << (node.lock ? "true" : "false")
+             << ", " << (ext ? "true" : "false") << ");\n";
     }
 }
 

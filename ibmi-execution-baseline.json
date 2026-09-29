@@ -2484,12 +2484,18 @@
    "verified": "2026-09-26"
   },
   "test93_data_area_named.rpgle": {
-   "error": "CEE9901 Application error. RNX0412 unmonitored by RPGCXRUN at statement 0000000007, instruction X'0000'..",
-   "output": [],
-   "sha256": "1b98230c97648c5aecf04a845f27a9d11a95e3c4dbed6594586ce9a7b86eb8bf",
-   "status": "runtime-error",
+   "error": "",
+   "output": [
+    "OUT without a lock: status 412                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ",
+    "READ BACK VERSION=1.1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "OUT after release: status 412                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ",
+    "OUT(E) error 1 status 412                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ",
+    "UNLOCKED                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 "
+   ],
+   "sha256": "b8358649cea9e65a2f015b5a005d3c9b83762d907a0b9571611ad2cd82e67194",
+   "status": "same",
    "test": "93",
-   "verified": "2026-09-26"
+   "verified": "2026-09-29"
   },
   "test94_extender_h.rpgle": {
    "error": "",
@@ -2516,12 +2522,15 @@
    "verified": "2026-09-26"
   },
   "test96_da_status401.rpgle": {
-   "error": "CEE9901 Application error. CPF1015 unmonitored by RPGCXRUN at statement 0000000005, instruction X'0000'..",
-   "output": [],
-   "sha256": "ed57896ae612ec39ae89c4da4a4bc7156fbc6de38e1f90a17d9c6f0a3b41f281",
-   "status": "runtime-error",
+   "error": "",
+   "output": [
+    "IN(E) error 1 status 401                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
+    "MONITOR status 401                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       "
+   ],
+   "sha256": "b2609299bdcbbb712f1e66a2c94aacb6001bfbec7ff6ccb58b220b1302377214",
+   "status": "same",
    "test": "96",
-   "verified": "2026-09-26"
+   "verified": "2026-09-29"
   },
   "test99_data_into.rpgle": {
    "error": "CEE9901 Application error. RNX0355 unmonitored by RPGCXRUN at statement 0000000032, instruction X'0000'..",

@@ -366,6 +366,9 @@ static void parse_ctlopt(const char* text) {
     return KW_EVAL_EXT;
 }
 "EVAL"              { return KW_EVAL; }
+"IN(E)"             { yylval.sval = strdup("E"); return KW_IN_EXT; }
+"OUT(E)"            { yylval.sval = strdup("E"); return KW_OUT_EXT; }
+"UNLOCK(E)"         { yylval.sval = strdup("E"); return KW_UNLOCK_EXT; }
 "CALLP("[EHMNRP]+")" {
     char *p = strchr(yytext, '(') + 1;
     char ext[16] = {0}; int i = 0;

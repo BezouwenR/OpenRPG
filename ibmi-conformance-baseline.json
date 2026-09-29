@@ -3794,9 +3794,9 @@
   "test93_data_area_named.rpgle": {
    "codes": [],
    "rpgc": "accept",
-   "sha256": "1b98230c97648c5aecf04a845f27a9d11a95e3c4dbed6594586ce9a7b86eb8bf",
+   "sha256": "b8358649cea9e65a2f015b5a005d3c9b83762d907a0b9571611ad2cd82e67194",
    "verdict": "accept",
-   "verified": "2026-09-25"
+   "verified": "2026-09-29"
   },
   "test94_extender_h.rpgle": {
    "codes": [],
@@ -3815,23 +3815,23 @@
   "test96_da_status401.rpgle": {
    "codes": [],
    "rpgc": "accept",
-   "sha256": "ed57896ae612ec39ae89c4da4a4bc7156fbc6de38e1f90a17d9c6f0a3b41f281",
+   "sha256": "b2609299bdcbbb712f1e66a2c94aacb6001bfbec7ff6ccb58b220b1302377214",
    "verdict": "accept",
-   "verified": "2026-09-25"
+   "verified": "2026-09-29"
   },
   "test97_da_status415.rpgle": {
    "codes": [],
    "rpgc": "accept",
-   "sha256": "f2a788ab3fdda69b9204cc44c442c08beebd7c1ec594018e55bd5c2eeb0939a4",
+   "sha256": "603ba96292e2cf8566aa911b3d95998db52486ad438c3b2bacc111ca7dc006b2",
    "verdict": "accept",
-   "verified": "2026-09-25"
+   "verified": "2026-09-29"
   },
   "test98_da_status413.rpgle": {
    "codes": [],
    "rpgc": "accept",
-   "sha256": "337f92a2b218a188f5f15334044d66769c088c51587bbb3781df76787a47f065",
+   "sha256": "0a59b12fe90a926d0372d962003fe3b1e4ef43584f10fdc59b643bacce1de471",
    "verdict": "accept",
-   "verified": "2026-09-25"
+   "verified": "2026-09-29"
   },
   "test99_data_into.rpgle": {
    "codes": [],
@@ -3848,5 +3848,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-09-29T13:34:01+00:00"
+ "generated": "2026-09-29T13:57:07+00:00"
 }

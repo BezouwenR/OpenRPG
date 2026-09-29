@@ -1703,6 +1703,13 @@ triage, not yet investigated test by test:
 | One-off behaviours | 26 (`%SIZE` of pointer 16), 33 (`%REPLACE`), 50, 69 (`%SCANR`), 67 (*PSSR), 90 (PSDS user/job), 93/96 (data areas), 102 (SND-MSG escape), 155/216 (I-spec record ID), 193/196/208/212 (MOVE), 228 (loops forever), 267, 283, 87/88 |
 | Probably platform divergence | DATA-INTO/DATA-GEN name rpgc's built-in parsers (RNX0355: 99, 100, 112, 113, 114, 180, 87?); 54 (program name); 115 (DUMP goes to spool) |
 
+**Fixed 2026-09-29: data area locks and errors (test93, test96).** OUT needs
+the data area locked (IN *LOCK) -- status 412 without; OUT releases the lock,
+OUT *LOCK keeps it, UNLOCK releases it (unlocking one not locked is not an
+error). *LDA/*GDA/*PDA need no lock. An error (401 not found, 412, 413, 415)
+ends the program unless (E) or a MONITOR handles it; rpgc had only set
+%STATUS. IN(E), OUT(E) and UNLOCK(E) are now accepted. All verified on PUB400.
+
 **Fixed 2026-09-29: XML-INTO matches as IBM i does (test87, test88).** The
 options decide the match and a mismatch is status 353: case=lower (the
 default) / upper / any; allowmissing=no (default) needs an element or

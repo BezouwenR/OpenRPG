@@ -1659,8 +1659,8 @@ ENDMON;
 ## Data Areas
 
 Data areas are persistent named storage outside of any single program. On IBM i
-they are system objects; in OpenRPG they are plain files on the local filesystem,
-stored in `$TMPDIR` (typically `/tmp`).
+they are system objects; in OpenRPG they are plain files, one per data area, in
+the directory `$RPGC_DA_DIR` names (by default `~/.rpgc/da`).
 
 ### Declare a Data Area Variable
 
@@ -1696,19 +1696,46 @@ area the program defines.
 
 ### OUT — Write to Data Area
 
+A named data area must be locked before `OUT` writes it, as on IBM i: read it
+with `IN *LOCK` first. `OUT` releases the lock; `OUT *LOCK` writes and keeps
+it. The local data area needs no lock:
+
 ```rpgle
 LdaData = 'SESSION_ID=ABC123';
-OUT LdaData;
+OUT LdaData;                  // *LDA: no lock needed
+
+IN *LOCK Config;
+Config = 'VERSION=2.0';
+OUT Config;                   // writes, and releases the lock
 ```
 
 ### UNLOCK — Release the Lock
 
-`IN *LOCK` acquires an exclusive lock on a named data area. `UNLOCK` releases
-it when you are done so other programs can access it; `UNLOCK *DTAARA`
-releases every one. The local, group and program-initialization data areas
+`UNLOCK` releases a lock taken by `IN *LOCK` (or kept by `OUT *LOCK`);
+`UNLOCK *DTAARA` releases every one. Unlocking a data area that is not locked
+is not an error. The local, group and program-initialization data areas
 (`*LDA`, `*GDA`, `*PDA`) are never locked, and IBM i rejects `UNLOCK` of them
-(RNF7091). In OpenRPG, data areas are files and are never locked, so `*LOCK`
-and `UNLOCK` are accepted and have no effect.
+(RNF7091).
+
+### Errors
+
+An error on `IN`, `OUT` or `UNLOCK` ends the program, as on IBM i, unless
+`MONITOR` handles it or the operation has the `(E)` extender, which sets
+`%ERROR` and `%STATUS` instead:
+
+| Status | Meaning |
+|--------|---------|
+| 401 | The data area does not exist |
+| 412 | `OUT` to a data area that is not locked |
+| 413 | The data area could not be written |
+| 415 | The data area could not be read |
+
+```rpgle
+IN(E) Config;
+IF %ERROR;
+  DSPLY ('status ' + %CHAR(%STATUS));   // 401 if Config does not exist
+ENDIF;
+```
 
 ```rpgle
 IN *LOCK Config;
@@ -1735,17 +1762,18 @@ DSPLY %TRIM(LdaData);   // HELLO DATA AREA
 ```rpgle
 DCL-S MyConfig CHAR(50) DTAARA('RPGCONFIG');
 
+IN *LOCK MyConfig;
 MyConfig = 'VERSION=2.0';
 OUT MyConfig;
 
 MyConfig = '';
-IN *LOCK MyConfig;
+IN MyConfig;
 DSPLY %SUBST(MyConfig: 1: 11);   // VERSION=2.0
-UNLOCK MyConfig;
 ```
 
-> Data area files are created automatically on `OUT` if they do not exist.
-> On IBM i the equivalent would be `CRTDTAARA`.
+> A named data area must exist before a program reads or locks it, as on
+> IBM i, where `CRTDTAARA` creates it. Here, create its file in the data area
+> directory, e.g. `printf '%-50s' '' > ~/.rpgc/da/RPGCONFIG`.
 
 ---
 

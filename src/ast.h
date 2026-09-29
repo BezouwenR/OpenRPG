@@ -775,6 +775,8 @@ public:
 class DataInStmt : public Statement {
 public:
     std::string var_name;
+    bool lock = false;          // *LOCK
+    std::string extenders;      // (E)
     explicit DataInStmt(std::string v);
     void accept(ASTVisitor& visitor) override;
 };
@@ -782,6 +784,8 @@ public:
 class DataOutStmt : public Statement {
 public:
     std::string var_name;
+    bool lock = false;          // *LOCK
+    std::string extenders;      // (E)
     explicit DataOutStmt(std::string v);
     void accept(ASTVisitor& visitor) override;
 };
@@ -789,6 +793,8 @@ public:
 class DataUnlockStmt : public Statement {
 public:
     std::string var_name;
+    bool lock = false;          // *LOCK
+    std::string extenders;      // (E)
     explicit DataUnlockStmt(std::string v);
     void accept(ASTVisitor& visitor) override;
 };

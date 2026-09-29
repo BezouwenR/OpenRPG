@@ -16,8 +16,6 @@
 # no note, and a stale one hides a regression.
 
 # --- rpgc: work to do --------------------------------------------------------
-test93_data_area_named.rpgle          rpgc      OUT needs the data area locked first (IN *LOCK); IBM ends with RNX0412, rpgc writes it anyway
-test96_da_status401.rpgle             rpgc      IN of a missing data area without (E) or MONITOR ends the program on IBM i (CPF1015); rpgc sets %STATUS 401 and continues
 test102_snd_msg.rpgle                 rpgc      SND-MSG *ESCAPE goes to the caller by default, so it ends the procedure rather than reaching its own MONITOR (CPF9898); *INFO/*DIAG/*COMP go to the job log on IBM i, rpgc prints them
 test193_fixed_cspec_move_num_to_char.rpgle rpgc  MOVE of a negative number into characters keeps the sign in the last digit's zone (-12345 ends in N); rpgc moves bare digits
 test196_fixed_cspec_move_data_exc.rpgle rpgc    MOVE of characters into a number takes each character's digit portion, with no data error ('A' is 1); rpgc raises 907 -- and the test asserts it

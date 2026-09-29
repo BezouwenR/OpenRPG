@@ -1,1 +1,5 @@
-NAMED DA OK
+OUT without a lock: status 412
+READ BACK VERSION=1.1
+OUT after release: status 412
+OUT(E) error 1 status 412
+UNLOCKED

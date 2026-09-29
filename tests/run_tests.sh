@@ -399,8 +399,13 @@ run_test "89" "XML-INTO Path+Nested" "$TESTDIR/test89.rpgle" "run"
 run_test "90" "PSDS Basic" "$TESTDIR/test90_psds_basic.rpgle" "run"
 run_test "91" "PSDS + MONITOR" "$TESTDIR/test91_psds_monitor.rpgle" "run"
 
-# Tests 92-93: Data Areas
+# Tests 92-93: Data Areas. A named data area must exist before a program
+# can lock it, as on IBM i (scripts/ibmi-setup-objects.sh creates it there
+# with CRTDTAARA); here a data area is a file.
+_DA_DIR="$HOME/.rpgc/da"
+mkdir -p "$_DA_DIR"
 run_test "92" "Data Area *LDA round-trip" "$TESTDIR/test92_data_area_lda.rpgle" "run"
+printf '%-50s' 'X' > "$_DA_DIR/RPGCTEST93"
 run_test "93" "Data Area named" "$TESTDIR/test93_data_area_named.rpgle" "run"
 
 # Tests 94-95: Operation Extenders
@@ -408,8 +413,6 @@ run_test "94" "Extenders on EVAL and EVALR" "$TESTDIR/test94_extender_h.rpgle" "
 run_test "95" "Extender (E) on CALLP" "$TESTDIR/test95_extender_e.rpgle" "run"
 
 # Tests 96-98: Data Area %STATUS codes
-_DA_DIR="$HOME/.rpgc/da"
-mkdir -p "$_DA_DIR"
 
 # 96: status 401 — data area file must not exist
 rm -f "$_DA_DIR/NOSUCHDA96"

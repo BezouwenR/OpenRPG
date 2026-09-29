@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <array>
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <cmath>
 #include <climits>
@@ -953,45 +954,76 @@ inline std::string rpg_da_path(const std::string& name) {
     return (rpg_da_dir() / upper).string();
 }
 
-inline std::string rpg_da_read(const std::string& name, int max_len) {
+// IN, OUT and UNLOCK, as IBM i does them (verified on PUB400, test93,
+// test96). IN *LOCK takes the data area's lock; OUT needs it (status 412
+// without), and releases it unless it is OUT *LOCK; UNLOCK releases it, and
+// unlocking one not locked is not an error. The local, group and
+// program-initialization data areas (*LDA, *GDA, *PDA) need no lock. An
+// error -- 401 not found, 412 not locked, 413/415 cannot write/read -- ends
+// the program unless (E) is coded or a MONITOR handles it.
+inline std::set<std::string>& rpg_da_locks() { static std::set<std::string> s; return s; }
+inline std::string rpg_da_key(const std::string& name) {
+    std::string k = rpg_da_path(name);
+    return k;
+}
+inline bool rpg_da_special(const std::string& name) {
+    size_t i = name.find_first_not_of(' ');
+    return i != std::string::npos && name[i] == '*';
+}
+inline bool rpg_da_fail(int status, const std::string& msg, bool errext) {
+    if (!errext) rpg_raise(status, msg);
+    rpg_status_code() = status;
+    rpg_error_flag() = true;
+    return false;
+}
+inline void rpg_da_ok() {
+    rpg_status_code() = 0;
+    rpg_error_flag() = false;
+}
+
+// Reads the data area into `out`; false (and `out` untouched) on an error.
+inline bool rpg_da_in(const std::string& name, int max_len, bool lock, bool errext, std::string& out) {
     std::string path = rpg_da_path(name);
-    if (!std::filesystem::exists(path)) {
-        rpg_status_code() = 401; // data area not found
-        rpg_error_flag() = true;
-        return std::string(max_len, ' ');
-    }
+    if (!std::filesystem::exists(path))
+        return rpg_da_fail(401, "RNX0401: Data area " + name + " was not found.", errext);
     std::ifstream f(path, std::ios::binary);
-    if (!f) {
-        rpg_status_code() = 415; // error accessing data area
-        rpg_error_flag() = true;
-        return std::string(max_len, ' ');
-    }
-    rpg_status_code() = 0;
-    rpg_error_flag() = false;
-    std::string content((std::istreambuf_iterator<char>(f)),
-                         std::istreambuf_iterator<char>());
+    if (!f)
+        return rpg_da_fail(415, "RNX0415: Data area " + name + " could not be read.", errext);
+    std::string content((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
     content.resize(max_len, ' ');
-    return content;
+    out = content;
+    if (lock && !rpg_da_special(name)) rpg_da_locks().insert(rpg_da_key(name));
+    rpg_da_ok();
+    return true;
 }
 
-inline void rpg_da_write(const std::string& name, const std::string& value) {
+inline bool rpg_da_out(const std::string& name, const std::string& value, bool lock, bool errext) {
+    bool special = rpg_da_special(name);
+    std::string key = rpg_da_key(name);
+    if (!special && !rpg_da_locks().count(key))
+        return rpg_da_fail(412, "RNX0412: Data area " + name + " is not locked; OUT needs IN *LOCK first.",
+                           errext);
     std::ofstream f(rpg_da_path(name), std::ios::binary | std::ios::trunc);
-    if (!f) {
-        rpg_status_code() = 413; // error updating data area
-        rpg_error_flag() = true;
-        return;
-    }
-    f << value;
-    if (!f) {
-        rpg_status_code() = 413;
-        rpg_error_flag() = true;
-        return;
-    }
-    rpg_status_code() = 0;
-    rpg_error_flag() = false;
+    if (f) f << value;
+    if (!f)
+        return rpg_da_fail(413, "RNX0413: Data area " + name + " could not be written.", errext);
+    if (!lock) rpg_da_locks().erase(key);
+    rpg_da_ok();
+    return true;
 }
 
-inline void rpg_da_unlock(const std::string& /*name*/) {}
+inline void rpg_da_unlock(const std::string& name) {
+    rpg_da_locks().erase(rpg_da_key(name));
+    rpg_da_ok();
+}
+
+// Reads a data area outright -- the program's initial read of a DTAARA
+// field declared with *AUTO, and similar: not found is blanks.
+inline std::string rpg_da_read(const std::string& name, int max_len) {
+    std::string v(max_len, ' ');
+    rpg_da_in(name, max_len, false, true, v);
+    return v;
+}
 
 // --- %CHAR: generic to-string conversion ---
 inline std::string rpg_to_char(int v) { return std::to_string(v); }
