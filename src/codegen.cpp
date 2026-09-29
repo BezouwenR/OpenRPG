@@ -4311,14 +4311,11 @@ void CodeGen::visit(BIFCall& node) {
         }
         expr_ << ")";
     } else if (node.name == "SCAN") {
-        // %SCAN(needle : haystack) → returns 1-based position
+        // %SCAN(search : source {: start {: length}})
         expr_ << "rpg_scan(";
-        node.args[0]->accept(*this);
-        expr_ << ", ";
-        node.args[1]->accept(*this);
-        if (node.args.size() > 2) {
-            expr_ << ", ";
-            node.args[2]->accept(*this);
+        for (size_t i = 0; i < node.args.size() && i < 4; i++) {
+            if (i) expr_ << ", ";
+            node.args[i]->accept(*this);
         }
         expr_ << ")";
     } else if (node.name == "SCANRPL") {
@@ -4922,13 +4919,11 @@ void CodeGen::visit(BIFCall& node) {
         node.args[1]->accept(*this);
         expr_ << "))";
     } else if (node.name == "SCANR") {
+        // %SCANR(search : source {: start {: length}})
         expr_ << "rpg_scanr(";
-        node.args[0]->accept(*this);
-        expr_ << ", ";
-        node.args[1]->accept(*this);
-        if (node.args.size() > 2) {
-            expr_ << ", ";
-            node.args[2]->accept(*this);
+        for (size_t i = 0; i < node.args.size() && i < 4; i++) {
+            if (i) expr_ << ", ";
+            node.args[i]->accept(*this);
         }
         expr_ << ")";
     } else if (node.name == "EDITFLT") {

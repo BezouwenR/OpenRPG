@@ -54,9 +54,39 @@ inline std::string rpg_trimr(const std::string& s) {
 }
 
 // %SCAN - find needle in haystack, returns 1-based position (0 if not found)
-inline int rpg_scan(const std::string& needle, const std::string& haystack, int start = 1) {
-    auto pos = haystack.find(needle, start - 1);
-    return (pos == std::string::npos) ? 0 : static_cast<int>(pos) + 1;
+// %SCAN and %SCANR search a portion of the source: from `start` for
+// `length` characters, or to the end without one. A match must lie wholly
+// inside it; the result is numbered from the start of the whole source.
+// The start must lie within the source and the portion must not run past
+// its end -- otherwise status 100. All verified on PUB400 (test69).
+constexpr long long RPG_SCAN_TO_END = LLONG_MIN;
+constexpr long long RPG_SCAN_FROM_START = LLONG_MIN;  // no start given: 1
+// Defined with RpgError below; declared here for the helpers that raise.
+[[noreturn]] inline void rpg_raise(int status, const std::string& msg);
+// Returns one past the portion's end, and sets `start` to its first
+// position; `none` when there is nothing to search (no start given and an
+// empty source -- not an error).
+inline size_t rpg_scan_portion(const std::string& source, long long& start, long long length,
+                               bool& none) {
+    long long n = static_cast<long long>(source.size());
+    none = false;
+    if (start == RPG_SCAN_FROM_START) {
+        start = 1;
+        if (n == 0 && length == RPG_SCAN_TO_END) { none = true; return 0; }
+    }
+    if (length == RPG_SCAN_TO_END) length = n - start + 1;
+    if (start < 1 || start > n || length < 0 || start - 1 + length > n)
+        rpg_raise(100, "RNX0100: Value out of range for string operation.");
+    return static_cast<size_t>(start - 1 + length);  // one past the portion's end
+}
+
+inline int rpg_scan(const std::string& search, const std::string& source,
+                    long long start = RPG_SCAN_FROM_START, long long length = RPG_SCAN_TO_END) {
+    bool none;
+    size_t end = rpg_scan_portion(source, start, length, none);
+    if (none) return 0;
+    auto pos = source.find(search, static_cast<size_t>(start - 1));
+    return (pos == std::string::npos || pos + search.size() > end) ? 0 : static_cast<int>(pos) + 1;
 }
 
 // %SCANRPL - scan and replace all occurrences
@@ -229,9 +259,6 @@ inline int rpg_checkr(const std::string& comp, const std::string& base, int star
 }
 
 // %REPLACE(new : source : start {: length})
-// Defined with RpgError below; declared here for the helpers that raise.
-[[noreturn]] inline void rpg_raise(int status, const std::string& msg);
-
 // %REPLACE(replacement : source {: start {: length}}), as IBM i does it:
 // `length` characters of the source, from `start`, give way to the
 // replacement. The start defaults to 1, and the length to the
@@ -2267,16 +2294,16 @@ inline bool rpg_in_range(const T& val, const RpgRange<T>& range) {
     return rpg_ge(val, range.low) && rpg_le(val, range.high);
 }
 
-// %SCANR — reverse scan (search right to left)
-inline int rpg_scanr(const std::string& search, const std::string& source) {
-    auto pos = source.rfind(search);
-    return (pos == std::string::npos) ? 0 : static_cast<int>(pos) + 1;
-}
-
-inline int rpg_scanr(const std::string& search, const std::string& source, int start) {
-    if (start < 1 || start > static_cast<int>(source.size())) return 0;
-    auto pos = source.rfind(search, static_cast<size_t>(start) - 1);
-    return (pos == std::string::npos) ? 0 : static_cast<int>(pos) + 1;
+// %SCANR: the last match in the portion (see rpg_scan).
+inline int rpg_scanr(const std::string& search, const std::string& source,
+                     long long start = RPG_SCAN_FROM_START, long long length = RPG_SCAN_TO_END) {
+    bool none;
+    size_t end = rpg_scan_portion(source, start, length, none);
+    if (none) return 0;
+    if (search.size() > end - static_cast<size_t>(start - 1)) return 0;
+    auto pos = source.rfind(search, end - search.size());
+    return (pos == std::string::npos || pos < static_cast<size_t>(start - 1)) ? 0
+                                                                           : static_cast<int>(pos) + 1;
 }
 
 // %EDITFLT — external float representation

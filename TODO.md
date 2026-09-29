@@ -1730,6 +1730,13 @@ triage, not yet investigated test by test:
 | One-off behaviours | 26 (`%SIZE` of pointer 16), 33 (`%REPLACE`), 50, 69 (`%SCANR`), 67 (*PSSR), 90 (PSDS user/job), 93/96 (data areas), 102 (SND-MSG escape), 155/216 (I-spec record ID), 193/196/208/212 (MOVE), 228 (loops forever), 267, 283, 87/88 |
 | Probably platform divergence | DATA-INTO/DATA-GEN name rpgc's built-in parsers (RNX0355: 99, 100, 112, 113, 114, 180, 87?); 54 (program name); 115 (DUMP goes to spool) |
 
+**Fixed 2026-09-28: %SCAN / %SCANR (test69).** Both search a portion: from the
+start (default 1) for the length (default: to the end), and a match must fit
+inside it. A %SCANR start begins the portion; rpgc had searched only up to it.
+The length argument was ignored for both. A start outside the source (even
+one past the end) or a length past the end is status 100; with no start, an
+empty source is 0. All verified on PUB400.
+
 **Fixed 2026-09-28: %DECPOS (test50).** It is the operand's declared decimal
 positions, a constant worked out at compile time -- 2 for a PACKED(7:2)
 whatever it holds -- not the scale of the value (it counted 3.5 as 1). A

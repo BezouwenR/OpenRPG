@@ -16,7 +16,6 @@
 # no note, and a stale one hides a regression.
 
 # --- rpgc: work to do --------------------------------------------------------
-test69_scanr.rpgle                    rpgc      %SCANR's start begins the search range, searched backward from its end; rpgc searches only up to the start
 test67_pssr_error.rpgle               rpgc      a *PSSR that ends at ENDSR with no return point ends the program in error (RNX9001); rpgc ends normally
 test87.rpgle                          rpgc      XML-INTO: IBM rejects XML that does not match the data structure (RNX0353) unless allowmissing/allowextra say so; rpgc accepts it
 test88.rpgle                          rpgc      XML-INTO: IBM rejects XML that does not match the data structure (RNX0353) unless allowmissing/allowextra say so; rpgc accepts it
