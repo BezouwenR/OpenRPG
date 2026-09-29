@@ -218,23 +218,23 @@ def rpgc_ran(e):
 
 
 w(f"## All programs ({len(rows)})\n")
-w("**IBM i** and **rpgc**: how the program ran compiled by each — ✅ to the end, "
-  "❌ it ended in an error, ⏱ it did not finish. **Same output**: ✅ it displayed the "
-  "same on both, ❌ it did not. ⚠️ marks a result that differs from what the program "
-  "should do.\n")
-w("| Program | Should match | IBM i | rpgc | Same output | | Details | Last run |")
-w("|---|:-:|:-:|:-:|:-:|:-:|---|---|")
+w("**Match?** whether the program should display the same on both. **IBM i**, "
+  "**rpgc**: how it ran compiled by each — ✅ to the end, ❌ it ended in an error, "
+  "⏱ it did not finish. **Same**: whether it displayed the same on both; ⚠️ marks a "
+  "result that is not what the program should do.\n")
+w("| Program | Match? | IBM i | rpgc | Same | Details | Run |")
+w("|---|:-:|:-:|:-:|:-:|---|---|")
 detailed = []
 for n, e, cls in rows:
     if n not in expect:
-        w(f"| {src_link(n, short(n))} | | | | {RESULT.get(cls, cls)} | | | {e.get('verified', '—')} |")
+        w(f"| {src_link(n, short(n))} | | | | {RESULT.get(cls, cls)} | | {e.get('verified', '—')} |")
         continue
     want, got = expect[n], n in matched
     has_detail = (not got) or (not want)
     if has_detail:
         detailed.append((n, e, cls))
     w(f"| {src_link(n, short(n))} | {'Yes' if want else 'No'} | {ibm_ran(e)} | {rpgc_ran(e)} | "
-      f"{yes_no(got)} | {'' if want == got else '⚠️'} | "
+      f"{yes_no(got)}{'' if want == got else ' ⚠️'} | "
       f"{f'[why](#{anchor(n)})' if has_detail else ''} | {e.get('verified', '—')} |")
 w("")
 
