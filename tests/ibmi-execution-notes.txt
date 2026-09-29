@@ -16,8 +16,6 @@
 # no note, and a stale one hides a regression.
 
 # --- rpgc: work to do --------------------------------------------------------
-test87.rpgle                          rpgc      XML-INTO: IBM rejects XML that does not match the data structure (RNX0353) unless allowmissing/allowextra say so; rpgc accepts it
-test88.rpgle                          rpgc      XML-INTO: IBM rejects XML that does not match the data structure (RNX0353) unless allowmissing/allowextra say so; rpgc accepts it
 test93_data_area_named.rpgle          rpgc      OUT needs the data area locked first (IN *LOCK); IBM ends with RNX0412, rpgc writes it anyway
 test96_da_status401.rpgle             rpgc      IN of a missing data area without (E) or MONITOR ends the program on IBM i (CPF1015); rpgc sets %STATUS 401 and continues
 test102_snd_msg.rpgle                 rpgc      SND-MSG *ESCAPE goes to the caller by default, so it ends the procedure rather than reaching its own MONITOR (CPF9898); *INFO/*DIAG/*COMP go to the job log on IBM i, rpgc prints them

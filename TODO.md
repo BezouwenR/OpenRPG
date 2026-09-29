@@ -1703,6 +1703,18 @@ triage, not yet investigated test by test:
 | One-off behaviours | 26 (`%SIZE` of pointer 16), 33 (`%REPLACE`), 50, 69 (`%SCANR`), 67 (*PSSR), 90 (PSDS user/job), 93/96 (data areas), 102 (SND-MSG escape), 155/216 (I-spec record ID), 193/196/208/212 (MOVE), 228 (loops forever), 267, 283, 87/88 |
 | Probably platform divergence | DATA-INTO/DATA-GEN name rpgc's built-in parsers (RNX0355: 99, 100, 112, 113, 114, 180, 87?); 54 (program name); 115 (DUMP goes to spool) |
 
+**Fixed 2026-09-29: XML-INTO matches as IBM i does (test87, test88).** The
+options decide the match and a mismatch is status 353: case=lower (the
+default) / upper / any; allowmissing=no (default) needs an element or
+attribute per subfield, =yes keeps the old value of one without; allowextra=no
+(default) needs a subfield per element; without a path the outermost element
+is named as the variable, and a path names the element to read from the root
+(for an array, the repeated one: path=items/item). rpgc had matched loosely,
+set missing subfields to zero and ignored extras. For arrays IBM ignores
+surplus elements (no error): a fixed array takes its dimension, a DIM(*VAR)
+array its current count (unchanged), a DIM(*AUTO) array up to its maximum
+and its count becomes the number read. All verified on PUB400.
+
 **Fixed 2026-09-29: the PSDS, and %SUBST out of range (test90, test91,
 test311).** The PSDS used an invented layout (program name at 81, user at
 91, job number at 101...), where IBM i has the library at 81 and exception

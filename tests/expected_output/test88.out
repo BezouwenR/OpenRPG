@@ -1,6 +1,8 @@
 Item 1: Widget qty=5 price=19.99
 Item 2: Gadget qty=3 price=29.50
 Item 3: Gizmo qty=10 price=9.95
-Emp count: 2
-Emp 1: 101 Alice
-Emp 2: 102 Bob
+Var count: 1
+Var 1: 101 Alice
+Auto count: 2
+Auto 2: 102 Bob
+Pair: Widget Gadget

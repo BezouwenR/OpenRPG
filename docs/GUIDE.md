@@ -2222,12 +2222,23 @@ DSPLY %CHAR(order.qty);        // 25
 
 ### Options
 
+The document must **match** the variable, as on IBM i; one that does not is
+an error, status 353 (`RNX0353`), which `MONITOR` can catch. The options
+decide what matching means:
+
 | Option | Meaning |
 |--------|---------|
-| `case=any` | Case-insensitive element-to-field matching |
-| `path=a/b/c` | Navigate into the XML tree before mapping |
+| `case=lower` | The default: the XML's names are the RPG names in lower case |
+| `case=upper` | ... in upper case |
+| `case=any` | ... in any case |
+| `allowmissing=no` | The default: every subfield needs an element (or attribute) |
+| `allowmissing=yes` | A subfield with no element keeps the value it had |
+| `allowextra=no` | The default: every element needs a subfield |
+| `allowextra=yes` | Elements with no subfield are ignored |
+| `path=a/b/c` | The element to read, from the document's root |
 
-Missing elements default to zero or blank. Unknown elements are ignored.
+Without `path`, the document's outermost element must be named as the
+variable. An XML attribute can supply a subfield just as an element can.
 
 ### PATH Option
 
@@ -2249,8 +2260,8 @@ DSPLY rec.name;          // Alice
 
 ### Array Target
 
-Map a repeating XML element into an array DS. Use `path=` to name the parent
-element, and the target DS array receives one element per child:
+Map a repeating XML element into an array DS. `path=` names the repeated
+element, from the root, and each one fills one element of the array:
 
 ```rpgle
 DCL-DS item QUALIFIED DIM(5);
@@ -2264,21 +2275,25 @@ xml = '<items>' +
       '<item><name>Gadget</name><qty>3</qty><price>29.50</price></item>' +
       '</items>';
 
-XML-INTO item %XML(xml : 'case=any path=items');
+XML-INTO item %XML(xml : 'case=any path=items/item');
 
 DSPLY (item(1).name + ' qty=' + %CHAR(item(1).qty));   // Widget qty=5
 DSPLY (item(2).name + ' qty=' + %CHAR(item(2).qty));   // Gadget qty=3
 ```
 
-Use `DIM(*VAR: n)` to handle a variable number of elements:
+An array takes as many elements as it has room for, and the rest are
+ignored: a fixed array its dimension, a `DIM(*VAR)` array its current number
+of elements (which XML-INTO leaves unchanged). Use `DIM(*AUTO: n)` for a
+variable number: it takes up to `n`, and its number of elements becomes the
+number read:
 
 ```rpgle
-DCL-DS emp QUALIFIED DIM(*VAR: 50);
+DCL-DS emp QUALIFIED DIM(*AUTO: 50);
   id   INT(10);
   name VARCHAR(40);
 END-DS;
 
-XML-INTO emp %XML(xml : 'case=any path=employees');
+XML-INTO emp %XML(xml : 'case=any path=employees/emp');
 
 DSPLY ('Count: ' + %CHAR(%ELEM(emp)));
 ```
