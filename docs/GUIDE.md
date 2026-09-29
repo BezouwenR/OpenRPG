@@ -827,6 +827,21 @@ DCL-PROC ProcessData;
 END-PROC;
 ```
 
+
+### DUMP
+
+`DUMP` writes a formatted dump of the program's variables -- but, as on IBM i,
+only when the program is compiled with `CTL-OPT DEBUG(*YES)` (or `DEBUG(*DUMP)`,
+or `H DEBUG` in fixed format), or when the operation is `DUMP(A)`. Otherwise it
+does nothing, so `DUMP` statements can stay in a program and only fire in a
+debug build. IBM i writes the dump to a spooled file; OpenRPG prints it.
+
+```rpgle
+CTL-OPT DEBUG(*YES);
+DUMP;        // dumps: DEBUG(*YES)
+DUMP(A);     // dumps whatever DEBUG says
+```
+
 ---
 
 ## Embedded SQL

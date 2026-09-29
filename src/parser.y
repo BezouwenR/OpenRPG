@@ -90,6 +90,7 @@ extern char ctlopt_main_proc[256];
 extern char ctlopt_datfmt[64];
 extern char ctlopt_timfmt[64];
 extern bool ctlopt_nomain;
+extern bool ctlopt_debug_dump;
 
 // Set line number on AST node
 #define SET_LINE(node) do { if (node) (node)->line = yylineno; } while(0)
@@ -563,6 +564,7 @@ statements_opt:
     }
     | statements_opt KW_CTLOPT {
         if (ctlopt_nomain) g_program->nomain = true;
+        if (ctlopt_debug_dump) g_program->debug_dump = true;
         if (ctlopt_main_proc[0]) g_program->main_proc = ctlopt_main_proc;
         if (ctlopt_datfmt[0]) g_program->datfmt = ctlopt_datfmt;
         if (ctlopt_timfmt[0]) g_program->timfmt = ctlopt_timfmt;

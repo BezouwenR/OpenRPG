@@ -217,9 +217,9 @@
   "test115_dump.rpgle": {
    "codes": [],
    "rpgc": "accept",
-   "sha256": "b479efb6137e93ea6f91fa7a524423a16eb4e6c400a0f27f2cba4c11b62b6dfa",
+   "sha256": "dea3f00b4919299fe3db3cad37f1bdb8c8918be0e5d39895a6c705f89df5cabf",
    "verdict": "accept",
-   "verified": "2026-09-25"
+   "verified": "2026-09-29"
   },
   "test116_fixed_hd.rpgle": {
    "codes": [],
@@ -3246,6 +3246,20 @@
    "verdict": "accept",
    "verified": "2026-09-29"
   },
+  "test313_dump_debug.rpgle": {
+   "codes": [],
+   "rpgc": "accept",
+   "sha256": "b2e5d6b034d3bbd6b3d6c7c79c570bc8b0df8e84016e81d67aa9910bd9a5812d",
+   "verdict": "accept",
+   "verified": "2026-09-29"
+  },
+  "test314_dump_always.rpgle": {
+   "codes": [],
+   "rpgc": "accept",
+   "sha256": "2a74f75668308ae6cb93221dedae5efee3eed6cdad812c84cb8060923cfb585a",
+   "verdict": "accept",
+   "verified": "2026-09-29"
+  },
   "test31_lookup_sorta.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -3855,5 +3869,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-09-29T14:21:29+00:00"
+ "generated": "2026-09-29T15:40:47+00:00"
 }

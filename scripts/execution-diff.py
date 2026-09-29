@@ -61,7 +61,10 @@ def parse(path):
                 cur["error"] = " ".join(m.group(1).split())
                 if cur["status"] == "same":
                     cur["status"] = "runtime-error"
-            elif not cur["error"]:
+            elif not cur["error"] and re.match(r"\s*[A-Z]{3}[0-9A-F]{4}:", ln):
+                # A message from the CALL itself (e.g. CPD0170). Anything
+                # else the program writes -- a DUMP's printed output, say --
+                # is not an error.
                 cur["error"] = ln.strip()
     # Split the queue at the per-test markers.
     target = None

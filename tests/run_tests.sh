@@ -871,6 +871,8 @@ run_test "309" "Reject NOT as a name" "$TESTDIR/test309_err_not_name.rpgle" "err
 run_test "310" "*PSSR in a procedure reaching ENDSR" "$TESTDIR/test310_pssr_proc.rpgle" "run"
 run_test "311" "%SUBST start and length out of range" "$TESTDIR/test311_subst_range.rpgle" "run"
 run_test "312" "SND-MSG *ESCAPE to the caller or itself" "$TESTDIR/test312_snd_msg_escape.rpgle" "run"
+run_test "313" "DUMP with CTL-OPT DEBUG(*YES)" "$TESTDIR/test313_dump_debug.rpgle" "run"
+run_test "314" "DUMP(A) without DEBUG" "$TESTDIR/test314_dump_always.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

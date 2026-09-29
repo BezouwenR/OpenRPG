@@ -759,6 +759,7 @@ static void checkSubroutinesLast(const std::vector<std::unique_ptr<Statement>>& 
 }
 
 void CodeGen::visit(Program& node) {
+    debug_dump_ = node.debug_dump;
     checkDeclarationOrder(node.statements, "the main procedure");
     checkSubroutinesLast(node.statements, "the main procedure");
     // Store date/time format settings
@@ -3865,7 +3866,10 @@ void CodeGen::emitClearDs(const std::string& target, const std::string& decl,
 }
 
 void CodeGen::visit(DumpStmt& node) {
-    (void)node;
+    // As on IBM i, DUMP writes a dump only when the program is compiled
+    // with CTL-OPT DEBUG(*YES) (or *DUMP), or when it is DUMP(A); otherwise
+    // it does nothing.
+    if (!node.always_ && !debug_dump_) return;
     emitIndent();
     out_ << "{\n";
     indent_++;

@@ -172,6 +172,7 @@ private:
     // function or lambda), so it records that and the caller of EXSR acts
     // on it. See visit(ReturnStmt) and visit(ExSR).
     bool in_subroutine_ = false;
+    bool debug_dump_ = false;   // the program's CTL-OPT DEBUG enables DUMP
     std::string afterSubroutine() const;
     std::vector<std::string> deferred_init_; // statements a file-scope decl needs run in main()
     std::map<std::string, DclF*> file_defs_;  // DCL-F nodes by name

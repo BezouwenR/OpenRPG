@@ -24,8 +24,9 @@ test212_fixed_cspec_move_dt_err.rpgle rpgc      an invalid date in MOVE without 
 # --- platform: by design -----------------------------------------------------
 test26_pointers.rpgle                 platform  a pointer is 16 bytes on IBM i and 8 where rpgc runs, so %SIZE of one differs
 test102_snd_msg.rpgle                 platform  *INFO, *DIAG and *COMP go to the job log on IBM i; rpgc has none and prints them (*ESCAPE matches: test312)
+test313_dump_debug.rpgle              platform  IBM i writes the dump to a spooled file (QPPGMDMP); rpgc has none and prints it
+test314_dump_always.rpgle             platform  IBM i writes the dump to a spooled file (QPPGMDMP); rpgc has none and prints it
 test54_memory_bifs.rpgle              platform  the program's name: RPGCXRUN is the object the execution harness creates on IBM i; rpgc's program is main
-test115_dump.rpgle                    platform  DUMP writes a formatted dump to a spooled file on IBM i (with DEBUG(*YES)), not to the display
 test242_hex_nul.rpgle                 platform  a hex literal is bytes in the job's character set: x'C1C2' is 'AB' in EBCDIC, not in ASCII
 test99_data_into.rpgle                platform  DATA-INTO names a parser program; the parsers the tests use are built into rpgc and do not exist on IBM i (RNX0355)
 test100_data_gen.rpgle                platform  DATA-GEN names a generator program; the ones the tests use are built into rpgc and do not exist on IBM i (RNX0355)

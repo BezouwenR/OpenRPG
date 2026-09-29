@@ -940,6 +940,7 @@ struct EntryParam {
 class Program : public ASTNode {
 public:
     bool nomain = false;
+    bool debug_dump = false;  // CTL-OPT DEBUG(*YES) / DEBUG(*DUMP): DUMP writes a dump
     bool uses_user_const = false; // program references *USER
     std::string main_proc;
     // *ENTRY PLIST — the program's own incoming parameters. When

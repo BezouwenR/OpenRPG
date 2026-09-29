@@ -1703,6 +1703,13 @@ triage, not yet investigated test by test:
 | One-off behaviours | 26 (`%SIZE` of pointer 16), 33 (`%REPLACE`), 50, 69 (`%SCANR`), 67 (*PSSR), 90 (PSDS user/job), 93/96 (data areas), 102 (SND-MSG escape), 155/216 (I-spec record ID), 193/196/208/212 (MOVE), 228 (loops forever), 267, 283, 87/88 |
 | Probably platform divergence | DATA-INTO/DATA-GEN name rpgc's built-in parsers (RNX0355: 99, 100, 112, 113, 114, 180, 87?); 54 (program name); 115 (DUMP goes to spool) |
 
+**Fixed 2026-09-29: DUMP only when IBM i would dump (test115, test313,
+test314).** DUMP writes a dump only with CTL-OPT DEBUG(*YES)/DEBUG(*DUMP) (or
+H DEBUG), or as DUMP(A); otherwise it does nothing -- rpgc had always dumped.
+Where the dump goes stays a platform difference by decision: IBM i writes a
+spooled file, rpgc prints it (tests 313 and 314). Found alongside: the
+fixed-format C-spec DUMP operation is not supported.
+
 **Fixed 2026-09-29: SND-MSG *ESCAPE (test312; test102 partly).** By default an
 *ESCAPE goes to the caller: the sending procedure ends and its own MONITOR
 and *PSSR do not see it; the caller gets status 202 (CPF9898 in the PSDS),

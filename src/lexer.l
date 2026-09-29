@@ -169,6 +169,7 @@ char ctlopt_main_proc[256] = {0};
 char ctlopt_datfmt[64] = {0};
 char ctlopt_timfmt[64] = {0};
 bool ctlopt_nomain = false;
+bool ctlopt_debug_dump = false;
 
 // Thin wrapper over the generic rpg::parseKeywordList() (keyword_list.h)
 // — shared with H-spec's fixed-format keyword-list content, which is the
@@ -182,8 +183,17 @@ static void parse_ctlopt(const char* text) {
     ctlopt_datfmt[0] = '\0';
     ctlopt_timfmt[0] = '\0';
 
+    ctlopt_debug_dump = false;
     auto kw = rpg::parseKeywordList(text);
     if (kw.count("NOMAIN")) ctlopt_nomain = true;
+    // DEBUG, DEBUG(*YES) or DEBUG(*DUMP ...): DUMP operations write a dump.
+    auto dbg = kw.find("DEBUG");
+    if (dbg != kw.end()) {
+        std::string v = dbg->second;
+        for (auto& c : v) c = (char)toupper((unsigned char)c);
+        ctlopt_debug_dump = v.empty() || v.find("*YES") != std::string::npos ||
+                            v.find("*DUMP") != std::string::npos;
+    }
 
     auto setUpper = [](char* dst, size_t dstSize, const std::string& val) {
         std::string upper = val;
