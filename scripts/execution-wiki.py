@@ -202,23 +202,40 @@ def yes_no(v):
 # The table holds only short cells, so it fits the page: long text (the
 # reason, IBM's error, the output) is in Details, linked from its row. With
 # long text in the table GitHub cuts off the right-hand columns.
+def ibm_ran(e):
+    """How the program ran on IBM i."""
+    s = e.get("status")
+    if s == "timeout":
+        return "⏱"
+    return "❌" if s in ("runtime-error", "compile-failed") else "✅"
+
+
+def rpgc_ran(e):
+    """How the program runs compiled with rpgc: its recorded output ends in the
+    runtime error that stopped it, if one did."""
+    lines = xd.norm(xd.expected_lines(a.tests, e["test"]) or [])
+    return "❌" if lines and re.match(r"RNX\d{4}", lines[-1]) else "✅"
+
+
 w(f"## All programs ({len(rows)})\n")
-w("✅ displayed the same on IBM i as with rpgc, ❌ did not. ⚠️ marks a result that "
-  "differs from what the program should do.\n")
-w("| Program | Should match | IBM i | | Details | Last run |")
-w("|---|:-:|:-:|:-:|---|---|")
+w("**IBM i** and **rpgc**: how the program ran compiled by each — ✅ to the end, "
+  "❌ it ended in an error, ⏱ it did not finish. **Same output**: ✅ it displayed the "
+  "same on both, ❌ it did not. ⚠️ marks a result that differs from what the program "
+  "should do.\n")
+w("| Program | Should match | IBM i | rpgc | Same output | | Details | Last run |")
+w("|---|:-:|:-:|:-:|:-:|:-:|---|---|")
 detailed = []
 for n, e, cls in rows:
     if n not in expect:
-        w(f"| {src_link(n, short(n))} | | {RESULT.get(cls, cls)} | | | {e.get('verified', '—')} |")
+        w(f"| {src_link(n, short(n))} | | | | {RESULT.get(cls, cls)} | | | {e.get('verified', '—')} |")
         continue
     want, got = expect[n], n in matched
     has_detail = (not got) or (not want)
     if has_detail:
         detailed.append((n, e, cls))
-    w(f"| {src_link(n, short(n))} | {'Yes' if want else 'No'} | {yes_no(got)} | "
-      f"{'' if want == got else '⚠️'} | {f'[why](#{anchor(n)})' if has_detail else ''} | "
-      f"{e.get('verified', '—')} |")
+    w(f"| {src_link(n, short(n))} | {'Yes' if want else 'No'} | {ibm_ran(e)} | {rpgc_ran(e)} | "
+      f"{yes_no(got)} | {'' if want == got else '⚠️'} | "
+      f"{f'[why](#{anchor(n)})' if has_detail else ''} | {e.get('verified', '—')} |")
 w("")
 
 w(f"## Details ({len(detailed)})\n")
