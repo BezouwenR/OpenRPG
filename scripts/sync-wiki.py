@@ -17,7 +17,6 @@ GUIDE = os.path.join(os.path.dirname(__file__), "..", "docs", "GUIDE.md")
 
 # Wiki pages that other scripts maintain (page name -> sidebar title).
 EXTERNAL_PAGES = {
-    "IBM-i-Compatibility": "IBM i Compatibility",               # conformance-summary.py
     "IBM-i-Conformance-Results": "IBM i Conformance Results",   # conformance-wiki.py
     "IBM-i-Execution-Results": "IBM i Execution Results",       # execution-wiki.py
 }
