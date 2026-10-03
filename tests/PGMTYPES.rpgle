@@ -1,0 +1,45 @@
+**FREE
+// Called by test338: a parameter of each type, every one changed, so the
+// caller sees each come back through IBM i's format for it.
+DCL-DS rec_t QUALIFIED TEMPLATE;
+  code CHAR(3);
+  qty INT(10);
+  amt PACKED(7:2);
+END-DS;
+DCL-PI *N;
+  c CHAR(8);
+  v VARCHAR(20);
+  i5 INT(5);
+  i10 INT(10);
+  i20 INT(20);
+  u UNS(10);
+  p PACKED(9:2);
+  z ZONED(7:2);
+  f FLOAT(8);
+  flag IND;
+  d DATE;
+  t TIME;
+  ts TIMESTAMP;
+  rec LIKEDS(rec_t);
+  k CHAR(4) CONST;
+END-PI;
+c = %TRIM(c) + '!';
+v = v + ' world';
+i5 = -i5;
+i10 = i10 * 2;
+i20 = i20 + 1;
+u = u + 1;
+p = -p - 1;
+z = -z;
+f = f / 4;
+flag = NOT flag;
+d = d + %DAYS(1);
+t = t + %HOURS(1);
+IF ts = Z'2024-12-31-23.59.59.000000';
+  ts = Z'2025-01-01-00.00.00.000000';
+ENDIF;
+rec.code = 'NEW';
+rec.qty += 5;
+rec.amt = -rec.amt;
+DSPLY ('callee got k=' + k);
+RETURN;

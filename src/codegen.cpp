@@ -24,7 +24,17 @@ std::string CodeGen::generate(Program& program) {
     indent_ = 1;
     in_procedure_ = false;
     program.accept(*this);
-    return out_.str();
+    std::string code = out_.str();
+    // A program that calls programs, or is one (-shared), needs the loader
+    // and the parameter formats, which bring <windows.h> or <dlfcn.h> with
+    // them -- so only those programs include them.
+    if (uses_pgm_calls_ || !shared_program_.empty()) {
+        const std::string inc = "#include \"rpg_runtime.h\"\n";
+        size_t at = code.find(inc);
+        if (at != std::string::npos)
+            code.insert(at + inc.size(), "#include \"rpg_call_runtime.h\"\n");
+    }
+    return code;
 }
 
 // Defined below; needed by visit(Program&) to forward-declare subroutines.
@@ -1200,15 +1210,19 @@ void CodeGen::visit(Program& node) {
 
     // NOMAIN: no main() function
     if (node.nomain) {
+        if (!shared_program_.empty())
+            report_semantic_error(1, "rpgc -shared builds a program for others to call, which "
+                "needs a main procedure; this module is NOMAIN");
         return;
     }
 
     // MAIN(procname): emit a main() that calls the named procedure
     if (!node.main_proc.empty()) {
-        out_ << "int main() {\n";
+        out_ << (shared_program_.empty() ? "int main() {\n" : "static int rpg_program_main() {\n");
         out_ << "    " << node.main_proc << "();\n";
-        out_ << "    return rpg_main_end();\n";
+        out_ << "    return " << mainEnd() << ";\n";
         out_ << "}\n";
+        if (!shared_program_.empty()) emitProgramExport(node);
         return;
     }
 
@@ -1221,8 +1235,14 @@ void CodeGen::visit(Program& node) {
     // one storage location, exactly as p.929 describes.
     if (!node.entry_params.empty()) {
         if (!entry_ok) return;
-        out_ << "void " << node.entry_name << "(" << entry_params_str << ") {\n";
+        out_ << "void " << (shared_program_.empty() ? node.entry_name : "rpg_program_entry")
+             << "(" << entry_params_str << ") {\n";
         void_return_ = true;
+    } else if (!shared_program_.empty()) {
+        // A called program: its mainline, called by the exported function
+        // (emitProgramExport).
+        out_ << "static int rpg_program_main() {\n";
+        if (uses_psds_) out_ << "    rpg_psds_init(\"" << shared_program_ << "\");\n";
     } else if (uses_psds_) {
         // Emit main (use argc/argv when PSDS is declared)
         out_ << "int main(int argc, char* argv[]) {\n";
@@ -1317,15 +1337,16 @@ void CodeGen::visit(Program& node) {
         // Reaching the *PSSR's ENDSR (no RETURN) ends the program in error,
         // as on IBM i (RNX9001); a RETURN in it ends the program normally.
         emitIndent(); out_ << "sr__PSSR();\n";
-        emitIndent(); out_ << "if (rpg_sr_returned) return rpg_main_end();\n";
+        emitIndent(); out_ << "if (rpg_sr_returned) return " << mainEnd() << ";\n";
         emitIndent(); out_ << "rpg_pssr_ended();\n";
         indent_--; emitIndent(); out_ << "}\n";
     }
     // The program's exit status (rpg_main_end): 0, unless a halt indicator
     // is on or the program set one.
-    if (!void_return_) { emitIndent(); out_ << "return rpg_main_end();\n"; }
+    if (!void_return_) { emitIndent(); out_ << "return " << mainEnd() << ";\n"; }
     out_ << "}\n";
     void_return_ = false;
+    if (!shared_program_.empty()) emitProgramExport(node);
 }
 
 // OPTIONS(*NOPASS) on a parameter passed by reference needs the callee to
@@ -1345,6 +1366,12 @@ static void checkParamOptions(const std::vector<ParamDecl>& params, const std::s
 
 void CodeGen::visit(DclPR& node) {
     checkParamOptions(node.interface.params, node.name);
+    // A program is not a C++ function to declare: it is found when called.
+    if (!node.extpgm.empty()) {
+        pgm_protos_[node.name] = &node;
+        uses_pgm_calls_ = true;
+        return;
+    }
     // OVERLOAD: every candidate returns what the overloaded prototype does
     // (IBM: RNF3244). A call normally goes straight to the one candidate it
     // fits (resolveOverload); the inline wrappers below serve the calls
@@ -2740,7 +2767,7 @@ void CodeGen::visit(ReturnStmt& node) {
         // main()'s exit status, which a void function has nowhere to put.
         out_ << "return;\n";
     } else {
-        out_ << "return rpg_main_end();\n";   // the mainline: the program ends
+        out_ << "return " << mainEnd() << ";\n";   // the mainline: the program ends
     }
 }
 
@@ -2894,7 +2921,8 @@ void CodeGen::visit(DclDS& node) {
     if (!node.extname.empty()) {
         // EXTNAME: externally described DS (stub)
         out_ << "struct " << node.name << "_t { /* EXTNAME(" << node.extname << ") - fields from file */\n"
-             << "    std::string rpg_chars() const { return std::string(); }\n};\n";
+             << "    std::string rpg_chars() const { return std::string(); }\n"
+             << "    void rpg_set_chars(const std::string&) {}\n};\n";
         return;
     }
 
@@ -3164,6 +3192,11 @@ void CodeGen::visit(DclDS& node) {
     // The data structure as a character value of its whole length.
     out_ << "    std::string rpg_chars() const {\n"
          << "        std::string __s; size_t __n = 0;\n";
+    // ...and back: the subfields from those bytes (rpg_set_chars), when the
+    // data structure is passed to a program that may change it.
+    std::ostringstream setc;
+    setc << "    void rpg_set_chars(const std::string& __s) {\n"
+         << "        size_t __n = 0; (void)__s; (void)__n;\n";
     for (auto& f : node.fields) {
         if (!f.overlay_field.empty()) continue;
         std::string img;
@@ -3208,6 +3241,49 @@ void CodeGen::visit(DclDS& node) {
             if (digits == 0) digits = len;
         }
         std::string from = std::to_string(img_from.count(f.name) ? img_from[f.name] : 0);
+        // The value back from a subfield's bytes __b.
+        auto valueOf = [&](const std::string& v) -> std::string {
+            switch (t) {
+                case RPGType::CHAR: case RPGType::UCS2: return "__b";
+                case RPGType::VARCHAR: return "rpg_unimg_varchar(__b, " + std::to_string(len) + ")";
+                case RPGType::ZONED:   return "rpg_unimg_zoned(__b, " + std::to_string(dec) + ")";
+                case RPGType::PACKED:  return "rpg_unimg_packed(__b, " + std::to_string(dec) + ")";
+                case RPGType::INT10: case RPGType::BINDEC:
+                    return "static_cast<std::decay_t<decltype(" + v + ")>>(rpg_unimg_int(__b))";
+                case RPGType::UNS:
+                    return "static_cast<std::decay_t<decltype(" + v + ")>>(rpg_unimg_uns(__b))";
+                case RPGType::FLOAT4: case RPGType::FLOAT8:
+                    return "static_cast<std::decay_t<decltype(" + v + ")>>(rpg_unimg_float(__b))";
+                case RPGType::IND:     return "(__b[0] == '1')";
+                case RPGType::DATE: case RPGType::TIMESTAMP:
+                    return "std::decay_t<decltype(" + v + ")>(__b)";
+                case RPGType::TIME:    // *ISO is hh.mm.ss; a time is held as hh:mm:ss
+                    return "RpgTime([&] { std::string t = __b; for (auto& c : t) if (c == '.') c = ':'; return t; }())";
+                default: return "";
+            }
+        };
+        if (!f.likeds.empty()) {
+            if (f.dim > 0)
+                setc << "        { int __k = 0; for (auto& __e : " << f.name << ") { std::string __b = "
+                     << "rpg_img_take(__s, __n, __k++ == 0 ? " << from << " : 0, __e.rpg_chars().size()); "
+                     << "__e.rpg_set_chars(__b); } }\n";
+            else
+                setc << "        { std::string __b = rpg_img_take(__s, __n, " << from << ", " << f.name
+                     << ".rpg_chars().size()); " << f.name << ".rpg_set_chars(__b); }\n";
+        } else if (!valueOf("x").empty()) {
+            if (f.dim > 0)
+                setc << "        { int __k = 0; for (auto& __e : " << f.name << ") { std::string __b = "
+                     << "rpg_img_take(__s, __n, __k++ == 0 ? " << from << " : 0, ("
+                     << imageOf("__e", t, len, digits, dec) << ").size()); __e = " << valueOf("__e") << "; } }\n";
+            else
+                setc << "        { std::string __b = rpg_img_take(__s, __n, " << from << ", ("
+                     << imageOf(f.name, t, len, digits, dec) << ").size()); " << f.name << " = "
+                     << valueOf(f.name) << "; }\n";
+        } else {
+            // A pointer has no character form to come back from.
+            setc << "        { std::string __b = rpg_img_take(__s, __n, " << from << ", ("
+                 << imageOf(f.name, t, len, digits, dec) << ").size()); (void)__b; }\n";
+        }
         if (!f.likeds.empty()) {
             if (f.dim > 0)
                 out_ << "        { std::string __a; for (const auto& __e : " << f.name
@@ -3222,6 +3298,7 @@ void CodeGen::visit(DclDS& node) {
         }
     }
     out_ << "        return __s;\n    }\n";
+    out_ << setc.str() << "    }\n";
     out_ << "};\n";
     if (in_procedure_) emitLocalDsInstance(node);
 }
@@ -3546,7 +3623,7 @@ void CodeGen::visit(ExSR& node) {
 std::string CodeGen::afterSubroutine() const {
     if (in_subroutine_) return in_procedure_ ? "if (__sr_ret) return;" : "if (rpg_sr_returned) return;";
     if (in_procedure_) return void_return_ ? "if (__sr_ret) return;" : "if (__sr_ret) return __sr_val;";
-    return "if (rpg_sr_returned) return rpg_main_end();";
+    return "if (rpg_sr_returned) return " + mainEnd() + ";";
 }
 
 void CodeGen::visit(GotoStmt& node) {
@@ -4039,46 +4116,39 @@ void CodeGen::visit(MoveStmt& node) {
 // The declaration is emitted at block scope (legal C++, and it declares
 // the name with external linkage) so no hoisting pass is needed.
 void CodeGen::visit(CallStmt& node) {
-    // The program name becomes a C++ symbol, so it has to be spellable as
-    // one — reject anything else here rather than emit uncompilable code.
-    bool ok = !node.program.empty() &&
-              (isalpha((unsigned char)node.program[0]) || node.program[0] == '_');
-    for (char ch : node.program)
-        if (!isalnum((unsigned char)ch) && ch != '_') ok = false;
-    if (!ok) {
-        report_semantic_error(node.line, "CALL: program name '" + node.program +
-            "' is not usable as a linkable symbol — this compiler resolves a called program "
-            "to a C++ function of the same name (as DCL-PR ... EXTPGM does), so the name must "
-            "be letters, digits and underscores");
-        return;
-    }
-    std::vector<std::string> sig;
-    for (const auto& pname : node.parms) {
-        auto tit = var_types_.find(pname);
-        if (tit == var_types_.end()) {
-            report_semantic_error(node.line, "CALL: PARM '" + pname +
-                "' is not a declared standalone field — a data structure or undeclared name "
-                "cannot have its parameter type derived; see TODO.md");
+    // The program is found when the CALL runs (rpg_call_program); each PARM
+    // field goes to it by reference, in IBM i's format.
+    std::string nameExpr;
+    if (node.program_is_var) {
+        if (!var_types_.count(node.program) && !unqualified_subfields_.count(node.program)) {
+            report_semantic_error(node.line, "CALL: " + node.program + " is not a declared field; "
+                "Factor 2 is the program's name, quoted, or a field holding it");
             return;
         }
-        sig.push_back(typeToString(tit->second, 0) + "&");
+        Identifier id(node.program);
+        nameExpr = "std::string(" + subExpr(id) + ")";
+    } else {
+        nameExpr = "std::string(\"" + cppEscape(node.program) + "\")";
     }
-    std::string params;
-    for (size_t i = 0; i < sig.size(); i++) {
-        if (i) params += ", ";
-        params += sig[i];
+    std::vector<std::pair<std::string, FieldAttrs>> args;
+    std::vector<std::string> likeds;
+    std::vector<bool> back;
+    for (const auto& pname : node.parms) {
+        const DclDS* ds = resolveDsDef(pname);
+        FieldAttrs a = attrsOfName(pname);
+        if (!ds && !a.known) {
+            report_semantic_error(node.line, "CALL: PARM '" + pname + "' is not a declared field");
+            return;
+        }
+        Identifier id(pname);
+        args.push_back({subExpr(id), a});
+        likeds.push_back(ds ? ds->name : std::string());
+        back.push_back(true);
     }
     emitIndent();
-    out_ << "void " << node.program << "(" << params << ");";
-    if (node.line > 0) out_ << " // CALL — synthesized prototype, line " << node.line;
+    out_ << programCall(nameExpr, args, likeds, back) << ";";
+    if (node.line > 0) out_ << " // CALL, line " << node.line;
     out_ << "\n";
-    emitIndent();
-    out_ << node.program << "(";
-    for (size_t i = 0; i < node.parms.size(); i++) {
-        if (i) out_ << ", ";
-        out_ << node.parms[i];
-    }
-    out_ << ");\n";
 }
 
 // RESET restores the value a variable started with: its INZ, or else its
@@ -4606,6 +4676,153 @@ CodeGen::Fit CodeGen::candidateFit(const ProcInterface& sig,
     return fit;
 }
 
+// rpgc -shared: the exported C function a caller finds (see
+// rpg_call_runtime.h). It takes the program's parameters as pointers to
+// their bytes in IBM i's format, runs the program with them, writes the
+// changed values back, and returns 0, or -1 if the program ended in error.
+void CodeGen::emitProgramExport(const Program& node) {
+    struct Parm { std::string target; FieldAttrs a; std::string likeds; };
+    std::vector<Parm> parms;
+    std::string call = "rpg_program_main()";
+    std::string locals;
+    if (!node.entry_params.empty()) {
+        // *ENTRY PLIST: the mainline takes the fields by reference.
+        call = "rpg_program_entry(";
+        for (size_t i = 0; i < node.entry_params.size(); i++) {
+            const std::string& n = node.entry_params[i].name;
+            FieldAttrs a{};
+            a.known = true;
+            a.type = var_types_.count(n) ? var_types_[n] : RPGType::CHAR;
+            a.length = var_lengths_[n]; a.digits = var_digits_[n]; a.decimals = var_decimals_[n];
+            std::string local = "__a" + std::to_string(i);
+            locals += "        " + typeToString(a.type, a.length) + " " + local + "{};\n";
+            parms.push_back({local, a, ""});
+            call += (i ? ", " : "") + local;
+        }
+        call += ")";
+    } else {
+        // DCL-PI *N: the parameters are program fields.
+        for (const auto& p : node.main_pi) {
+            FieldAttrs a{};
+            a.known = true; a.type = p.type; a.length = p.length;
+            a.digits = p.digits; a.decimals = p.decimals;
+            parms.push_back({p.name, a, p.likeds});
+        }
+    }
+    out_ << "\nRPG_PROGRAM_EXPORT int " << shared_program_ << "(";
+    for (size_t i = 0; i < parms.size(); i++) out_ << (i ? ", " : "") << "void* __p" << i;
+    out_ << ") {\n    try {\n" << locals;
+    for (size_t i = 0; i < parms.size(); i++)
+        out_ << "        if (__p" << i << ") "
+             << abiStore(parms[i].target, "static_cast<const char*>(__p" + std::to_string(i) + ")",
+                         parms[i].a, parms[i].likeds) << "\n";
+    out_ << "        int __rc = 0;\n";
+    if (node.entry_params.empty()) out_ << "        __rc = " << call << ";\n";
+    else out_ << "        " << call << ";\n";
+    for (size_t i = 0; i < parms.size(); i++)
+        out_ << "        rpg_abi_put(__p" << i << ", "
+             << abiEncode(parms[i].target, parms[i].a, parms[i].likeds) << ");\n";
+    out_ << "        std::cout.flush();\n"
+         << "        return (__rc != 0 || rpg_called_program_failed()) ? -1 : 0;\n"
+         << "    } catch (...) {\n"
+         << "        std::cout.flush();\n"
+         << "        rpg_called_program_failed();\n"
+         << "        return -1;\n"
+         << "    }\n}\n";
+}
+
+// --- Program calls ---------------------------------------------------------
+// A program is called through rpg_call_program (rpg_call_runtime.h), which
+// finds it at run time and passes each parameter as a pointer to its bytes
+// in IBM i's format, so the called program can be RPG, C or COBOL.
+
+static int abiIntBytes(RPGType t, int digits, int length) {
+    int d = digits > 0 ? digits : length;
+    if (t == RPGType::BINDEC) return d <= 4 ? 2 : d <= 9 ? 4 : 8;
+    return d == 0 ? 4 : d <= 3 ? 1 : d <= 5 ? 2 : d <= 10 ? 4 : 8;
+}
+
+// The parameter's bytes, from the C++ value v.
+std::string CodeGen::abiEncode(const std::string& v, const FieldAttrs& a, const std::string& likeds) const {
+    if (!likeds.empty()) return "(" + v + ").rpg_chars()";
+    int digits = a.digits > 0 ? a.digits : a.length;
+    auto n = [](int x) { return std::to_string(x); };
+    switch (a.type) {
+        case RPGType::CHAR:    return "rpg_abi_char(" + v + ", " + n(a.length) + ")";
+        case RPGType::UCS2:    return "rpg_abi_char(" + v + ", " + n(a.length * 2) + ")";
+        case RPGType::VARCHAR: return "rpg_abi_varchar(" + v + ", " + n(a.length) + ")";
+        case RPGType::ZONED:
+            return "rpg_abi_zoned(static_cast<double>(" + v + "), " + n(digits) + ", " + n(a.decimals) + ")";
+        case RPGType::PACKED:
+            return "rpg_abi_packed(static_cast<double>(" + v + "), " + n(digits) + ", " + n(a.decimals) + ")";
+        case RPGType::INT10: case RPGType::UNS: case RPGType::BINDEC:
+            return "rpg_abi_int(static_cast<long long>(" + v + "), " + n(abiIntBytes(a.type, a.digits, a.length)) + ")";
+        case RPGType::FLOAT4:  return "rpg_abi_float(static_cast<double>(" + v + "), 4)";
+        case RPGType::FLOAT8:  return "rpg_abi_float(static_cast<double>(" + v + "), 8)";
+        case RPGType::IND:     return "rpg_abi_ind(" + v + ")";
+        case RPGType::DATE:    return "rpg_abi_char(rpg_to_char(" + v + "), 10)";
+        case RPGType::TIME:    return "rpg_abi_char(rpg_to_char(" + v + "), 8)";
+        case RPGType::TIMESTAMP: return "rpg_abi_char(rpg_to_char(" + v + "), 26)";
+        case RPGType::POINTER: case RPGType::OBJECT: return "rpg_abi_ptr(" + v + ")";
+    }
+    return "std::string()";
+}
+
+// A statement setting target from the parameter bytes at ptr (a const char*).
+std::string CodeGen::abiStore(const std::string& target, const std::string& ptr, const FieldAttrs& a,
+                              const std::string& likeds) const {
+    if (!likeds.empty())
+        return target + ".rpg_set_chars(std::string(" + ptr + ", " + target + ".rpg_chars().size()));";
+    int digits = a.digits > 0 ? a.digits : a.length;
+    auto n = [](int x) { return std::to_string(x); };
+    std::string cast = "static_cast<std::decay_t<decltype(" + target + ")>>";
+    switch (a.type) {
+        case RPGType::CHAR:    return target + " = rpg_abi_get_char(" + ptr + ", " + n(a.length) + ");";
+        case RPGType::UCS2:    return target + " = rpg_abi_get_char(" + ptr + ", " + n(a.length * 2) + ");";
+        case RPGType::VARCHAR: return target + " = rpg_abi_get_varchar(" + ptr + ", " + n(a.length) + ");";
+        case RPGType::ZONED:
+            return target + " = rpg_abi_get_zoned(" + ptr + ", " + n(digits) + ", " + n(a.decimals) + ");";
+        case RPGType::PACKED:
+            return target + " = rpg_abi_get_packed(" + ptr + ", " + n(digits) + ", " + n(a.decimals) + ");";
+        case RPGType::INT10: case RPGType::BINDEC:
+            return target + " = " + cast + "(rpg_abi_get_int(" + ptr + ", " + n(abiIntBytes(a.type, a.digits, a.length)) + "));";
+        case RPGType::UNS:
+            return target + " = " + cast + "(rpg_abi_get_uns(" + ptr + ", " + n(abiIntBytes(a.type, a.digits, a.length)) + "));";
+        case RPGType::FLOAT4:  return target + " = " + cast + "(rpg_abi_get_float(" + ptr + ", 4));";
+        case RPGType::FLOAT8:  return target + " = " + cast + "(rpg_abi_get_float(" + ptr + ", 8));";
+        case RPGType::IND:     return target + " = rpg_abi_get_ind(" + ptr + ");";
+        case RPGType::DATE:
+            return target + " = RpgDate(rpg_abi_get_char(" + ptr + ", 10));";
+        case RPGType::TIMESTAMP:
+            return target + " = RpgTimestamp(rpg_abi_get_char(" + ptr + ", 26));";
+        case RPGType::TIME:   // *ISO is hh.mm.ss; a time is held as hh:mm:ss
+            return "{ std::string __t = rpg_abi_get_char(" + ptr + ", 8); for (auto& __c : __t) "
+                   "if (__c == '.') __c = ':'; " + target + " = RpgTime(__t); }";
+        case RPGType::POINTER: case RPGType::OBJECT:
+            return target + " = rpg_abi_get_ptr(" + ptr + ");";
+    }
+    return "";
+}
+
+// A call of the program nameExpr names, as an expression: each argument
+// into its bytes, the call, and the changed values back into the
+// arguments passed by reference.
+std::string CodeGen::programCall(const std::string& nameExpr,
+                                 const std::vector<std::pair<std::string, FieldAttrs>>& args,
+                                 const std::vector<std::string>& likeds,
+                                 const std::vector<bool>& writeBack) {
+    uses_pgm_calls_ = true;
+    std::string s = "[&]() { std::vector<std::string> __pa;";
+    for (size_t i = 0; i < args.size(); i++)
+        s += " __pa.push_back(" + abiEncode(args[i].first, args[i].second, likeds[i]) + ");";
+    s += " rpg_call_program(" + nameExpr + ", __pa);";
+    for (size_t i = 0; i < args.size(); i++)
+        if (writeBack[i])
+            s += " " + abiStore(args[i].first, "__pa[" + std::to_string(i) + "].data()",
+                                args[i].second, likeds[i]);
+    return s + " }()";
+}
+
 // A call's arguments against the prototype, as IBM i checks them when it
 // compiles the call: an argument of another type family (a string for a
 // number), or -- for a parameter passed by reference, which the procedure
@@ -4706,6 +4923,35 @@ void CodeGen::visit(FuncCall& node) {
         auto sig = proc_sigs_.find(target);
         if (sig != proc_sigs_.end())
             checkCallArgs(target, sig->second, node.args, node.line > 0 ? node.line : cur_stmt_line_);
+    }
+    // A program (EXTPGM): called through the loader, its parameters in
+    // IBM i's formats. EXTPGM(var) names it at run time.
+    auto pgm = pgm_protos_.find(node.name);
+    if (pgm != pgm_protos_.end()) {
+        const DclPR& pr = *pgm->second;
+        std::string nameExpr = pr.extpgm_var ? "std::string(" + pr.extpgm + ")"
+                                             : "std::string(\"" + cppEscape(pr.extpgm) + "\")";
+        std::vector<std::pair<std::string, FieldAttrs>> args;
+        std::vector<std::string> likeds;
+        std::vector<bool> back;
+        for (size_t i = 0; i < node.args.size() && i < pr.interface.params.size(); i++) {
+            const ParamDecl& p = pr.interface.params[i];
+            FieldAttrs a;
+            a.known = true; a.type = p.type; a.length = p.length;
+            a.digits = p.digits; a.decimals = p.decimals;
+            args.push_back({subExpr(*node.args[i]), a});
+            likeds.push_back(p.likeds);
+            // An argument passed by reference gets the program's changes;
+            // a CONST or VALUE one, or an expression, does not.
+            bool lvalue = dynamic_cast<Identifier*>(node.args[i].get()) ||
+                          dynamic_cast<DotExpr*>(node.args[i].get()) ||
+                          dynamic_cast<ArrayAccess*>(node.args[i].get()) ||
+                          (dynamic_cast<FuncCall*>(node.args[i].get()) &&
+                           array_vars_.count(static_cast<FuncCall*>(node.args[i].get())->name));
+            back.push_back(!p.is_const && !p.by_value && lvalue);
+        }
+        expr_ << programCall(nameExpr, args, likeds, back);
+        return;
     }
     // Resolve EXTPROC/EXTPGM name mapping
     std::string callName = target;
@@ -6199,7 +6445,10 @@ void CodeGen::visit(CallpStmt& node) {
         out_ << emitExpr(*node.expr) << ";\n";
         indent_--;
         emitIndent();
-        out_ << "} catch (...) { rpg_error_flag() = true; rpg_status_code() = 202; }\n";
+        // The error's own status where it has one -- 211 for a program
+        // that can't be found -- and otherwise 202.
+        out_ << "} catch (const RpgError& __e) { rpg_error_flag() = true; rpg_status_code() = __e.status; }"
+                " catch (...) { rpg_error_flag() = true; rpg_status_code() = 202; }\n";
     } else {
         out_ << emitExpr(*node.expr) << ";\n";
     }

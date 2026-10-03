@@ -1011,11 +1011,14 @@ void feedCSpecLine(CSpecRunState& state, const std::string& line, int lineNo) {
                     "C-spec: CALL does not take a Factor 1 entry");
                 return;
             }
-            if (factor2.size() < 3 || factor2.front() != '\'' || factor2.back() != '\'') {
-                report_fixed_format_error(lineNo, "C-spec: CALL requires a quoted program name "
-                    "in Factor 2 — a program name held in a variable is a dynamic call, which "
-                    "has no equivalent here (this compiler links a called program statically, "
-                    "the same way DCL-PR ... EXTPGM does); see TODO.md");
+            // Factor 2 is the program's name, quoted, or a variable holding it.
+            bool quoted = factor2.size() >= 3 && factor2.front() == '\'' && factor2.back() == '\'';
+            bool name = !factor2.empty() && (isalpha((unsigned char)factor2[0]) || factor2[0] == '_');
+            for (char ch : factor2)
+                if (!isalnum((unsigned char)ch) && ch != '_') name = false;
+            if (!quoted && !name) {
+                report_fixed_format_error(lineNo, "C-spec: CALL needs the program's name in "
+                    "Factor 2, quoted, or a variable that holds it");
                 return;
             }
             if (upper(result) == "*ENTRY") {

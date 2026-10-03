@@ -350,14 +350,19 @@ static void collectDclFLists(rpg::Program* program,
 #  endif
 #  define RPGC_ODBC_FLAGS " -lodbc32"
 #  define RPGC_DSPF_FLAGS " -lpdcurses"
+#  define RPGC_DL_FLAGS   ""
 #elif defined(__APPLE__)
 #  define RPGC_CXX       "clang++"
 #  define RPGC_ODBC_FLAGS " -I/opt/homebrew/include -L/opt/homebrew/lib -lodbc"
 #  define RPGC_DSPF_FLAGS " -lncurses"
+#  define RPGC_DL_FLAGS   ""
 #else
 #  define RPGC_CXX       "g++"
 #  define RPGC_ODBC_FLAGS " -lodbc"
 #  define RPGC_DSPF_FLAGS " -lncurses"
+// dlopen is in libdl before glibc 2.34, and in libc after (where -ldl is
+// an empty stub), so asking for it is right either way.
+#  define RPGC_DL_FLAGS   " -ldl"
 #endif
 
 // system() on Windows runs the command via `cmd.exe /C <command>`, which has
@@ -476,6 +481,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Usage: rpgc <input.rpgle> [-S|-c] [-g] [--keep-cpp] [-o output] [file.o ...]\n";
         std::cerr << "  -S             Emit C++ source only, do not compile\n";
         std::cerr << "  -c             Compile to object file, do not link\n";
+        std::cerr << "  -shared        Build a program others call: NAME.so/.dylib/.dll\n";
         std::cerr << "  -g             Compile with debug info (for GDB/LLDB/VS Code)\n";
         std::cerr << "  --keep-cpp     Keep the intermediate .cpp file after compiling\n";
         std::cerr << "  -o file        Output file (executable, object, or .cpp with -S)\n";
@@ -490,6 +496,7 @@ int main(int argc, char* argv[]) {
     bool keep_cpp = false;
     bool debug_mode = false;
     bool compile_only = false;
+    bool shared = false;
     std::vector<std::string> extra_objs;
 
     for (int i = 1; i < argc; i++) {
@@ -497,6 +504,8 @@ int main(int argc, char* argv[]) {
             emit_only = true;
         } else if (strcmp(argv[i], "-c") == 0) {
             compile_only = true;
+        } else if (strcmp(argv[i], "-shared") == 0) {
+            shared = true;
         } else if (strcmp(argv[i], "-g") == 0) {
             debug_mode = true;
         } else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
@@ -603,7 +612,24 @@ int main(int argc, char* argv[]) {
 
     bool is_dspf = !dspf_descs.empty();
 
+    // -shared: the program's name -- what a caller's EXTPGM or CALL names --
+    // is its source file's, upper-cased, and is the C function exported.
+    std::string program_name = base;
+    for (auto& c : program_name) c = static_cast<char>(toupper(static_cast<unsigned char>(c)));
+    if (shared) {
+        bool ok = !program_name.empty() &&
+                  (isalpha((unsigned char)program_name[0]) || program_name[0] == '_');
+        for (char c : program_name) if (!isalnum((unsigned char)c) && c != '_') ok = false;
+        if (!ok) {
+            std::cerr << "Error: -shared: the program is named after its source file, and '"
+                      << base << "' is not a usable program name (letters, digits, underscores)\n";
+            delete program;
+            return 1;
+        }
+    }
+
     rpg::CodeGen codegen;
+    if (shared) codegen.setSharedProgram(program_name);
     if (debug_mode) codegen.setDebugMode(true, abs_source);
     codegen.setExtFileDescs(std::move(ext_descs));
     codegen.setDspfDescs(std::move(dspf_descs));
@@ -720,8 +746,15 @@ int main(int argc, char* argv[]) {
         return rc == 0 ? 0 : 1;
     }
 
-    // Default: compile to executable
-    std::string exe_path = output_file ? output_file : base;
+    // Default: compile to executable (or, with -shared, a shared library)
+#ifdef _WIN32
+    const char* lib_ext = ".dll";
+#elif defined(__APPLE__)
+    const char* lib_ext = ".dylib";
+#else
+    const char* lib_ext = ".so";
+#endif
+    std::string exe_path = output_file ? output_file : shared ? program_name + lib_ext : base;
 
     // Write C++ to temp file (or kept file)
     std::string cpp_path;
@@ -753,6 +786,13 @@ int main(int argc, char* argv[]) {
     if (debug_mode) {
         cmd += " -g -O0";
     }
+    if (shared) {
+#ifdef _WIN32
+        cmd += " -shared";
+#else
+        cmd += " -shared -fPIC";
+#endif
+    }
     // Library flags go AFTER the source and any extra objects. GNU ld
     // resolves left to right and, with --as-needed (the Ubuntu default),
     // discards a library nothing has asked for *yet* — so `-lncurses foo.cpp`
@@ -767,6 +807,7 @@ int main(int argc, char* argv[]) {
     if (is_dspf) {
         libs += RPGC_DSPF_FLAGS;
     }
+    if (codegen.usesProgramCalls()) libs += RPGC_DL_FLAGS;
     cmd += " -o " + q(exe_path) + " " + q(cpp_path);
     for (const auto& obj : extra_objs) cmd += " " + q(obj);
     cmd += libs;

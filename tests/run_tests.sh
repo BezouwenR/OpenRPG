@@ -83,6 +83,34 @@ run_test() {
             echo -e "${GREEN}PASS${NC}"
             PASS=$((PASS + 1))
             ;;
+        shared)
+            # A called program: built with -shared into the test directory,
+            # where a caller's run finds it (the caller's own directory is
+            # searched first). It is named after its source file.
+            local pname
+            pname=$(basename "$src"); pname="${pname%.*}"
+            pname=$(echo "$pname" | tr '[:lower:]' '[:upper:]')
+            local ext=".so"
+            case "$(uname -s)" in
+                Darwin) ext=".dylib" ;;
+                *_NT*|MINGW*|MSYS*|CYGWIN*) ext=".dll" ;;
+            esac
+            if [ "${src%.c}" != "$src" ]; then
+                # A called program written in C
+                "$CXX" -x c -shared -fPIC "$src" -o "$TMPDIR/${pname}${ext}" 2>"$TMPDIR/test${testnum}_err.txt"
+            else
+                $RPGC -shared "$src" -o "$TMPDIR/${pname}${ext}" 2>"$TMPDIR/test${testnum}_err.txt"
+            fi
+            if [ $? -ne 0 ]; then
+                echo -e "${RED}FAIL${NC} (shared build failed)"
+                cat "$TMPDIR/test${testnum}_err.txt"
+                FAIL=$((FAIL + 1))
+                FAILURES="$FAILURES\n  Test $testnum ($label)"
+                return
+            fi
+            echo -e "${GREEN}PASS${NC}"
+            PASS=$((PASS + 1))
+            ;;
         parse-only)
             if ! $RPGC -S "$src" -o "$TMPDIR/test${testnum}.cpp" 2>"$TMPDIR/test${testnum}_err.txt"; then
                 echo -e "${RED}FAIL${NC} (transpile failed)"
@@ -666,10 +694,10 @@ run_test "173" "Free-format: reject MOVE (fixed-format only)" "$TESTDIR/test173_
 # from the PARM operands' declared types; 174 is the module it links
 # against (same pattern as tests 48/49), and 197-198 link against it too.
 # 176 pins that a PLIST must declare at least one parameter.
-run_test "174" "CALL callee module (NOMAIN)" "$TESTDIR/test174_call_callee_module.rpgle" "compile-only"
-run_test "175" "Fixed C-spec: CALL/PARM program call" "$TESTDIR/test175_fixed_cspec_call_parm.rpgle" "run" "$TMPDIR/test174.o"
+run_test "174" "Called program with DCL-PI *N (ADDONE)" "$TESTDIR/ADDONE.rpgle" "shared"
+run_test "175" "Fixed C-spec: CALL/PARM program call" "$TESTDIR/test175_fixed_cspec_call_parm.rpgle" "run"
 run_test "176" "Fixed C-spec: reject PLIST with no PARM" "$TESTDIR/test176_fixed_cspec_err_plist.rpgle" "error"
-run_test "177" "Fixed C-spec: reject dynamic CALL name" "$TESTDIR/test177_fixed_cspec_err_call_dynamic.rpgle" "error"
+run_test "177" "Fixed C-spec: CALL with a variable name" "$TESTDIR/test177_fixed_cspec_call_var.rpgle" "run"
 run_test "178" "Fixed C-spec: reject PARM without CALL" "$TESTDIR/test178_fixed_cspec_err_parm_orphan.rpgle" "error"
 run_test "179" "Free-format: reject CALL (fixed-format only)" "$TESTDIR/test179_call_err_free_format.rpgle" "error"
 
@@ -734,8 +762,8 @@ run_test "196" "Fixed C-spec: MOVE invalid digit -> 907" "$TESTDIR/test196_fixed
 # order. 198 covers PARM's optional move-in/move-out operands, and
 # 199-202 the rejections that keep a mistake from compiling into a
 # silently different call.
-run_test "197" "Fixed C-spec: named PLIST" "$TESTDIR/test197_fixed_cspec_plist.rpgle" "run" "$TMPDIR/test174.o"
-run_test "198" "Fixed C-spec: PARM factor 1/factor 2" "$TESTDIR/test198_fixed_cspec_parm_f1f2.rpgle" "run" "$TMPDIR/test174.o"
+run_test "197" "Fixed C-spec: named PLIST" "$TESTDIR/test197_fixed_cspec_plist.rpgle" "run"
+run_test "198" "Fixed C-spec: PARM factor 1/factor 2" "$TESTDIR/test198_fixed_cspec_parm_f1f2.rpgle" "run"
 run_test "199" "Fixed C-spec: reject *ENTRY with NOMAIN" "$TESTDIR/test199_fixed_cspec_err_entry_nomain.rpgle" "error"
 run_test "200" "Fixed C-spec: reject undefined PLIST name" "$TESTDIR/test200_fixed_cspec_err_plist_undef.rpgle" "error"
 run_test "201" "Fixed C-spec: reject duplicate PLIST name" "$TESTDIR/test201_fixed_cspec_err_plist_dup.rpgle" "error"
@@ -747,8 +775,8 @@ run_test "202" "Fixed C-spec: reject literal PARM result" "$TESTDIR/test202_fixe
 # testNNN name: the file name is the program name a caller spells in CALL.
 # 204 calls it both ways (inline PARMs and a named PLIST defined after the
 # call), so the two halves of this work meet end to end.
-run_test "203" "*ENTRY callee module (ADDTWO)" "$TESTDIR/ADDTWO.rpgle" "compile-only"
-run_test "204" "Fixed C-spec: *ENTRY PLIST call" "$TESTDIR/test204_fixed_cspec_entry_caller.rpgle" "run" "$TMPDIR/test203.o"
+run_test "203" "*ENTRY called program (ADDTWO)" "$TESTDIR/ADDTWO.rpgle" "shared"
+run_test "204" "Fixed C-spec: *ENTRY PLIST call" "$TESTDIR/test204_fixed_cspec_entry_caller.rpgle" "run"
 run_test "205" "Fixed C-spec: reject *ENTRY PARM factor 2" "$TESTDIR/test205_fixed_cspec_err_entry_f2.rpgle" "error"
 run_test "206" "Fixed C-spec: reject undeclared *ENTRY parm" "$TESTDIR/test206_fixed_cspec_err_entry_undecl.rpgle" "error"
 run_test "207" "Fixed C-spec: reject CALL naming *ENTRY" "$TESTDIR/test207_fixed_cspec_err_call_entry.rpgle" "error"
@@ -782,8 +810,8 @@ run_test "215" "Program: A/R aging report" "$TESTDIR/test215_prog_ar_aging.rpgle
 rm -f "$TESTDIR/../testfl216.txt"
 run_test "216" "Program: GL batch edit and posting" "$TESTDIR/test216_prog_gl_post.rpgle" "run"
 run_test "217" "Program: inventory reorder analysis" "$TESTDIR/test217_prog_inv_reorder.rpgle" "run"
-run_test "218b" "Program: NETPAY callee module" "$TESTDIR/NETPAY.rpgle" "compile-only"
-run_test "218" "Program: payroll register (CALL/PLIST)" "$TESTDIR/test218_prog_payroll.rpgle" "run" "$TMPDIR/test218b.o"
+run_test "218b" "Program: NETPAY called program" "$TESTDIR/NETPAY.rpgle" "shared"
+run_test "218" "Program: payroll register (CALL/PLIST)" "$TESTDIR/test218_prog_payroll.rpgle" "run"
 run_test "219" "Program: order credit release (RLA+SQL)" "$TESTDIR/test219_prog_order_release.sqlrpgle" "run-sql"
 
 # --- Regression tests for the data-corruption defects the program corpus
@@ -908,6 +936,12 @@ run_test "334" "Free-form DCL-F DISK(n) in fixed-form source" "$TESTDIR/test334_
 run_test "335" "SQL error message: MESSAGE_TEXT, SQLERRMC" "$TESTDIR/test335_sql_message_text.sqlrpgle" "run-sql"
 run_test "336" "Halt indicator: the program ends in error" "$TESTDIR/test336_exit_status.rpgle" "run"
 run_test "337" "rpg_set_exit_status" "$TESTDIR/test337_exit_status_set.rpgle" "run"
+run_test "338a" "Called program: a parameter of each type" "$TESTDIR/PGMTYPES.rpgle" "shared"
+run_test "338" "EXTPGM(var): parameters of each type" "$TESTDIR/test338_extpgm_types.rpgle" "run"
+run_test "339a" "Called program that can fail" "$TESTDIR/PGMFAIL.rpgle" "shared"
+run_test "339" "Program calls: not found, ended in error" "$TESTDIR/test339_call_errors.rpgle" "run"
+run_test "340a" "Called program written in C" "$TESTDIR/CSQUARE.c" "shared"
+run_test "340" "Calling a C program" "$TESTDIR/test340_call_c_program.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

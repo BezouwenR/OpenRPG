@@ -1261,6 +1261,57 @@ inline void rpg_img_put(std::string& s, size_t& next, int from, const std::strin
     next = at + img.size();
 }
 
+// The other way: a data structure's subfields from its bytes (rpg_set_chars,
+// when one is passed to a program, which may change it). rpg_img_take
+// takes a subfield's `len` bytes from where rpg_img_put put them.
+inline std::string rpg_img_take(const std::string& s, size_t& next, int from, size_t len) {
+    size_t at = from > 0 ? static_cast<size_t>(from - 1) : next;
+    next = at + len;
+    std::string b = at < s.size() ? s.substr(at, len) : std::string();
+    b.resize(len, ' ');
+    return b;
+}
+inline std::string rpg_unimg_varchar(const std::string& b, int len) {
+    size_t n = b.size() >= 2 ? (static_cast<unsigned char>(b[0]) << 8 | static_cast<unsigned char>(b[1])) : 0;
+    n = std::min(n, static_cast<size_t>(len < 0 ? 0 : len));
+    return b.size() >= 2 + n ? b.substr(2, n) : std::string();
+}
+inline double rpg_digits_num(const std::string& d, int dec, bool neg);
+inline double rpg_unimg_zoned(const std::string& b, int dec) {
+    bool neg = !b.empty() && b[0] == '-';
+    std::string d;
+    for (char c : b) d += (c >= '0' && c <= '9') ? c : '0';
+    return rpg_digits_num(d, dec, neg);
+}
+inline double rpg_unimg_packed(const std::string& b, int dec) {
+    std::string d;
+    for (size_t i = 0; i < b.size(); i++) {
+        unsigned char c = static_cast<unsigned char>(b[i]);
+        d += static_cast<char>('0' + ((c >> 4) % 10));
+        if (i + 1 < b.size()) d += static_cast<char>('0' + ((c & 0x0F) % 10));
+    }
+    unsigned char sign = b.empty() ? 0x0F : static_cast<unsigned char>(b.back()) & 0x0F;
+    return rpg_digits_num(d, dec, sign == 0x0D || sign == 0x0B);
+}
+inline long long rpg_unimg_int(const std::string& b) {
+    unsigned long long u = 0;
+    for (char c : b) u = (u << 8) | static_cast<unsigned char>(c);
+    if (!b.empty() && b.size() < 8 && (static_cast<unsigned char>(b[0]) & 0x80))
+        u |= ~0ULL << (8 * b.size());   // sign-extend
+    return static_cast<long long>(u);
+}
+inline unsigned long long rpg_unimg_uns(const std::string& b) {
+    unsigned long long u = 0;
+    for (char c : b) u = (u << 8) | static_cast<unsigned char>(c);
+    return u;
+}
+inline double rpg_unimg_float(const std::string& b) {
+    unsigned char r[8] = {};
+    for (size_t i = 0; i < b.size() && i < 8; i++) r[i] = static_cast<unsigned char>(b[b.size() - 1 - i]);
+    if (b.size() == 4) { float f; std::memcpy(&f, r, 4); return f; }
+    double d; std::memcpy(&d, r, 8); return d;
+}
+
 
 // --- Date/Time format helpers ---
 // Day of year (1-366) from month/day

@@ -55,6 +55,12 @@ public:
         dspf_descs_ = std::move(descs);
     }
     void setConfDsn(std::string dsn) { conf_dsn_ = std::move(dsn); }
+    // rpgc -shared: the program is a shared library others call, exporting
+    // a C function of this name instead of having a main().
+    void setSharedProgram(std::string name) { shared_program_ = std::move(name); }
+    // Whether the program calls other programs (EXTPGM, CALL), which are
+    // loaded at run time.
+    bool usesProgramCalls() const { return uses_pgm_calls_; }
 
     void visit(Identifier& node) override;
     void visit(IntLiteral& node) override;
@@ -169,6 +175,13 @@ private:
     bool at_file_scope_ = false;             // emitting the module-global block
     bool sr_at_file_scope_ = false;          // emitting the mainline's subroutines as functions
     bool sr_predeclared_ = false;            // a procedure's subroutines: assign the std::function
+    std::string shared_program_;             // rpgc -shared: the exported program name
+    bool uses_pgm_calls_ = false;            // EXTPGM/CALL: include rpg_call_runtime.h
+    std::map<std::string, const DclPR*> pgm_protos_; // EXTPGM prototypes by name
+    // How the main procedure ends: the program's exit status, or, in a
+    // called program, 0 (its wrapper decides success).
+    std::string mainEnd() const { return shared_program_.empty() ? "rpg_main_end()" : "0"; }
+    void emitProgramExport(const Program& node);
     // Emitting a subroutine's body: a RETURN there returns from the program
     // or procedure, not just the subroutine (the subroutine is a C++
     // function or lambda), so it records that and the caller of EXSR acts
@@ -224,6 +237,13 @@ private:
     struct FieldAttrs { bool known = false; RPGType type = RPGType::INT10; int length = 0; int digits = 0; int decimals = 0; };
     FieldAttrs attrsOf(const Expression& e) const;
     FieldAttrs attrsOfName(const std::string& cppName) const;
+    std::string abiEncode(const std::string& v, const FieldAttrs& a, const std::string& likeds) const;
+    std::string abiStore(const std::string& target, const std::string& ptr, const FieldAttrs& a,
+                         const std::string& likeds) const;
+    std::string programCall(const std::string& nameExpr,
+                            const std::vector<std::pair<std::string, FieldAttrs>>& args,
+                            const std::vector<std::string>& likeds,
+                            const std::vector<bool>& writeBack);
     // Wraps `rhs` so the value assigned fits a target of this declaration.
     // Scale: CHAR/VARCHAR length and numeric scale only (data arriving from
     // SQL, XML or a file). Overflow: also raise status 103 when a numeric

@@ -250,6 +250,7 @@ rpgc <source-file> [options]
 | `-o file` | Output file (executable by default, or C++ file with `-S`) |
 | `-S` | Emit C++ source only, do not compile |
 | `-c` | Compile to an object file, do not link |
+| `-shared` | Build a program others call: `NAME.so`, `.dylib` or `.dll` (see [Calling Programs](#calling-programs)) |
 | `-g` | Compile with debug info, for GDB/LLDB/VS Code |
 | `--keep-cpp` | Keep the intermediate `.cpp` file after compiling |
 | `-v`, `--version` | Print the version and exit |
@@ -3027,9 +3028,9 @@ blank.
      C                   PARM                    total
 ```
 
-There is no prototype, so the callee's signature is synthesized from the
-`PARM` operands' declared types, every parameter passed by reference. If caller
-and callee disagree, the link fails — an ugly error, but not a silent one.
+Factor 2 can also be a field holding the program's name. The program is found
+when the `CALL` runs, and each `PARM` field is passed by reference, in the
+format its declaration gives it — see [Calling Programs](#calling-programs).
 
 A named `PLIST` can appear anywhere in the source, including after the calls
 that use it:
@@ -3050,9 +3051,8 @@ parameter before the call and out of it afterwards.
 
 ### Program Parameters — `*ENTRY PLIST`
 
-A member with an `*ENTRY PLIST` does not compile to a `main()`. It becomes a
-callable function taking each parameter by reference, which is exactly the
-signature a caller's `CALL`/`PARM` synthesizes:
+An `*ENTRY PLIST` gives a program its parameters. Built with `rpgc -shared`, the
+program can be called by others, which pass the fields by reference:
 
 ```rpgle
      C     *ENTRY        PLIST
@@ -3060,10 +3060,82 @@ signature a caller's `CALL`/`PARM` synthesizes:
      C                   PARM                    outTotal
 ```
 
-The function's name comes from the **source file name**, upper-cased with the
-directory and extension stripped — `ORD100.rpgle` is reachable as
-`CALL 'ORD100'`. A file name that is not a usable symbol is refused with a
-message telling you to rename the file.
+The program's name comes from the **source file name**, upper-cased with the
+directory and extension stripped — `ORD100.rpgle` is `CALL 'ORD100'`. A file
+name that is not a usable program name is refused with a message telling you to
+rename the file.
+
+### Calling Programs
+
+A program call -- `CALLP` of a prototype with `EXTPGM`, or a traditional
+`CALL` -- finds the program when it runs, as on IBM i. A called program is a
+shared library, built with `rpgc -shared`:
+
+```bash
+rpgc -shared ORD100.rpgle        # ORD100.so on Linux, ORD100.dylib on macOS, ORD100.dll on Windows
+rpgc orders.rpgle -o orders      # calls ORD100; nothing to link
+```
+
+A program can be rebuilt without rebuilding the programs that call it, and the
+program to call can be chosen at run time:
+
+```rpgle
+DCL-S pgm CHAR(10) INZ('AGECALC');
+DCL-PR callIt EXTPGM(pgm);       // the program pgm names when called
+  age INT(10);
+END-PR;
+callIt(age);
+```
+
+`EXTPGM('NAME')` names the program; `EXTPGM` alone means the prototype's own
+name. In free form a program receives its parameters with `DCL-PI *N` among its
+main statements:
+
+```rpgle
+**FREE
+DCL-PI *N;
+  age INT(10);
+END-PI;
+age += 1;
+RETURN;
+```
+
+The library is looked for in the calling program's own directory, then in each
+directory on `PATH`, then wherever the system loader looks (`LD_LIBRARY_PATH`,
+`DYLD_LIBRARY_PATH`). It is loaded on its first call and stays loaded. A program
+that can't be found is status 211; one that ends in error -- an unhandled
+error, an `*ESCAPE`, a halt indicator left on -- is status 202 in its caller.
+Both can be handled with `MONITOR` or `CALLP(E)`.
+
+**Parameters in IBM i's formats.** Each parameter is passed by reference as its
+bytes in IBM i's format, so a called program need not be RPG. Any shared library
+exporting a C function named after the program, taking one pointer per
+parameter and returning 0 (or a negative value to end in error), can be called,
+and a GnuCOBOL module built with `cobc -m` has that shape:
+
+| RPG | Bytes | C | COBOL |
+|-----|-------|---|-------|
+| `CHAR(n)` | n bytes, blank padded | `char[n]` | `PIC X(n)` |
+| `VARCHAR(n)` | 2-byte length, then n bytes | | |
+| `INT`, `UNS` | native integer | `int`, `long long` | `COMP-5` |
+| `PACKED(p:s)` | p/2+1 bytes, sign C or D | | `COMP-3` |
+| `ZONED(p:s)` | p digits, sign in the last | | `PIC S9 DISPLAY` |
+| `FLOAT` | native float or double | `float`, `double` | `COMP-1`, `COMP-2` |
+| `IND` | `'1'` or `'0'` | `char` | `PIC X` |
+| `DATE`, `TIME`, `TIMESTAMP` | `*ISO` characters | | `PIC X(10)` ... |
+| data structure | its bytes (integers big-endian) | | group item |
+
+```c
+// ORD100.c, built with: cc -shared -fPIC ORD100.c -o ORD100.so
+int ORD100(int *custNo, char *name /* CHAR(20) */) {
+    memcpy(name, "ACME CORP           ", 20);
+    return 0;
+}
+```
+
+A called program keeps its fields from one call to the next. Each program has
+its own runtime state: its own indicators, and its own database connection, so
+a called program that uses SQL connects for itself.
 
 ### `/COPY` and `/INCLUDE`
 

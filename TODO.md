@@ -544,10 +544,9 @@ item #14 below.
   disagree on types, the two C++ mangled names differ and the link fails.
   An ugly error, but an honest one — and the same failure mode `EXTPGM`
   already has.
-- **The program name must be a literal.** A name held in a variable is a
-  genuinely dynamic dispatch on IBM i; this compiler links programs
-  statically as C++ functions, so there is nothing to compile it to. The
-  transpiler refuses it (Test 177) rather than guessing.
+- **The program name may be a variable** (since #23): program calls are
+  resolved at run time from shared libraries built with `rpgc -shared`,
+  so `CALL pgmvar` is supported (Test 177).
 - **Cross-line state**: `CSpecRunState` gains a pending-`CALL` block. The
   assembled statement is written back into the `CALL`'s *own* buffer line
   once the `PARM` run ends (any other opcode, or the end of the C-spec

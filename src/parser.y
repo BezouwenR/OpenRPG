@@ -590,6 +590,28 @@ statements_opt:
             g_program->statements.emplace_back($2);
         }
     }
+    /* DCL-PI *N among the main source statements: the program's own
+       parameters. A program returns no value. */
+    | statements_opt KW_DCL_PI IDENTIFIER SEMICOLON pi_params KW_END_PI SEMICOLON {
+        if (g_program->has_main_pi)
+            yyerror("The main procedure has only one DCL-PI (IBM: RNF3768)");
+        g_program->has_main_pi = true;
+        for (auto& p : $5->params) {
+            rpg::Statement* d;
+            if (!p.likeds.empty()) {
+                auto* ds = new rpg::DclDS(p.name);
+                ds->like_ds = p.likeds;
+                d = ds;
+            } else {
+                d = new rpg::DclS(p.name, p.type, p.length, p.digits, p.decimals);
+            }
+            d->line = yylineno;
+            g_program->statements.emplace_back(d);
+            g_program->main_pi.push_back(p);
+        }
+        delete $5;
+        free($3);
+    }
     | statements_opt KW_CTLOPT {
         if (ctlopt_nomain) g_program->nomain = true;
         if (ctlopt_debug_dump) g_program->debug_dump = true;
@@ -1454,6 +1476,30 @@ dcl_pr_stmt:
         free($5);
         $$ = pr;
     }
+    /* EXTPGM(var): the program named by a variable when it is called */
+    | KW_DCL_PR IDENTIFIER KW_EXTPGM LPAREN IDENTIFIER RPAREN SEMICOLON pr_params KW_END_PR SEMICOLON {
+        rpg::ProcInterface iface;
+        iface.has_return = false;
+        iface.params = std::move($8->params);
+        delete $8;
+        auto* pr = new rpg::DclPR($2, std::move(iface));
+        pr->extpgm = $5;
+        pr->extpgm_var = true;
+        free($2);
+        free($5);
+        $$ = pr;
+    }
+    /* EXTPGM alone: the program has the prototype's name */
+    | KW_DCL_PR IDENTIFIER KW_EXTPGM SEMICOLON pr_params KW_END_PR SEMICOLON {
+        rpg::ProcInterface iface;
+        iface.has_return = false;
+        iface.params = std::move($5->params);
+        delete $5;
+        auto* pr = new rpg::DclPR($2, std::move(iface));
+        pr->extpgm = $2;
+        free($2);
+        $$ = pr;
+    }
     /* OVERLOAD: one statement, as on IBM i — an overloaded prototype has no
        parameters, so no END-PR (RNF3551 with one). Its return type is the
        one every candidate must have (checked in codegen, RNF3244). */
@@ -1828,6 +1874,21 @@ call_stmt:
             yyerror("CALL is not valid in free-format RPG (fixed-format C-spec only; use CALLP)");
         }
         $$ = new rpg::CallStmt($2, *$4);
+        free($2); delete $4;
+    }
+    /* The program named by a variable, when the CALL runs */
+    | KW_CALL IDENTIFIER SEMICOLON {
+        if (!g_allow_fixed_only_stmts) {
+            yyerror("CALL is not valid in free-format RPG (fixed-format C-spec only; use CALLP)");
+        }
+        auto* c = new rpg::CallStmt($2, {}); c->program_is_var = true; $$ = c;
+        free($2);
+    }
+    | KW_CALL IDENTIFIER LPAREN call_parm_list RPAREN SEMICOLON {
+        if (!g_allow_fixed_only_stmts) {
+            yyerror("CALL is not valid in free-format RPG (fixed-format C-spec only; use CALLP)");
+        }
+        auto* c = new rpg::CallStmt($2, *$4); c->program_is_var = true; $$ = c;
         free($2); delete $4;
     }
     ;

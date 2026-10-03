@@ -378,6 +378,7 @@ OpenRPG supports splitting programs across multiple source files using `CTL-OPT 
 
 ```bash
 rpgc -c module.rpgle          # compile module to module.o
+rpgc -shared ORD100.rpgle     # a program others call: ORD100.so / .dylib / .dll
 rpgc main.rpgle module.o      # compile main and link with module
 ```
 

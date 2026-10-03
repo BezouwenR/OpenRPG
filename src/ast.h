@@ -502,6 +502,7 @@ public:
     std::string name;
     ProcInterface interface;
     std::string extpgm;   // EXTPGM('name') — external program
+    bool extpgm_var = false; // EXTPGM(var): extpgm names a variable holding the program's name
     std::string extproc;  // EXTPROC('name') — external procedure
     bool rtnparm = false; // RTNPARM keyword
     bool opdesc = false;  // OPDESC keyword
@@ -612,6 +613,7 @@ public:
 class CallStmt : public Statement {
 public:
     std::string program;             // program name, quotes already stripped
+    bool program_is_var = false;     // program names a variable holding the name
     std::vector<std::string> parms;  // PARM result fields, in order
     CallStmt(std::string program, std::vector<std::string> parms);
     void accept(ASTVisitor& visitor) override;
@@ -973,6 +975,11 @@ public:
     // the main program parameters.
     std::string entry_name;
     std::vector<EntryParam> entry_params;
+    // DCL-PI *N in the main source section: the program's parameters, in
+    // free form. Each is also declared as a program field (a DclS or
+    // DclDS among the statements), which a caller's value fills.
+    bool has_main_pi = false;
+    std::vector<ParamDecl> main_pi;
     std::string datfmt;
     std::string timfmt;
     std::vector<std::unique_ptr<Statement>> statements;
