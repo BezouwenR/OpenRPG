@@ -139,6 +139,10 @@ void DumpStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 IndicatorExpr::IndicatorExpr(int number) : number(number) {}
 void IndicatorExpr::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 
+std::string unnamedDsName() {
+    static int n = 0;
+    return "RPG_UNNAMED_DS" + std::to_string(++n);
+}
 DclDS::DclDS(std::string name)
     : name(std::move(name)), qualified(false), dim(0) {}
 void DclDS::accept(ASTVisitor& visitor) { visitor.visit(*this); }

@@ -639,7 +639,7 @@ static void handleDSpecLine(Program* program, DSpecState& state,
     if (!defType.empty()) state.currentDS = nullptr;
 
     if (defType == "DS") {
-        auto* ds = new DclDS(upper(name));
+        auto* ds = new DclDS(name.empty() || upper(name) == "*N" ? unnamedDsName() : upper(name));
         ds->line = lineNo;
         if (kw.count("QUALIFIED")) ds->qualified = true;
         auto it = kw.find("LIKEDS");

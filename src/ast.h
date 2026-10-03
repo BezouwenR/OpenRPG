@@ -830,6 +830,10 @@ struct DSField {
     bool inz_default = false;
 };
 
+// The name given to an unnamed data structure (DCL-DS *N, or a fixed-form
+// DS with a blank name), which its subfields are reached through.
+std::string unnamedDsName();
+
 class DclDS : public Statement {
 public:
     std::string name;

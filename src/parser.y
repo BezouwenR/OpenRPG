@@ -1946,17 +1946,17 @@ enum_constant:
    with a statement once the header keywords were generalized. */
 dcl_ds_stmt:
     KW_DCL_DS ident ds_hdr_kws SEMICOLON ds_fields KW_END_DS SEMICOLON {
-        auto* ds = $3; ds->name = $2; free($2);
+        auto* ds = $3; ds->name = strcmp($2, "*N") ? $2 : rpg::unnamedDsName(); free($2);
         ds->fields = std::move($5->fields); delete $5;
         $$ = ds;
     }
     | KW_DCL_DS ident ds_hdr_kws KW_LIKEDS LPAREN IDENTIFIER RPAREN ds_hdr_kws SEMICOLON {
-        auto* ds = merge_ds_hdr($3, $8); ds->name = $2; ds->like_ds = $6;
+        auto* ds = merge_ds_hdr($3, $8); ds->name = strcmp($2, "*N") ? $2 : rpg::unnamedDsName(); ds->like_ds = $6;
         free($2); free($6);
         $$ = ds;
     }
     | KW_DCL_DS ident ds_hdr_kws psds_kw ds_hdr_kws SEMICOLON ds_fields KW_END_DS SEMICOLON {
-        auto* ds = merge_ds_hdr($3, $5); ds->name = $2; ds->is_psds = true; free($2);
+        auto* ds = merge_ds_hdr($3, $5); ds->name = strcmp($2, "*N") ? $2 : rpg::unnamedDsName(); ds->is_psds = true; free($2);
         ds->fields = std::move($7->fields); delete $7;
         $$ = ds;
     }
