@@ -877,6 +877,7 @@ run_test "315" "DS subfields sharing From/To positions" "$TESTDIR/test315_ds_pos
 run_test "316" "TEST(DE) on subfields and array elements" "$TESTDIR/test316_test_subfield.rpgle" "run"
 run_test "317" "Numeric conversions of character values" "$TESTDIR/test317_numeric_bif_char.rpgle" "run"
 run_test "318" "INZ(*SYS) on a fixed-form D-spec" "$TESTDIR/test318_fixed_inz_sys.rpgle" "run"
+run_test "319" "Subroutines in a subprocedure" "$TESTDIR/test319_begsr_in_proc.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

@@ -1439,6 +1439,23 @@ void CodeGen::visit(DclProc& node) {
             break;
         }
     }
+    // A procedure's subroutines are lambdas, to reach its locals. Each is
+    // declared up front as a std::function and assigned right after the
+    // declarations, so an EXSR before the BEGSR -- the usual layout -- and
+    // subroutines calling each other in either direction all find it.
+    std::vector<Statement*> proc_srs;
+    for (auto& s : node.body)
+        if (dynamic_cast<BegSR*>(s.get()) && s.get() != proc_pssr_stmt) proc_srs.push_back(s.get());
+    auto emitProcSubroutines = [&]() {
+        if (proc_srs.empty()) return;
+        emitIndent(); out_ << "std::function<void()> ";
+        for (size_t i = 0; i < proc_srs.size(); i++)
+            out_ << (i ? ", " : "") << "sr_" << sanitizeSRName(static_cast<BegSR*>(proc_srs[i])->name);
+        out_ << ";\n";
+        sr_predeclared_ = true;
+        for (auto* s : proc_srs) { emitLineDirective(s->line); s->accept(*this); }
+        sr_predeclared_ = false;
+    };
 
     if (!node.on_exit_body.empty()) {
         // Emit declarations first, then scope guard, then executable statements
@@ -1447,6 +1464,7 @@ void CodeGen::visit(DclProc& node) {
                 s->accept(*this);
             }
         }
+        emitProcSubroutines();
         // Emit *PSSR lambda before scope guard
         if (proc_pssr_stmt) {
             proc_pssr_stmt->accept(*this);
@@ -1462,7 +1480,7 @@ void CodeGen::visit(DclProc& node) {
             emitIndent(); out_ << "try {\n"; indent_++;
         }
         for (auto& s : node.body) {
-            if (!dynamic_cast<DclS*>(s.get()) && !dynamic_cast<DclC*>(s.get()) && !dynamic_cast<DclDS*>(s.get()) && s.get() != proc_pssr_stmt) {
+            if (!dynamic_cast<DclS*>(s.get()) && !dynamic_cast<DclC*>(s.get()) && !dynamic_cast<DclDS*>(s.get()) && !dynamic_cast<BegSR*>(s.get())) {
                 s->accept(*this);
             }
         }
@@ -1485,13 +1503,7 @@ void CodeGen::visit(DclProc& node) {
                     s->accept(*this);
                 }
             }
-            // Emit subroutines (non-*PSSR)
-            for (auto& s : node.body) {
-                auto* bsr = dynamic_cast<BegSR*>(s.get());
-                if (bsr && s.get() != proc_pssr_stmt) {
-                    s->accept(*this);
-                }
-            }
+            emitProcSubroutines();
             proc_pssr_stmt->accept(*this);
             emitIndent(); out_ << "try {\n"; indent_++;
             for (auto& s : node.body) {
@@ -1507,8 +1519,21 @@ void CodeGen::visit(DclProc& node) {
             emitIndent(); out_ << (void_return_ ? "if (__sr_ret) return;\n" : "if (__sr_ret) return __sr_val;\n");
             emitIndent(); out_ << "throw;\n";
             indent_--; emitIndent(); out_ << "}\n";
-        } else {
+        } else if (proc_srs.empty()) {
             emitStatements(node.body);
+        } else {
+            for (auto& s : node.body)
+                if (dynamic_cast<DclS*>(s.get()) || dynamic_cast<DclC*>(s.get()) || dynamic_cast<DclDS*>(s.get())) {
+                    emitLineDirective(s->line);
+                    s->accept(*this);
+                }
+            emitProcSubroutines();
+            for (auto& s : node.body)
+                if (!dynamic_cast<DclS*>(s.get()) && !dynamic_cast<DclC*>(s.get()) &&
+                    !dynamic_cast<DclDS*>(s.get()) && !dynamic_cast<BegSR*>(s.get())) {
+                    emitLineDirective(s->line);
+                    s->accept(*this);
+                }
         }
     }
     in_procedure_ = false;
@@ -3256,7 +3281,7 @@ void CodeGen::visit(BegSR& node) {
     }
     // Emit as a lambda that can be called by EXSR
     emitIndent();
-    out_ << "auto sr_" << sanitizeSRName(node.name) << " = [&]() {\n";
+    out_ << (sr_predeclared_ ? "sr_" : "auto sr_") << sanitizeSRName(node.name) << " = [&]() {\n";
     indent_++;
     bool saved_in_sr = in_subroutine_;
     in_subroutine_ = true;

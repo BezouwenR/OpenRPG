@@ -167,6 +167,7 @@ private:
     std::vector<std::string> dspf_includes_; // WORKSTN files whose _dspf.h to include, in source order
     bool at_file_scope_ = false;             // emitting the module-global block
     bool sr_at_file_scope_ = false;          // emitting the mainline's subroutines as functions
+    bool sr_predeclared_ = false;            // a procedure's subroutines: assign the std::function
     // Emitting a subroutine's body: a RETURN there returns from the program
     // or procedure, not just the subroutine (the subroutine is a C++
     // function or lambda), so it records that and the caller of EXSR acts
