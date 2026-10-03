@@ -293,10 +293,29 @@ public:
 
     // Copy string buffer back to variable after fetch (no-op for non-string types)
     template<typename T>
-    static void copyStrBuf(T& val, const char* strbuf, SQLRETURN frc) {
+    // A NULL leaves the host variable as it was, as on Db2 for i.
+    static void copyStrBuf(T& val, const char* strbuf, SQLRETURN frc, SQLLEN ind = 0) {
         if constexpr (std::is_same_v<std::decay_t<T>, std::string>) {
-            if (frc == SQL_SUCCESS || frc == SQL_SUCCESS_WITH_INFO)
+            if ((frc == SQL_SUCCESS || frc == SQL_SUCCESS_WITH_INFO) && ind != SQL_NULL_DATA)
                 val = std::string(strbuf);
+        }
+    }
+
+    // A numeric host variable is bound directly, and a driver may write
+    // into it for a NULL too: put back what it held.
+    template<typename T>
+    static void keepOnNull(T& val, const T& before, SQLRETURN frc, SQLLEN ind) {
+        if ((frc == SQL_SUCCESS || frc == SQL_SUCCESS_WITH_INFO) && ind == SQL_NULL_DATA)
+            val = before;
+    }
+
+    // A NULL fetched into a host variable with no null indicator: SQLCODE
+    // -305, SQLSTATE 22002, "null indicator variable required" (Db2). The
+    // program would otherwise go on with whatever the variable held.
+    void nullNeedsIndicator(SQLRETURN frc, SQLLEN ind) {
+        if ((frc == SQL_SUCCESS || frc == SQL_SUCCESS_WITH_INFO) && ind == SQL_NULL_DATA) {
+            sqlcode = -305;
+            sqlstate = "22002";
         }
     }
 

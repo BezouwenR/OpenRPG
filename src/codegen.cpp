@@ -468,8 +468,10 @@ void CodeGen::visit(ExecSqlStmt& node) {
                 for (size_t i = 0; i < targets.size(); i++) {
                     emitIndent();
                     out_ << "RpgSqlEnv::copyStrBuf(" << targets[i].second
-                         << ", __sql_strbuf_" << (i+1) << ", __frc);\n";
+                         << ", __sql_strbuf_" << (i+1) << ", __frc, __sql_ind_" << (i+1) << ");\n";
                     emitSqlIntoRefit(targets[i].first, targets[i].second);
+                    emitIndent();
+                    out_ << "__sql_env.nullNeedsIndicator(__frc, __sql_ind_" << (i+1) << ");\n";
                 }
 
                 indent_--;
@@ -484,6 +486,10 @@ void CodeGen::visit(ExecSqlStmt& node) {
                 for (size_t i = 0; i < into_vars.size(); i++) {
                     emitSqlBindCol(into_vars[i], static_cast<int>(i + 1), "__cstmt");
                 }
+                for (size_t i = 0; i < into_vars.size(); i++) {
+                    emitIndent();
+                    out_ << "auto __sql_keep_" << (i+1) << " = " << into_vars[i] << ";\n";
+                }
                 emitIndent();
                 out_ << "SQLRETURN __frc = SQLFetch(__cstmt);\n";
                 emitIndent();
@@ -491,11 +497,17 @@ void CodeGen::visit(ExecSqlStmt& node) {
                 for (size_t i = 0; i < into_vars.size(); i++) {
                     emitIndent();
                     out_ << "RpgSqlEnv::copyStrBuf(" << into_vars[i]
-                         << ", __sql_strbuf_" << (i+1) << ", __frc);\n";
+                         << ", __sql_strbuf_" << (i+1) << ", __frc, __sql_ind_" << (i+1) << ");\n";
+                    emitIndent();
+                    out_ << "RpgSqlEnv::keepOnNull(" << into_vars[i] << ", __sql_keep_" << (i+1)
+                         << ", __frc, __sql_ind_" << (i+1) << ");\n";
                     emitSqlIntoRefit(into_vars[i], into_vars[i]);
                     if (!into_hvwi[i].ind_var.empty()) {
                         emitIndent();
                         out_ << into_hvwi[i].ind_var << " = (__sql_ind_" << (i+1) << " < 0) ? -1 : 0;\n";
+                    } else {
+                        emitIndent();
+                        out_ << "__sql_env.nullNeedsIndicator(__frc, __sql_ind_" << (i+1) << ");\n";
                     }
                 }
             }
@@ -543,6 +555,11 @@ void CodeGen::visit(ExecSqlStmt& node) {
                 emitSqlBindCol(into_hvwi[i].var, static_cast<int>(i + 1));
             }
 
+            for (size_t i = 0; i < into_hvwi.size(); i++) {
+                emitIndent();
+                out_ << "auto __sql_keep_" << (i+1) << " = " << into_hvwi[i].var << ";\n";
+            }
+
             // Execute and fetch
             emitIndent();
             out_ << "SQLExecute(__hstmt);\n";
@@ -555,11 +572,17 @@ void CodeGen::visit(ExecSqlStmt& node) {
             for (size_t i = 0; i < into_hvwi.size(); i++) {
                 emitIndent();
                 out_ << "RpgSqlEnv::copyStrBuf(" << into_hvwi[i].var
-                     << ", __sql_strbuf_" << (i+1) << ", __frc);\n";
+                     << ", __sql_strbuf_" << (i+1) << ", __frc, __sql_ind_" << (i+1) << ");\n";
+                emitIndent();
+                out_ << "RpgSqlEnv::keepOnNull(" << into_hvwi[i].var << ", __sql_keep_" << (i+1)
+                     << ", __frc, __sql_ind_" << (i+1) << ");\n";
                 emitSqlIntoRefit(into_hvwi[i].var, into_hvwi[i].var);
                 if (!into_hvwi[i].ind_var.empty()) {
                     emitIndent();
                     out_ << into_hvwi[i].ind_var << " = (__sql_ind_" << (i+1) << " < 0) ? -1 : 0;\n";
+                } else {
+                    emitIndent();
+                    out_ << "__sql_env.nullNeedsIndicator(__frc, __sql_ind_" << (i+1) << ");\n";
                 }
             }
 
