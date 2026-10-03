@@ -1174,6 +1174,21 @@ Program* parseFixedFormat(const std::string& src_text, const std::string& filena
         inCSpecRun = false;
     };
 
+    // Free-form code outside /FREE: since 7.1 TR7, a line with positions
+    // 6-7 blank and code in 8-80 is a free-form statement -- typically a
+    // DCL-F or DCL-S among the fixed specs. Such lines used to be taken
+    // for blank ones and dropped. A run of them is parsed as a /FREE
+    // block is; lines holding nothing keep the line numbers aligned.
+    std::string implicitFreeText;
+    int implicitFreeStart = 0;
+    auto flushImplicitFree = [&]() {
+        if (implicitFreeText.empty()) return;
+        auto stmts = parse_free_block(implicitFreeText, implicitFreeStart);
+        for (auto& s : stmts) program->statements.push_back(std::move(s));
+        implicitFreeText.clear();
+        implicitFreeStart = 0;
+    };
+
     for (size_t idx = 0; idx < lines.size(); idx++) {
         int lineNo = (int)idx + 1;
         const std::string& line = lines[idx];
@@ -1211,6 +1226,7 @@ Program* parseFixedFormat(const std::string& src_text, const std::string& filena
 
         std::string trimmed = trim(line);
         if (upper(trimmed) == "/FREE") {
+            flushImplicitFree();
             if (inCSpecRun) flushCRun();
             // An F-spec still being assembled belongs before the block: it is
             // earlier in the source. Finalized only at the next spec line, it
@@ -1230,19 +1246,33 @@ Program* parseFixedFormat(const std::string& src_text, const std::string& filena
         }
 
         if (line.empty()) {
+            if (!implicitFreeText.empty()) implicitFreeText += "\n";
             if (inCSpecRun) cState.bufLines.push_back("");
             continue;
         }
         std::string specType = upper(extractCol(line, SpecType));
         std::string commentFlag = extractCol(line, CommentFlag);
         if (commentFlag == "*") { // whole-line comment
+            if (!implicitFreeText.empty()) implicitFreeText += "\n";
             if (inCSpecRun) cState.bufLines.push_back("");
+            continue;
+        }
+        if (specType.empty() && commentFlag.empty() && line.size() > 7 &&
+            !trim(line.substr(7)).empty()) {
+            // A free-form statement (see flushImplicitFree).
+            if (inCSpecRun) flushCRun();
+            if (pendingF.dclf) finalizeFSpec(program, pendingF);
+            dState.currentDS = nullptr;
+            if (implicitFreeText.empty()) implicitFreeStart = lineNo;
+            implicitFreeText += std::string(7, ' ') + line.substr(7) + "\n";
             continue;
         }
         if (specType.empty()) { // blank/short line, nothing to dispatch
+            if (!implicitFreeText.empty()) implicitFreeText += "\n";
             if (inCSpecRun) cState.bufLines.push_back("");
             continue;
         }
+        flushImplicitFree();
 
         // A new spec-type line always closes out any pending F-spec
         // continuation (F-spec keyword-tail continuation lines have
@@ -1306,6 +1336,7 @@ Program* parseFixedFormat(const std::string& src_text, const std::string& filena
     if (inFreeBlock) {
         report_fixed_format_error(freeBlockStartLine, "/FREE block never closed with /END-FREE");
     }
+    flushImplicitFree();
     if (inCSpecRun) flushCRun();
     finalizeFSpec(program, pendingF);
     if (!dState.pendingName.empty()) {

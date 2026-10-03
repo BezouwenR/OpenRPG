@@ -895,6 +895,7 @@ run_test "330" "SET OPTION COMMIT = *NONE" "$TESTDIR/test330_sql_commit_none.sql
 run_test "331" "NULL without a null indicator: SQLCODE -305" "$TESTDIR/test331_sql_null_no_indicator.sqlrpgle" "run-sql"
 run_test "332" "EXTFILE, USROPN, OPEN, CLOSE and %OPEN" "$TESTDIR/test332_extfile_usropn.rpgle" "run"
 run_test "333" "OPEN and CLOSE on a database file" "$TESTDIR/test333_rla_usropn.rpgle" "run-sql"
+run_test "334" "Free-form DCL-F DISK(n) in fixed-form source" "$TESTDIR/test334_free_dclf_disk_len.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

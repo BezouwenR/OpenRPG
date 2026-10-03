@@ -285,6 +285,7 @@ static void parse_ctlopt(const char* text) {
 "KEYED"             { return KW_KEYED; }
 "EXTDESC"           { return KW_EXTDESC; }
 "USROPN"            { return KW_USROPN; }
+"EXTFILE"           { return KW_EXTFILE; }
 "READE("[EHMNRP]+")" {
     char *p = strchr(yytext, '(') + 1;
     char ext[16] = {0}; int i = 0;

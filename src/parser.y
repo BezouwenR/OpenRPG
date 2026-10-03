@@ -124,6 +124,29 @@ static bool g_dclf_usropn = false;
 static char* g_dclf_extdesc = nullptr;
 static char* g_dclf_usages = nullptr;
 static char* g_dclf_prefix = nullptr;
+static char* g_dclf_extfile = nullptr;
+static bool g_dclf_extfile_var = false;
+
+// DCL-F name DISK{(n)} options: the declaration, from the g_dclf_* options.
+// A record length makes the file program-described.
+static rpg::DclF* make_disk_file(char* name, int recordLen) {
+    auto* n = new rpg::DclF(name, "DISK");
+    free(name);
+    n->recordLen = recordLen;
+    n->keyed   = g_dclf_keyed;
+    n->extdesc = g_dclf_extdesc ? g_dclf_extdesc : "";
+    if (g_dclf_extdesc) { free(g_dclf_extdesc); g_dclf_extdesc = nullptr; }
+    n->usages  = g_dclf_usages ? g_dclf_usages : "";
+    if (g_dclf_usages) { free(g_dclf_usages); g_dclf_usages = nullptr; }
+    n->usropn  = g_dclf_usropn;
+    n->prefix  = g_dclf_prefix ? g_dclf_prefix : "";
+    if (g_dclf_prefix) { free(g_dclf_prefix); g_dclf_prefix = nullptr; }
+    n->extfile = g_dclf_extfile ? g_dclf_extfile : "";
+    n->extfile_var = g_dclf_extfile_var;
+    if (g_dclf_extfile) { free(g_dclf_extfile); g_dclf_extfile = nullptr; }
+    g_dclf_keyed = false; g_dclf_usropn = false; g_dclf_extfile_var = false;
+    return n;
+}
 
 // Builds a subfield from its name, its type (a param_type result, or null
 // for LIKEDS/LIKE, whose type comes from elsewhere) and its keywords.
@@ -425,7 +448,7 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 
 %token KW_FREE
 %token KW_DCL_F KW_DCL_S KW_DCL_C
-%token KW_DISK KW_PRINTER KW_WORKSTN KW_USAGE KW_KEYED KW_EXTDESC KW_USROPN
+%token KW_DISK KW_PRINTER KW_WORKSTN KW_USAGE KW_KEYED KW_EXTDESC KW_USROPN KW_EXTFILE
 %token KW_CHAR KW_VARCHAR KW_INT KW_PACKED KW_ZONED
 %token KW_DATE KW_TIME KW_TIMESTAMP KW_IND KW_POINTER KW_NULL
 %token KW_DAYS KW_MONTHS KW_YEARS KW_HOURS KW_MINUTES KW_SECONDS KW_MSECONDS
@@ -541,7 +564,7 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %type <expr> eval_any_target
 %type <ival> da_lock_opt
 %type <sval> snd_msg_target snd_target_entry
-%type <sval> ident plain_name kw_name op_name call_kw_name
+%type <sval> ident plain_name kw_name op_name call_kw_name usage_list
 %type <enum_const_list> enum_constants enum_constant
 %type <str_list> overload_list
 
@@ -653,19 +676,16 @@ statement:
 /* DCL-F: file declaration */
 dcl_f_stmt:
     KW_DCL_F IDENTIFIER KW_DISK dclf_opts SEMICOLON {
-        auto* n = new rpg::DclF($2, "DISK");
-        free($2);
-        // opts encoded in g_dclf_* globals set by dclf_opts
-        n->keyed   = g_dclf_keyed;
-        n->extdesc = g_dclf_extdesc ? g_dclf_extdesc : "";
-        if (g_dclf_extdesc) { free(g_dclf_extdesc); g_dclf_extdesc = nullptr; }
-        n->usages  = g_dclf_usages ? g_dclf_usages : "";
-        if (g_dclf_usages) { free(g_dclf_usages); g_dclf_usages = nullptr; }
-        n->usropn  = g_dclf_usropn;
-        n->prefix  = g_dclf_prefix ? g_dclf_prefix : "";
-        if (g_dclf_prefix) { free(g_dclf_prefix); g_dclf_prefix = nullptr; }
-        g_dclf_keyed = false; g_dclf_usropn = false;
-        $$ = n;
+        $$ = make_disk_file($2, 0);
+    }
+    /* DISK(*EXT) is externally described, the default; DISK(n) is a
+       program-described file of n-byte records, whose layout the I- and
+       O-specs give. */
+    | KW_DCL_F IDENTIFIER KW_DISK LPAREN KW_STAR_EXT RPAREN dclf_opts SEMICOLON {
+        $$ = make_disk_file($2, 0);
+    }
+    | KW_DCL_F IDENTIFIER KW_DISK LPAREN INTEGER_LITERAL RPAREN dclf_opts SEMICOLON {
+        $$ = make_disk_file($2, $5);
     }
     | KW_DCL_F IDENTIFIER KW_PRINTER SEMICOLON {
         $$ = new rpg::DclF($2, "PRINTER");
@@ -699,8 +719,21 @@ dclf_opts:
         if (g_dclf_extdesc) { free(g_dclf_extdesc); g_dclf_extdesc = nullptr; }
         if (g_dclf_usages)  { free(g_dclf_usages);  g_dclf_usages  = nullptr; }
         if (g_dclf_prefix)  { free(g_dclf_prefix);  g_dclf_prefix  = nullptr; }
+        if (g_dclf_extfile) { free(g_dclf_extfile); g_dclf_extfile = nullptr; }
+        g_dclf_extfile_var = false;
     }
     | dclf_opts KW_KEYED       { g_dclf_keyed = true; }
+    /* EXTFILE('path') opens that file; EXTFILE(var) the path var holds
+       when the file is opened; EXTFILE(*EXTDESC) the one EXTDESC names. */
+    | dclf_opts KW_EXTFILE LPAREN STRING_LITERAL RPAREN {
+        if (g_dclf_extfile) free(g_dclf_extfile);
+        g_dclf_extfile = $4; g_dclf_extfile_var = false;
+    }
+    | dclf_opts KW_EXTFILE LPAREN IDENTIFIER RPAREN {
+        if (g_dclf_extfile) free(g_dclf_extfile);
+        if (strcasecmp($4, "*EXTDESC") == 0) { g_dclf_extfile = nullptr; free($4); }
+        else { g_dclf_extfile = $4; g_dclf_extfile_var = true; }
+    }
     | dclf_opts KW_USROPN      { g_dclf_usropn = true; }
     | dclf_opts KW_EXTDESC LPAREN STRING_LITERAL RPAREN {
         if (g_dclf_extdesc) free(g_dclf_extdesc);
@@ -710,16 +743,26 @@ dclf_opts:
         if (g_dclf_prefix) free(g_dclf_prefix);
         g_dclf_prefix = $4;
     }
-    | dclf_opts KW_USAGE LPAREN IDENTIFIER RPAREN {
+    | dclf_opts KW_USAGE LPAREN usage_list RPAREN {
         if (g_dclf_usages) free(g_dclf_usages);
         g_dclf_usages = $4;
     }
-    | dclf_opts KW_USAGE LPAREN IDENTIFIER COLON IDENTIFIER RPAREN {
-        char buf[128];
-        snprintf(buf, sizeof(buf), "%s:%s", $4, $6);
-        if (g_dclf_usages) free(g_dclf_usages);
-        g_dclf_usages = strdup(buf);
-        free($4); free($6);
+    ;
+
+/* USAGE(*INPUT : *OUTPUT : *UPDATE : *DELETE), as "*INPUT:*OUTPUT". The
+   values lex as '*' and a name (UPDATE and DELETE as operation codes). */
+usage_list:
+    STAR ident {
+        std::string v = std::string("*") + $2;
+        for (auto& c : v) c = toupper((unsigned char)c);
+        free($2);
+        $$ = strdup(v.c_str());
+    }
+    | usage_list COLON STAR ident {
+        std::string v = std::string($1) + ":*" + $4;
+        for (auto& c : v) c = toupper((unsigned char)c);
+        free($1); free($4);
+        $$ = strdup(v.c_str());
     }
     ;
 
@@ -2431,6 +2474,7 @@ kw_name:
     | KW_KEYED { $$ = strdup("KEYED"); }
     | KW_EXTDESC { $$ = strdup("EXTDESC"); }
     | KW_USROPN { $$ = strdup("USROPN"); }
+    | KW_EXTFILE { $$ = strdup("EXTFILE"); }
     | KW_TYPE { $$ = strdup("TYPE"); }
     | KW_INZ { $$ = strdup("INZ"); }
     | KW_STATIC { $$ = strdup("STATIC"); }
@@ -2495,6 +2539,7 @@ call_kw_name:
     | KW_KEYED { $$ = strdup("KEYED"); }
     | KW_EXTDESC { $$ = strdup("EXTDESC"); }
     | KW_USROPN { $$ = strdup("USROPN"); }
+    | KW_EXTFILE { $$ = strdup("EXTFILE"); }
     | KW_INZ { $$ = strdup("INZ"); }
     | KW_STATIC { $$ = strdup("STATIC"); }
     | KW_TEMPLATE { $$ = strdup("TEMPLATE"); }

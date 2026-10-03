@@ -3069,8 +3069,16 @@ than being silently ignored.
 Everything in the [Record-Level Access](#record-level-access) chapter runs
 against a database table over ODBC. Program-described files are the other kind:
 **flat files with a byte-position field layout**, described by I-specs and
-O-specs rather than by an external descriptor. They are available from
-fixed-format source only.
+O-specs rather than by an external descriptor. Since the I- and O-specs are
+fixed-form, so is the source; the file itself can be declared with an F-spec,
+or with a free-form `DCL-F` giving the record length on the device keyword:
+
+```rpgle
+       DCL-F INPUT DISK(48) USAGE(*INPUT) EXTFILE('input.dta');
+```
+
+Free-form statements outside a `/FREE` block go in positions 8-80, with
+positions 6 and 7 blank.
 
 ### The On-Disk Format
 

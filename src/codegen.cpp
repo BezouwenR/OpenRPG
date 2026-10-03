@@ -876,6 +876,7 @@ void CodeGen::visit(Program& node) {
         if (ds && ds->is_psds) uses_psds_ = true;
         auto* dclf = dynamic_cast<DclF*>(stmt.get());
         if (dclf && dclf->usage == "DISK") uses_rla_ = true;
+        if (dclf && dclf->usage == "DISK" && dclf->recordLen > 0) uses_flatfile_ = true;
         if (dclf && dclf->usage == "WORKSTN") {
             uses_dspf_ = true;
             dspf_includes_.push_back(dclf->name);
@@ -1724,7 +1725,8 @@ void CodeGen::visit(DclF& node) {
     // externally-described/RLA path below (see TODO.md item #4).
     auto finIt = flat_input_formats_.find(node.name);
     auto foutIt = flat_output_formats_.find(node.name);
-    if (finIt != flat_input_formats_.end() || foutIt != flat_output_formats_.end()) {
+    if (finIt != flat_input_formats_.end() || foutIt != flat_output_formats_.end() ||
+        (node.usage == "DISK" && node.recordLen > 0)) {
         emitIndent();
         out_ << "// --- File " << node.name << " (program-described) ---\n";
 
