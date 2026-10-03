@@ -1381,6 +1381,7 @@ void CodeGen::visit(DclProc& node) {
     for (auto& p : node.interface.params) {
         proc_params_.insert(p.name);
         if (!p.likeds.empty()) likeds_params_[p.name] = p.likeds;
+        if (!p.likeds.empty() && p.is_const) const_params_.insert(p.name);
         if (p.omit || !p.likeds.empty()) continue;
         var_types_[p.name]    = p.type;
         var_lengths_[p.name]  = p.length;
@@ -2382,9 +2383,16 @@ void CodeGen::visit(EvalStmt& node) {
     // RPG forbids changing a CONST parameter (the caller's value may be a
     // temporary or a literal). Said here, not left to the C++ compiler,
     // whose error would name the generated code.
-    if (auto* tid = dynamic_cast<Identifier*>(node.target.get())) {
-        if (const_params_.count(tid->name))
-            report_semantic_error(node.line, "cannot assign to CONST parameter " + tid->name);
+    {
+        // The parameter itself, or a subfield or element of it.
+        const Expression* root = node.target.get();
+        std::string rootName;
+        while (auto* dot = dynamic_cast<const DotExpr*>(root)) root = dot->object.get();
+        if (auto* tid = dynamic_cast<const Identifier*>(root)) rootName = tid->name;
+        else if (auto* aa = dynamic_cast<const ArrayAccess*>(root)) rootName = aa->name.substr(0, aa->name.find('.'));
+        else if (auto* fc = dynamic_cast<const FuncCall*>(root)) rootName = fc->name;
+        if (!rootName.empty() && const_params_.count(rootName))
+            report_semantic_error(node.line, "cannot assign to CONST parameter " + rootName);
     }
 
     emitIndent();
@@ -4439,6 +4447,66 @@ CodeGen::Fit CodeGen::candidateFit(const ProcInterface& sig,
     return fit;
 }
 
+// A call's arguments against the prototype, as IBM i checks them when it
+// compiles the call: an argument of another type family (a string for a
+// number), or -- for a parameter passed by reference, which the procedure
+// can change -- anything but a variable of exactly the parameter's type,
+// is RNF7535. Only what can be told for certain here is reported.
+void CodeGen::checkCallArgs(const std::string& proc, const ProcInterface& sig,
+                            const std::vector<std::unique_ptr<Expression>>& args, int line) {
+    auto catName = [](ArgCat c) -> std::string {
+        switch (c) {
+            case ArgCat::Numeric: return "numeric";
+            case ArgCat::Char: return "character";
+            case ArgCat::Date: return "date";
+            case ArgCat::Time: return "time";
+            case ArgCat::Timestamp: return "timestamp";
+            case ArgCat::Ind: return "indicator";
+            case ArgCat::Pointer: return "pointer";
+            case ArgCat::DS: return "data structure";
+            default: return "unknown";
+        }
+    };
+    for (size_t i = 0; i < args.size() && i < sig.params.size(); i++) {
+        const ParamDecl& p = sig.params[i];
+        const Expression& a = *args[i];
+        ArgCat ac = argCategory(a);
+        ArgCat pc = p.likeds.empty() ? typeCategory(p.type) : ArgCat::DS;
+        if (ac == ArgCat::Omit || ac == ArgCat::Unknown || pc == ArgCat::Unknown) continue;
+        // A data structure is also character data; whether one fits a
+        // character parameter isn't decided here.
+        if (ac == ArgCat::DS && pc == ArgCat::Char) continue;
+        std::string which = "parameter " + std::to_string(i + 1) +
+                            (p.name.empty() ? std::string() : " (" + p.name + ")") + " of " + proc;
+        if (ac != pc) {
+            report_semantic_error(line, "The " + catName(ac) + " argument passed as " + which +
+                " does not match the prototype, which declares it " + catName(pc) +
+                " (IBM: RNF7535)");
+            continue;
+        }
+        if (p.by_value || p.is_const || pc == ArgCat::DS || p.varsize) continue;
+        bool notVariable = dynamic_cast<const IntLiteral*>(&a) || dynamic_cast<const FloatLiteral*>(&a) ||
+                           dynamic_cast<const StringLiteral*>(&a) || dynamic_cast<const BinaryExpr*>(&a) ||
+                           dynamic_cast<const BIFCall*>(&a);
+        if (notVariable) {
+            report_semantic_error(line, "The argument for " + which + " is not a variable, but the "
+                "parameter is passed by reference, so the procedure could change it; pass a "
+                "variable, or declare the parameter CONST or VALUE (IBM: RNF7535)");
+            continue;
+        }
+        FieldAttrs fa = attrsOf(a);
+        if (!fa.known || pc != ArgCat::Numeric) continue;
+        int ad = fa.digits > 0 ? fa.digits : fa.length, pd = p.digits > 0 ? p.digits : p.length;
+        bool intLike = fa.type == RPGType::INT10 || fa.type == RPGType::UNS;
+        bool sameType = fa.type == p.type && (ad == 0 || pd == 0 || ad == pd) &&
+                        (intLike || fa.decimals == p.decimals);
+        if (!sameType)
+            report_semantic_error(line, "The variable passed as " + which + " is not of the "
+                "parameter's type and size; a parameter passed by reference takes only a "
+                "variable declared exactly like it, unless it is CONST or VALUE (IBM: RNF7535)");
+    }
+}
+
 std::string CodeGen::resolveOverload(const FuncCall& call) {
     const auto& cands = overloads_[call.name];
     std::vector<std::string> fits, maybes;
@@ -4475,6 +4543,11 @@ void CodeGen::visit(FuncCall& node) {
     }
     // An overloaded name calls the one candidate the arguments fit.
     const std::string target = overloads_.count(node.name) ? resolveOverload(node) : node.name;
+    if (!overloads_.count(node.name)) {
+        auto sig = proc_sigs_.find(target);
+        if (sig != proc_sigs_.end())
+            checkCallArgs(target, sig->second, node.args, node.line > 0 ? node.line : cur_stmt_line_);
+    }
     // Resolve EXTPROC/EXTPGM name mapping
     std::string callName = target;
     auto eit = extproc_map_.find(target);

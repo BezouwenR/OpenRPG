@@ -71,7 +71,10 @@ run_test() {
 
     case "$mode" in
         error)
-            if $RPGC "$src" -o /dev/null 2>"$TMPDIR/test${testnum}_err.txt"; then
+            # Transpile only (-S): the error must come from rpgc itself. A
+            # program that rpgc accepts and the C++ compiler then rejects
+            # is a bug in rpgc, not a passing error test.
+            if $RPGC -S "$src" -o "$TMPDIR/test${testnum}_err.cpp" 2>"$TMPDIR/test${testnum}_err.txt"; then
                 echo -e "${RED}FAIL${NC} (should have failed)"
                 FAIL=$((FAIL + 1))
                 FAILURES="$FAILURES\n  Test $testnum ($label)"
@@ -882,6 +885,9 @@ run_test "320" "A data structure as a character value" "$TESTDIR/test320_ds_as_c
 run_test "321" "DCL-DS *N, an unnamed data structure" "$TESTDIR/test321_ds_unnamed.rpgle" "run"
 run_test "322" "Fixed-form DS with no name" "$TESTDIR/test322_fixed_ds_unnamed.rpgle" "run"
 run_test "323" "OVERLAY subfields through LIKEDS" "$TESTDIR/test323_likeds_overlay.rpgle" "run"
+run_test "324" "Reject a by-reference argument of another type" "$TESTDIR/test324_err_proto_mismatch.rpgle" "error"
+run_test "325" "Reject changing a CONST LIKEDS parameter" "$TESTDIR/test325_err_const_likeds.rpgle" "error"
+run_test "326" "Reject a by-reference argument of another size" "$TESTDIR/test326_err_byref_size.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be
