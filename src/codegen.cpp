@@ -2734,6 +2734,65 @@ void CodeGen::visit(DclDS& node) {
         }
     }
 
+    // A subfield placed by position (fixed-form From/To, free-form POS)
+    // inside the bytes of an earlier character subfield shares those bytes,
+    // just as OVERLAY would: on IBM i `TEXT 1 3A` and `NUM 1 3S 0` are two
+    // views of bytes 1-3. Each subfield here is its own member, so such a
+    // subfield becomes an overlay of the character one. Character and zoned
+    // subfields only: their bytes are their characters, which is what
+    // RpgCharOverlay/RpgNumOverlay read and write.
+    {
+        auto bytesOf = [](const DSField& f) -> int {
+            int n = 0;
+            switch (f.type) {
+                case RPGType::CHAR:     n = f.length; break;
+                case RPGType::VARCHAR:  n = f.length + 2; break;
+                case RPGType::UCS2:     n = f.length * 2; break;
+                case RPGType::ZONED:    n = f.digits; break;
+                case RPGType::PACKED:   n = f.digits / 2 + 1; break;
+                case RPGType::INT10: case RPGType::UNS:
+                    n = f.digits <= 3 ? 1 : f.digits <= 5 ? 2 : f.digits <= 10 ? 4 : 8; break;
+                case RPGType::BINDEC:   n = f.digits <= 4 ? 2 : f.digits <= 9 ? 4 : 8; break;
+                case RPGType::FLOAT4:   n = 4; break;
+                case RPGType::FLOAT8:   n = 8; break;
+                case RPGType::IND:      n = 1; break;
+                case RPGType::DATE:     n = 10; break;
+                case RPGType::TIME:     n = 8; break;
+                case RPGType::TIMESTAMP: n = 26; break;
+                case RPGType::POINTER:  n = 16; break;
+                default: return 0;
+            }
+            return n * (f.dim > 0 ? f.dim : 1);
+        };
+        struct Span { std::string name; int from, to; };
+        std::vector<Span> charSpans;
+        int next = 1;           // where a subfield without a position starts
+        bool known = true;      // false once a size can't be worked out
+        for (auto& f : node.fields) {
+            if (!f.overlay_field.empty()) continue;  // adds no storage
+            int bytes = (f.likeds.empty() && f.like_var.empty()) ? bytesOf(f) : 0;
+            int from = f.pos > 0 ? f.pos : (known ? next : 0);
+            if (f.pos > 0 && bytes > 0 && f.dim == 0 &&
+                (f.type == RPGType::CHAR || f.type == RPGType::ZONED)) {
+                const Span* in = nullptr;
+                for (auto& s : charSpans)
+                    if (from >= s.from && from + bytes - 1 <= s.to) { in = &s; break; }
+                if (in) {
+                    f.overlay_field = in->name;
+                    f.overlay_pos = from - in->from + 1;
+                    continue;
+                }
+            }
+            if (bytes == 0) { known = false; continue; }
+            if (from > 0) {
+                if (f.type == RPGType::CHAR && f.dim == 0)
+                    charSpans.push_back({f.name, from, from + bytes - 1});
+                next = std::max(next, from + bytes);
+                if (f.pos > 0) known = true;
+            }
+        }
+    }
+
     // Collect overlay fields (fields that overlay other fields)
     std::set<std::string> overlay_fields;
     for (auto& f : node.fields) {
