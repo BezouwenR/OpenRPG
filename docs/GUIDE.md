@@ -1876,6 +1876,37 @@ ENDMON;
 caller, an `*ESCAPE` ends the program, printing its text. `%TARGET` does not
 change where the other message types go.
 
+### The Program's Exit Status
+
+A program that ends normally exits with status 0. One that ends in error --
+an unhandled error, an `*ESCAPE` from the main procedure, a `*PSSR` reaching
+its `ENDSR` -- exits with status 1, and its pending database changes are rolled
+back. A halt indicator, `*H1` to `*H9` (also written `*INH1` to `*INH9`), left
+on when the program ends also ends it in error, as on IBM i, with status n
+for `*Hn`:
+
+```rpgle
+IF failed;
+  *H1 = *ON;      // the program ends with status 1
+ENDIF;
+*INLR = *ON;
+RETURN;
+```
+
+For a particular status, OpenRPG provides `rpg_set_exit_status`, which has no
+IBM i equivalent; guard it so the source still compiles there. It takes effect
+when the program ends normally, after the usual cleanup -- files closed,
+database work committed:
+
+```rpgle
+/IF DEFINED(*OPENRPG)
+DCL-PR SetExitStatus EXTPROC('rpg_set_exit_status');
+  status INT(10) VALUE;
+END-PR;
+SetExitStatus(16);
+/ENDIF
+```
+
 ---
 
 ## Record-Level Access

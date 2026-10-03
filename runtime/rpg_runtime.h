@@ -727,6 +727,32 @@ inline int rpg_caught_status() {
     catch (...) { return rpg_status_code(); }
 }
 
+// --- The program's exit status ---
+// A program that ends normally exits with status 0, unless one of the
+// halt indicators *H1-*H9 is on: then it ends in error, as on IBM i, with
+// status n for *Hn (the lowest one on), and its pending database changes
+// are rolled back, not committed. An unhandled error ends it with status
+// 1. rpg_set_exit_status is an OpenRPG extension, for a batch script that
+// needs a particular status:
+//     DCL-PR SetExitStatus EXTPROC('rpg_set_exit_status');
+//       status INT(10) VALUE;
+//     END-PR;
+// It takes effect when the program ends normally, after the usual
+// cleanup.
+inline bool* rpg_halt_indicators() { static bool h[10] = {}; return h; }
+inline int& rpg_exit_status_ref() { static int s = 0; return s; }
+inline void rpg_set_exit_status(int status) { rpg_exit_status_ref() = status; }
+inline int rpg_main_end() {
+    for (int i = 1; i <= 9; i++) {
+        if (rpg_halt_indicators()[i]) {
+            std::cout.flush();
+            std::fprintf(stderr, "The program ended with halt indicator H%d on.\n", i);
+            std::_Exit(i);
+        }
+    }
+    return rpg_exit_status_ref();
+}
+
 [[noreturn]] inline void rpg__unhandled_error() {
     if (std::exception_ptr ep = std::current_exception()) {
         try { std::rethrow_exception(ep); }

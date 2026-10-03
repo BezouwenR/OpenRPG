@@ -130,11 +130,20 @@ run_test() {
                 return
             fi
 
-            # Run and check output
+            # Run and check output, and the exit status where a .exit file
+            # gives the one expected.
             local actual="$TMPDIR/test${testnum}.actual"
-            $TIMEOUT_CMD "$TMPDIR/test${testnum}" > "$actual" 2>&1 || true
+            local rc=0
+            $TIMEOUT_CMD "$TMPDIR/test${testnum}" > "$actual" 2>&1 || rc=$?
 
             local expected="$EXPECTED_OUT/test${testnum}.out"
+            local expected_rc="$EXPECTED_OUT/test${testnum}.exit"
+            if [ -f "$expected_rc" ] && [ "$rc" != "$(cat "$expected_rc")" ]; then
+                echo -e "${RED}FAIL${NC} (exit status $rc, expected $(cat "$expected_rc"))"
+                FAIL=$((FAIL + 1))
+                FAILURES="$FAILURES\n  Test $testnum ($label)"
+                return
+            fi
             if $UPDATE_MODE; then
                 cp "$actual" "$expected"
                 echo -e "${YELLOW}UPDATED${NC}"
@@ -897,6 +906,8 @@ run_test "332" "EXTFILE, USROPN, OPEN, CLOSE and %OPEN" "$TESTDIR/test332_extfil
 run_test "333" "OPEN and CLOSE on a database file" "$TESTDIR/test333_rla_usropn.rpgle" "run-sql"
 run_test "334" "Free-form DCL-F DISK(n) in fixed-form source" "$TESTDIR/test334_free_dclf_disk_len.rpgle" "run"
 run_test "335" "SQL error message: MESSAGE_TEXT, SQLERRMC" "$TESTDIR/test335_sql_message_text.sqlrpgle" "run-sql"
+run_test "336" "Halt indicator: the program ends in error" "$TESTDIR/test336_exit_status.rpgle" "run"
+run_test "337" "rpg_set_exit_status" "$TESTDIR/test337_exit_status_set.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

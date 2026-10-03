@@ -1207,7 +1207,7 @@ void CodeGen::visit(Program& node) {
     if (!node.main_proc.empty()) {
         out_ << "int main() {\n";
         out_ << "    " << node.main_proc << "();\n";
-        out_ << "    return 0;\n";
+        out_ << "    return rpg_main_end();\n";
         out_ << "}\n";
         return;
     }
@@ -1317,10 +1317,13 @@ void CodeGen::visit(Program& node) {
         // Reaching the *PSSR's ENDSR (no RETURN) ends the program in error,
         // as on IBM i (RNX9001); a RETURN in it ends the program normally.
         emitIndent(); out_ << "sr__PSSR();\n";
-        emitIndent(); out_ << "if (rpg_sr_returned) return 0;\n";
+        emitIndent(); out_ << "if (rpg_sr_returned) return rpg_main_end();\n";
         emitIndent(); out_ << "rpg_pssr_ended();\n";
         indent_--; emitIndent(); out_ << "}\n";
     }
+    // The program's exit status (rpg_main_end): 0, unless a halt indicator
+    // is on or the program set one.
+    if (!void_return_) { emitIndent(); out_ << "return rpg_main_end();\n"; }
     out_ << "}\n";
     void_return_ = false;
 }
@@ -2737,7 +2740,7 @@ void CodeGen::visit(ReturnStmt& node) {
         // main()'s exit status, which a void function has nowhere to put.
         out_ << "return;\n";
     } else {
-        out_ << "return " << node.code << ";\n";
+        out_ << "return rpg_main_end();\n";   // the mainline: the program ends
     }
 }
 
@@ -3543,7 +3546,7 @@ void CodeGen::visit(ExSR& node) {
 std::string CodeGen::afterSubroutine() const {
     if (in_subroutine_) return in_procedure_ ? "if (__sr_ret) return;" : "if (rpg_sr_returned) return;";
     if (in_procedure_) return void_return_ ? "if (__sr_ret) return;" : "if (__sr_ret) return __sr_val;";
-    return "if (rpg_sr_returned) return 0;";
+    return "if (rpg_sr_returned) return rpg_main_end();";
 }
 
 void CodeGen::visit(GotoStmt& node) {
@@ -4247,6 +4250,10 @@ void CodeGen::visit(DumpStmt& node) {
 void CodeGen::visit(IndicatorExpr& node) {
     uses_indicators_ = true;
     if (node.number == IndicatorExpr::LR) { expr_ << "rpg_inlr"; return; }
+    if (node.number >= IndicatorExpr::H1) {
+        expr_ << "rpg_halt_indicators()[" << (node.number - IndicatorExpr::H1 + 1) << "]";
+        return;
+    }
     expr_ << "rpg_indicators[" << node.number << "]";
 }
 

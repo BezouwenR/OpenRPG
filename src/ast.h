@@ -640,7 +640,10 @@ public:
     // and the program ends where the mainline does. The numbered indicators
     // are 01-99, so slot 0 is free for it.
     static constexpr int LR = 0;
-    int number; // 1-99, or LR
+    // The halt indicators *H1-*H9 are 101-109. One left on when the
+    // program ends makes it end in error.
+    static constexpr int H1 = 101;
+    int number; // 1-99, LR, or H1-H9
     explicit IndicatorExpr(int number);
     void accept(ASTVisitor& visitor) override;
 };
