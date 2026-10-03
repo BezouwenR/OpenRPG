@@ -2331,6 +2331,7 @@ void CodeGen::checkAssignTypes(const Expression& target, const Expression& value
 
 void CodeGen::visit(EvalStmt& node) {
     checkAssignTypes(*node.target, *node.value, node.line > 0 ? node.line : cur_stmt_line_);
+    if (argCategory(*node.target) == ArgCat::Char) dsAsChars(node.value);
     if (auto* uid = dynamic_cast<Identifier*>(node.value.get()); uid && uid->name == "RPG_USER")
         report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_,
             "*USER is only valid as an initial value, INZ(*USER); declare a CHAR(10) field "
@@ -2540,6 +2541,7 @@ void CodeGen::visit(DsplyStmt& node) {
             "Display length " + std::to_string(len) + " greater than maximum allowed of 52: "
             "DSPLY shows at most 52 characters, judged from the declared lengths of what is "
             "displayed; shorten a declaration or display a %SUBST of it (IBM: RNF7016)");
+    dsAsChars(node.expr);
     // What DSPLY shows depends on the operand's type, as on IBM i: a
     // numeric field its bare digits, a FLOAT its external form, a date or
     // time its value.
@@ -2737,7 +2739,8 @@ void CodeGen::visit(DclDS& node) {
 
     if (!node.extname.empty()) {
         // EXTNAME: externally described DS (stub)
-        out_ << "struct " << node.name << "_t { /* EXTNAME(" << node.extname << ") - fields from file */ };\n";
+        out_ << "struct " << node.name << "_t { /* EXTNAME(" << node.extname << ") - fields from file */\n"
+             << "    std::string rpg_chars() const { return std::string(); }\n};\n";
         return;
     }
 
@@ -2766,6 +2769,10 @@ void CodeGen::visit(DclDS& node) {
     // subfield becomes an overlay of the character one. Character and zoned
     // subfields only: their bytes are their characters, which is what
     // RpgCharOverlay/RpgNumOverlay read and write.
+    //
+    // img_from records where each subfield starts (0: not known until run
+    // time), for rpg_chars() below.
+    std::map<std::string, int> img_from;
     {
         auto bytesOf = [](const DSField& f) -> int {
             int n = 0;
@@ -2797,6 +2804,7 @@ void CodeGen::visit(DclDS& node) {
             if (!f.overlay_field.empty()) continue;  // adds no storage
             int bytes = (f.likeds.empty() && f.like_var.empty()) ? bytesOf(f) : 0;
             int from = f.pos > 0 ? f.pos : (known ? next : 0);
+            img_from[f.name] = from;
             if (f.pos > 0 && bytes > 0 && f.dim == 0 &&
                 (f.type == RPGType::CHAR || f.type == RPGType::ZONED)) {
                 const Span* in = nullptr;
@@ -2999,6 +3007,67 @@ void CodeGen::visit(DclDS& node) {
             ds_local_types[f.name] = {f.type, f.length};
         }
     }
+    // The data structure as a character value of its whole length.
+    out_ << "    std::string rpg_chars() const {\n"
+         << "        std::string __s; size_t __n = 0;\n";
+    for (auto& f : node.fields) {
+        if (!f.overlay_field.empty()) continue;
+        std::string img;
+        auto imageOf = [&](const std::string& v, RPGType t, int len, int digits, int dec) -> std::string {
+            switch (t) {
+                case RPGType::CHAR:    return "rpg_img_char(" + v + ", " + std::to_string(len) + ")";
+                case RPGType::UCS2:    return "rpg_img_char(" + v + ", " + std::to_string(len * 2) + ")";
+                case RPGType::VARCHAR: return "rpg_img_varchar(" + v + ", " + std::to_string(len) + ")";
+                case RPGType::ZONED:
+                    return "rpg_img_zoned(" + v + ", " + std::to_string(digits) + ", " + std::to_string(dec) + ")";
+                case RPGType::PACKED:
+                    return "rpg_img_packed(" + v + ", " + std::to_string(digits) + ", " + std::to_string(dec) + ")";
+                case RPGType::INT10: case RPGType::UNS:
+                    return "rpg_img_int(static_cast<long long>(" + v + "), " +
+                           std::to_string(digits <= 3 ? 1 : digits <= 5 ? 2 : digits <= 10 ? 4 : 8) + ")";
+                case RPGType::BINDEC:
+                    return "rpg_img_int(static_cast<long long>(" + v + "), " +
+                           std::to_string(digits <= 4 ? 2 : digits <= 9 ? 4 : 8) + ")";
+                case RPGType::FLOAT4:  return "rpg_img_float(" + v + ", 4)";
+                case RPGType::FLOAT8:  return "rpg_img_float(" + v + ", 8)";
+                case RPGType::IND:     return "std::string(1, " + v + " ? '1' : '0')";
+                case RPGType::DATE: case RPGType::TIME: case RPGType::TIMESTAMP:
+                    return "rpg_to_char(" + v + ")";
+                default:               return "std::string(16, '\\0')";
+            }
+        };
+        RPGType t = f.type;
+        int len = f.length, digits = f.digits, dec = f.decimals;
+        if (!f.like_var.empty()) {
+            std::string like = f.like_var;
+            size_t dot = like.find('.');
+            if (dot != std::string::npos) like = like.substr(dot + 1);
+            bool found = false;
+            for (auto& g : node.fields)
+                if (g.name == like && &g != &f) {
+                    t = g.type; len = g.length; digits = g.digits; dec = g.decimals; found = true; break;
+                }
+            if (!found && var_types_.count(like)) {
+                t = var_types_[like]; len = var_lengths_[like];
+                digits = var_digits_[like]; dec = var_decimals_[like];
+            }
+            if (digits == 0) digits = len;
+        }
+        std::string from = std::to_string(img_from.count(f.name) ? img_from[f.name] : 0);
+        if (!f.likeds.empty()) {
+            if (f.dim > 0)
+                out_ << "        { std::string __a; for (const auto& __e : " << f.name
+                     << ") __a += __e.rpg_chars(); rpg_img_put(__s, __n, " << from << ", __a); }\n";
+            else
+                out_ << "        rpg_img_put(__s, __n, " << from << ", " << f.name << ".rpg_chars());\n";
+        } else if (f.dim > 0) {
+            out_ << "        { std::string __a; for (const auto& __e : " << f.name << ") __a += "
+                 << imageOf("__e", t, len, digits, dec) << "; rpg_img_put(__s, __n, " << from << ", __a); }\n";
+        } else {
+            out_ << "        rpg_img_put(__s, __n, " << from << ", " << imageOf(f.name, t, len, digits, dec) << ");\n";
+        }
+    }
+    out_ << "        return __s;\n    }\n";
     out_ << "};\n";
     if (in_procedure_) emitLocalDsInstance(node);
 }
@@ -4113,6 +4182,12 @@ void CodeGen::visit(StringLiteral& node) {
 }
 
 void CodeGen::visit(BinaryExpr& node) {
+    if (node.op == BinOp::ADD || node.op == BinOp::EQ || node.op == BinOp::NE ||
+        node.op == BinOp::LT || node.op == BinOp::GT || node.op == BinOp::LE || node.op == BinOp::GE) {
+        ArgCat l = argCategory(*node.left), r = argCategory(*node.right);
+        if (l == ArgCat::DS && (r == ArgCat::Char || r == ArgCat::DS)) dsAsChars(node.left);
+        if (r == ArgCat::DS && (l == ArgCat::Char || l == ArgCat::DS)) dsAsChars(node.right);
+    }
     if (node.op == BinOp::POWER) {
         expr_ << "std::pow(";
         node.left->accept(*this);
@@ -4226,6 +4301,17 @@ CodeGen::ArgCat CodeGen::typeCategory(RPGType t) {
 }
 
 // The type family of an argument, as far as codegen can tell.
+// A data structure used as a character value -- displayed, concatenated,
+// compared with or assigned to character data, or given to a string
+// built-in -- is the character image of its subfields (rpg_chars()).
+void CodeGen::dsAsChars(std::unique_ptr<Expression>& e) {
+    if (!e || argCategory(*e) != ArgCat::DS) return;
+    if (auto* id = dynamic_cast<Identifier*>(e.get()); id && array_vars_.count(id->name)) return;
+    std::vector<std::unique_ptr<Expression>> args;
+    args.push_back(std::move(e));
+    e = std::make_unique<BIFCall>("__DSCHARS", std::move(args));
+}
+
 CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
     if (auto* il = dynamic_cast<const IntLiteral*>(&e)) return il->indicator ? ArgCat::Ind : ArgCat::Numeric;
     if (dynamic_cast<const FloatLiteral*>(&e)) return ArgCat::Numeric;
@@ -4237,6 +4323,7 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
             case BinOp::ADD: {
                 ArgCat l = argCategory(*b->left), r = argCategory(*b->right);
                 if (l == ArgCat::Char || r == ArgCat::Char) return ArgCat::Char;
+                if (l == ArgCat::DS && r == ArgCat::DS) return ArgCat::Char;
                 if (l == ArgCat::Numeric && r == ArgCat::Numeric) return ArgCat::Numeric;
                 return ArgCat::Unknown;   // date + duration, or unknown operands
             }
@@ -4251,7 +4338,7 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
     }
     if (auto* bif = dynamic_cast<const BIFCall*>(&e)) {
         static const std::set<std::string> chr = {"CHAR", "TRIM", "TRIML", "TRIMR", "SUBST", "UPPER",
-            "LOWER", "XLATE", "SCANRPL", "REPLACE", "EDITC", "EDITW", "STR", "EDITFLT"};
+            "LOWER", "XLATE", "SCANRPL", "REPLACE", "EDITC", "EDITW", "STR", "EDITFLT", "__DSCHARS"};
         static const std::set<std::string> num = {"INT", "INTH", "DEC", "DECH", "FLOAT", "UNS", "UNSH",
             "LEN", "SCAN", "SCANR", "CHECK", "CHECKR", "ELEM", "ABS", "DIV", "REM", "SIZE", "DIFF",
             "SUBDT", "LOOKUP", "LOOKUPLT", "LOOKUPLE", "LOOKUPGT", "LOOKUPGE", "STATUS", "PARMS",
@@ -4397,6 +4484,16 @@ void CodeGen::visit(FuncCall& node) {
 
 void CodeGen::visit(BIFCall& node) {
     checkLookupArray(node);
+    static const std::set<std::string> strBifs = {"TRIM", "TRIML", "TRIMR", "SUBST", "UPPER",
+        "LOWER", "XLATE", "SCANRPL", "REPLACE", "SCAN", "SCANR", "CHECK", "CHECKR", "LEN"};
+    if (strBifs.count(node.name))
+        for (auto& a : node.args) dsAsChars(a);
+    if (node.name == "__DSCHARS") {
+        expr_ << "(";
+        node.args[0]->accept(*this);
+        expr_ << ").rpg_chars()";
+        return;
+    }
     // The first operand of a numeric conversion, which can be character
     // (%DEC('42':9:0), %INT(%GETENV(...))): converted by IBM's rules.
     auto numArg = [&](bool is_float = false) {

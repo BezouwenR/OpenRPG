@@ -233,6 +233,7 @@ private:
     enum class ArgCat { Unknown, Numeric, Char, Date, Time, Timestamp, Ind, Pointer, DS, Omit };
     static ArgCat typeCategory(RPGType t);
     ArgCat argCategory(const Expression& e) const;
+    void dsAsChars(std::unique_ptr<Expression>& e);
     void checkAssignTypes(const Expression& target, const Expression& value, int line);
     static bool isSpecialDataArea(const std::string& da);
     std::vector<std::pair<std::string, std::string>> dataAreasOf(const std::string& name,

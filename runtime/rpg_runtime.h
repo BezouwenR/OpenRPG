@@ -1148,6 +1148,67 @@ inline std::string rpg_to_char(const RpgTime& t) {
 }
 inline std::string rpg_to_char(const RpgTimestamp& ts) { return ts.value; }
 
+// --- A data structure as a character value ---
+// A data structure is also a character field of its whole length: DSPLY ds,
+// 'x' + ds, ds = other. Its subfields are separate members here, so each
+// generated struct's rpg_chars() lays out their bytes, each at its own
+// position, with these. Character and zoned bytes are their characters (a
+// negative zoned value written as a numeric OVERLAY does, with a leading
+// '-'); binary and packed ones are big-endian, as on IBM i.
+inline std::string rpg_num_digits(double v, int digits, int dec);
+inline std::string rpg_img_char(const std::string& v, int len) {
+    std::string s = v;
+    s.resize(static_cast<size_t>(len < 0 ? 0 : len), ' ');
+    return s;
+}
+inline std::string rpg_img_varchar(const std::string& v, int len) {
+    size_t n = std::min(v.size(), static_cast<size_t>(len < 0 ? 0 : len));
+    std::string s;
+    s += static_cast<char>((n >> 8) & 0xFF);
+    s += static_cast<char>(n & 0xFF);
+    s += v.substr(0, n);
+    s.resize(static_cast<size_t>(len) + 2, ' ');
+    return s;
+}
+inline std::string rpg_img_zoned(double v, int digits, int dec) {
+    bool neg = v < 0;
+    std::string d = rpg_num_digits(v, neg && digits > 0 ? digits - 1 : digits, dec);
+    return neg ? "-" + d : d;
+}
+inline std::string rpg_img_packed(double v, int digits, int dec) {
+    int bytes = digits / 2 + 1;
+    std::string d = rpg_num_digits(v, bytes * 2 - 1, dec);
+    d += v < 0 ? 'D' : 'F';
+    std::string s;
+    for (int i = 0; i < bytes; i++) {
+        auto nib = [](char c) { return c >= '0' && c <= '9' ? c - '0' : c == 'D' ? 0xD : 0xF; };
+        s += static_cast<char>((nib(d[2 * i]) << 4) | nib(d[2 * i + 1]));
+    }
+    return s;
+}
+inline std::string rpg_img_int(long long v, int bytes) {
+    std::string s(static_cast<size_t>(bytes), '\0');
+    unsigned long long u = static_cast<unsigned long long>(v);
+    for (int i = bytes - 1; i >= 0; i--) { s[static_cast<size_t>(i)] = static_cast<char>(u & 0xFF); u >>= 8; }
+    return s;
+}
+inline std::string rpg_img_float(double v, int bytes) {
+    std::string s(static_cast<size_t>(bytes), '\0');
+    unsigned char b[8];
+    if (bytes == 4) { float f = static_cast<float>(v); std::memcpy(b, &f, 4); }
+    else std::memcpy(b, &v, 8);
+    for (int i = 0; i < bytes; i++) s[static_cast<size_t>(i)] = static_cast<char>(b[bytes - 1 - i]);
+    return s;
+}
+// Place one subfield's bytes at `from` (1-based), or after the previous
+// subfield when its position isn't known until run time (from 0).
+inline void rpg_img_put(std::string& s, size_t& next, int from, const std::string& img) {
+    size_t at = from > 0 ? static_cast<size_t>(from - 1) : next;
+    if (s.size() < at + img.size()) s.resize(at + img.size(), ' ');
+    s.replace(at, img.size(), img);
+    next = at + img.size();
+}
+
 
 // --- Date/Time format helpers ---
 // Day of year (1-366) from month/day

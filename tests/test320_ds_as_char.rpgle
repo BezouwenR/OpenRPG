@@ -1,0 +1,41 @@
+**FREE
+// A data structure is a character value of its whole length: displayed,
+// assigned, concatenated, compared and given to string built-ins.
+DCL-DS rec QUALIFIED;
+  a CHAR(2);
+  n ZONED(3:0);
+  b CHAR(2);
+END-DS;
+DCL-DS u;
+  x CHAR(3);
+  y CHAR(3);
+END-DS;
+DCL-DS t QUALIFIED TEMPLATE;
+  k CHAR(2);
+  m ZONED(2:0);
+END-DS;
+DCL-DS lk LIKEDS(t);
+DCL-S c CHAR(10);
+DCL-S v VARCHAR(20);
+rec.a = 'AB';
+rec.n = 42;
+rec.b = 'CD';
+DSPLY rec;
+c = rec;
+DSPLY ('[' + c + ']');
+v = 'x' + rec + 'y';
+DSPLY v;
+x = 'one';
+y = 'two';
+DSPLY u;
+IF u = 'onetwo';
+  DSPLY 'equal';
+ENDIF;
+DSPLY %SUBST(rec:3:3);
+DSPLY %CHAR(%LEN(rec));
+DSPLY %TRIM(u);
+lk.k = 'ZZ';
+lk.m = 7;
+DSPLY lk;
+*INLR = *ON;
+RETURN;
