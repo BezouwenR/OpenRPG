@@ -693,9 +693,10 @@ public:
 class TestStmt : public Statement {
 public:
     char type; // 'D', 'T', 'Z': test a character/numeric field as one; 0: the field's own value
-    std::string var_name;
+    std::unique_ptr<Expression> field;  // a name, subfield or array element
+    std::string var_name;               // the field as written, for messages
     std::string format;  // *ISO, *MDY/, ...; empty for the default
-    TestStmt(char type, std::string name);
+    TestStmt(char type, std::unique_ptr<Expression> field, std::string name);
     void accept(ASTVisitor& visitor) override;
 };
 

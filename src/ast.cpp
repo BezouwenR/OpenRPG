@@ -154,7 +154,8 @@ void ArrayAccess::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 DeallocStmt::DeallocStmt(std::string name) : var_name(std::move(name)) {}
 void DeallocStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 
-TestStmt::TestStmt(char type, std::string name) : type(type), var_name(std::move(name)) {}
+TestStmt::TestStmt(char type, std::unique_ptr<Expression> field, std::string name)
+    : type(type), field(std::move(field)), var_name(std::move(name)) {}
 void TestStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 
 EvalRStmt::EvalRStmt(std::unique_ptr<Expression> target, std::unique_ptr<Expression> value)

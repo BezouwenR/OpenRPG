@@ -289,7 +289,8 @@ static rpg::Expression* typed_literal(const char* bif, char* text, const char* f
     return make_bif(bif, args);
 }
 
-static rpg::Statement* make_test(char* ext, char* fmt, char* field) {
+static std::string qualified_name(rpg::Expression* e);
+static rpg::Statement* make_test(char* ext, char* fmt, rpg::Expression* field) {
     std::string e = ext;
     for (auto& c : e) c = toupper((unsigned char)c);
     if (e.find('E') == std::string::npos)
@@ -301,14 +302,15 @@ static rpg::Statement* make_test(char* ext, char* fmt, char* field) {
         else if (c != 'E') yyerror(("TEST(" + e + "): the extenders are E and one of D, T "
                                     "or Z (IBM: RNF5049)").c_str());
     }
-    auto* t = new rpg::TestStmt(type, field);
+    std::string name = qualified_name(field);
+    if (name.empty()) name = "the field";
+    auto* t = new rpg::TestStmt(type, std::unique_ptr<rpg::Expression>(field), name);
     if (fmt) {
         if (!type) yyerror("TEST: a format operand needs the D, T or Z extender");
         t->format = fmt;
         free(fmt);
     }
     free(ext);
-    free(field);
     return t;
 }
 
@@ -1842,13 +1844,13 @@ dealloc_stmt:
    date, time or timestamp in the format given, or the default; without one,
    the field is itself a date, time or timestamp and its value is tested. */
 test_stmt:
-    KW_TEST LPAREN ident RPAREN ident SEMICOLON {
+    KW_TEST LPAREN ident RPAREN eval_target SEMICOLON {
         $$ = make_test($3, nullptr, $5);
     }
-    | KW_TEST LPAREN ident RPAREN IDENTIFIER ident SEMICOLON {
+    | KW_TEST LPAREN ident RPAREN IDENTIFIER eval_target SEMICOLON {
         $$ = make_test($3, $5, $6);
     }
-    | KW_TEST ident SEMICOLON {
+    | KW_TEST eval_target SEMICOLON {
         $$ = make_test(strdup(""), nullptr, $2);
     }
     ;

@@ -874,6 +874,7 @@ run_test "312" "SND-MSG *ESCAPE to the caller or itself" "$TESTDIR/test312_snd_m
 run_test "313" "DUMP with CTL-OPT DEBUG(*YES)" "$TESTDIR/test313_dump_debug.rpgle" "run"
 run_test "314" "DUMP(A) without DEBUG" "$TESTDIR/test314_dump_always.rpgle" "run"
 run_test "315" "DS subfields sharing From/To positions" "$TESTDIR/test315_ds_position_overlap.rpgle" "run"
+run_test "316" "TEST(DE) on subfields and array elements" "$TESTDIR/test316_test_subfield.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

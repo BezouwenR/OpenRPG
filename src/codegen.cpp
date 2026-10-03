@@ -5758,8 +5758,8 @@ void CodeGen::visit(DeallocStmt& node) {
 
 void CodeGen::visit(TestStmt& node) {
     int line = node.line > 0 ? node.line : cur_stmt_line_;
-    Identifier field(node.var_name);
-    ArgCat cat = argCategory(field);
+    ArgCat cat = argCategory(*node.field);
+    std::string field = emitExpr(*node.field);
     bool dt = cat == ArgCat::Date || cat == ArgCat::Time || cat == ArgCat::Timestamp;
     emitIndent();
     if (node.type) {
@@ -5774,7 +5774,7 @@ void CodeGen::visit(TestStmt& node) {
         std::string fmt = node.format;
         if (fmt.empty()) fmt = kind == 0 ? (datfmt_.empty() ? "*ISO" : datfmt_)
                              : kind == 1 ? (timfmt_.empty() ? "*ISO" : timfmt_) : "*ISO";
-        out_ << "rpg_error_flag() = !rpg_test_value(" << node.var_name << ", " << kind
+        out_ << "rpg_error_flag() = !rpg_test_value(" << field << ", " << kind
              << ", std::string(\"" << fmt << "\"));\n";
         return;
     }
@@ -5786,7 +5786,7 @@ void CodeGen::visit(TestStmt& node) {
     }
     out_ << "rpg_error_flag() = !rpg_test_";
     out_ << (cat == ArgCat::Time ? "time" : cat == ArgCat::Timestamp ? "timestamp" : "date");
-    out_ << "(" << node.var_name << ");\n";
+    out_ << "(" << field << ");\n";
 }
 
 std::string CodeGen::paramTypeDefault(const ParamDecl& p) {
