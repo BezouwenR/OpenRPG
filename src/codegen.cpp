@@ -1240,6 +1240,12 @@ void CodeGen::visit(Program& node) {
         out_ << "__sql_env.connectStr(\"" << conf_dsn_ << "\");\n";
     }
 
+    for (auto& f : deferred_flat_opens_) {
+        emitIndent();
+        out_ << f << "_open = " << f << "_ff.open(" << flat_paths_[f] << ", "
+             << flat_record_len_[f] << ");\n";
+    }
+
     // Emit RAII auto-disconnect guard (fires before any return)
     if (uses_sql_) {
         emitIndent();
@@ -1766,12 +1772,27 @@ void CodeGen::visit(DclF& node) {
         std::string lowerName = node.name;
         for (auto& c : lowerName) c = (char)tolower((unsigned char)c);
 
+        // The file opened: EXTFILE's, or <name>.txt. EXTFILE(var) is read
+        // when the file is opened, so a USROPN program can set it first.
+        std::string path = "std::string(\"" + lowerName + ".txt\")";
+        if (node.extfile_var) path = "rpg_trim(" + node.extfile + ")";
+        else if (!node.extfile.empty()) path = "std::string(\"" + cppEscape(node.extfile) + "\")";
+        flat_paths_[node.name] = path;
+
         emitIndent(); out_ << "RpgFlatFile " << node.name << "_ff;\n";
         emitIndent(); out_ << "bool " << node.name << "_eof   = false;\n";
         emitIndent(); out_ << "bool " << node.name << "_found = false;\n";
         emitIndent();
-        out_ << "bool " << node.name << "_open = " << node.name << "_ff.open(\""
-             << lowerName << ".txt\", " << recLen << ");\n";
+        if (node.usropn) {
+            out_ << "bool " << node.name << "_open = false;   // USROPN: opened by OPEN\n";
+        } else if (node.extfile_var) {
+            // The variable has its initial value once the program starts.
+            out_ << "bool " << node.name << "_open = false;\n";
+            deferred_flat_opens_.push_back(node.name);
+        } else {
+            out_ << "bool " << node.name << "_open = " << node.name << "_ff.open("
+                 << path << ", " << recLen << ");\n";
+        }
         return;
     }
 
@@ -5339,6 +5360,15 @@ void CodeGen::visit(BIFCall& node) {
         } else {
             expr_ << "rpg_found()";
         }
+    } else if (node.name == "OPEN") {
+        auto* id = node.args.empty() ? nullptr : dynamic_cast<Identifier*>(node.args[0].get());
+        if (id && file_defs_.count(id->name)) {
+            expr_ << id->name << "_open";
+        } else {
+            report_semantic_error(cur_stmt_line_, "%OPEN needs the name of a file declared in "
+                "this program (IBM: RNF5320)");
+            expr_ << "false";
+        }
     } else if (node.name == "EOF") {
         if (!node.args.empty()) {
             auto* id = dynamic_cast<Identifier*>(node.args[0].get());
@@ -6040,6 +6070,73 @@ void CodeGen::visit(DataOutStmt& node) {
     }
 }
 
+// OPEN and CLOSE. Opening a file that is already open is status 1215, and
+// one that can't be opened 1216; with the E extender these set %ERROR and
+// %STATUS instead. CLOSE of a file that isn't open does nothing, and
+// CLOSE *ALL closes every file. A file closed and opened again starts
+// from its first record.
+void CodeGen::visit(OpenCloseStmt& node) {
+    int line = node.line > 0 ? node.line : cur_stmt_line_;
+    bool error_ext = node.extenders.find('E') != std::string::npos;
+    std::vector<std::string> files;
+    if (node.filename == "*ALL") {
+        for (auto& [name, df] : file_defs_)
+            if (flat_paths_.count(name) || ext_file_descs_.count(name)) files.push_back(name);
+    } else if (!file_defs_.count(node.filename)) {
+        report_semantic_error(line, std::string(node.is_close ? "CLOSE" : "OPEN") + " " +
+            node.filename + ": no file of that name is declared (IBM: RNF7030)");
+        return;
+    } else if (!flat_paths_.count(node.filename) && !ext_file_descs_.count(node.filename)) {
+        report_semantic_error(line, std::string(node.is_close ? "CLOSE" : "OPEN") + " " +
+            node.filename + ": only DISK files can be opened and closed here");
+        return;
+    } else {
+        files.push_back(node.filename);
+    }
+    if (error_ext) {
+        emitIndent(); out_ << "rpg_error_flag() = false; rpg_status_code() = 0;\n";
+        emitIndent(); out_ << "try {\n"; indent_++;
+    }
+    for (auto& f : files) {
+        bool flat = flat_paths_.count(f) > 0;
+        if (node.is_close) {
+            emitIndent(); out_ << "if (" << f << "_open) {\n"; indent_++;
+            if (flat) {
+                emitIndent(); out_ << f << "_ff.close();\n";
+            } else {
+                for (const char* h : {"_scroll", "_chain", "_ins", "_upd", "_del"}) {
+                    emitIndent();
+                    out_ << "if (" << f << h << " != SQL_NULL_HSTMT) { SQLFreeHandle(SQL_HANDLE_STMT, "
+                         << f << h << "); " << f << h << " = SQL_NULL_HSTMT; }\n";
+                }
+            }
+            emitIndent(); out_ << f << "_open = false;\n";
+            indent_--; emitIndent(); out_ << "}\n";
+            continue;
+        }
+        emitIndent();
+        out_ << "if (" << f << "_open) rpg_raise(1215, \"RNX1215: OPEN issued to file " << f
+             << ", which is already open.\");\n";
+        if (flat) {
+            emitIndent();
+            out_ << f << "_open = " << f << "_ff.open(" << flat_paths_[f] << ", "
+                 << flat_record_len_[f] << ");\n";
+            emitIndent();
+            out_ << "if (!" << f << "_open) rpg_raise(1216, \"RNX1216: Error on OPEN of file " << f
+                 << ".\");\n";
+        } else {
+            DclF* df = file_defs_[f];
+            emitRlaFileOpen(f, ext_file_descs_[f], df && df->keyed);
+        }
+        emitIndent(); out_ << f << "_eof = false;\n";
+    }
+    if (error_ext) {
+        indent_--;
+        emitIndent();
+        out_ << "} catch (const RpgError& __e) { rpg_error_flag() = true; rpg_status_code() = __e.status; }\n";
+    }
+}
+
 void CodeGen::visit(DataUnlockStmt& node) {
     auto it = dtaara_vars_.find(node.var_name);
     if (it != dtaara_vars_.end() && isSpecialDataArea(it->second))
@@ -6416,6 +6513,8 @@ void CodeGen::visit(ReadStmt& node) {
         if (fin != flat_input_formats_.end()) {
             emitIndent(); out_ << "{\n"; indent_++;
             emitIndent(); out_ << "std::string __rec;\n";
+            emitIndent(); out_ << "if (!" << node.filename << "_open) rpg_raise(1211, \"RNX1211: I/O "
+                               << "operation tried on file " << node.filename << ", which is not open.\");\n";
             emitIndent(); out_ << "bool __ok = " << node.filename << "_ff.readNext(__rec);\n";
             emitIndent(); out_ << node.filename << "_eof = !__ok;\n";
             emitIndent(); out_ << node.filename << "_found = __ok;\n";
@@ -6669,6 +6768,8 @@ void CodeGen::visit(ChainStmt& node) {
 void CodeGen::emitOutputRecord(const std::string& file, ORecordFormat& fmt, const char* op) {
     int recLen = flat_record_len_.count(file) ? flat_record_len_[file] : 1;
         emitIndent(); out_ << "{\n"; indent_++;
+        emitIndent(); out_ << "if (!" << file << "_open) rpg_raise(1211, \"RNX1211: I/O operation "
+                           << "tried on file " << file << ", which is not open.\");\n";
         emitIndent(); out_ << "std::string __rec(" << recLen << ", ' ');\n";
         int prevEnd = 0;
         for (auto& f : fmt.fields) {

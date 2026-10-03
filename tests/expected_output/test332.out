@@ -1,0 +1,8 @@
+OUTF closed
+READ before OPEN: 1211
+FIRST RECORD        
+OPEN again: 1215
+FIRST RECORD        
+SECOND RECORD       
+FIRST RECORD        
+CLOSE *ALL closed INIT

@@ -145,6 +145,10 @@ public:
     bool usropn = false;
     std::string prefix;   // PREFIX(pfx) — prepended to field variable names
     int recordLen = 0;    // F-spec record length (program-described files only)
+    // EXTFILE: the file actually opened. extfile_var: it names a variable
+    // holding the path, read when the file is opened; otherwise a literal.
+    std::string extfile;
+    bool extfile_var = false;
     DclF(std::string name, std::string usage);
     void accept(ASTVisitor& visitor) override;
 };
@@ -792,6 +796,16 @@ public:
     void accept(ASTVisitor& visitor) override;
 };
 
+// OPEN file / CLOSE file (or CLOSE *ALL, file "*ALL").
+class OpenCloseStmt : public Statement {
+public:
+    std::string filename;
+    bool is_close = false;
+    std::string extenders;      // (E)
+    OpenCloseStmt(std::string f, bool close);
+    void accept(ASTVisitor& visitor) override;
+};
+
 class DataUnlockStmt : public Statement {
 public:
     std::string var_name;
@@ -1040,6 +1054,7 @@ public:
     virtual void visit(DataInStmt& node) = 0;
     virtual void visit(DataOutStmt& node) = 0;
     virtual void visit(DataUnlockStmt& node) = 0;
+    virtual void visit(OpenCloseStmt& node) = 0;
     virtual void visit(CallpStmt& node) = 0;
     virtual void visit(ChainStmt& node) = 0;
     virtual void visit(ReadStmt& node) = 0;

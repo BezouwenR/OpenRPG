@@ -114,6 +114,7 @@ public:
     void visit(DataInStmt& node) override;
     void visit(DataOutStmt& node) override;
     void visit(DataUnlockStmt& node) override;
+    void visit(OpenCloseStmt& node) override;
     void visit(CallpStmt& node) override;
     void visit(ChainStmt& node) override;
     void visit(ReadStmt& node) override;
@@ -184,6 +185,8 @@ private:
     std::map<std::string, std::vector<ORecordFormat*>> flat_output_formats_;
     void emitOutputRecord(const std::string& file, ORecordFormat& fmt, const char* op);
     std::map<std::string, int> flat_record_len_; // resolved record length, keyed by file name
+    std::map<std::string, std::string> flat_paths_; // C++ expression for the file a flat file opens
+    std::vector<std::string> deferred_flat_opens_;  // EXTFILE(var) files opened as the program starts
     std::string conf_dsn_;    // from rpgc.conf, for auto-connect
 
     void emitIndent();

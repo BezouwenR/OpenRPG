@@ -214,6 +214,8 @@ void DataInStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 DataOutStmt::DataOutStmt(std::string v) : var_name(std::move(v)) {}
 void DataOutStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 
+OpenCloseStmt::OpenCloseStmt(std::string f, bool close) : filename(std::move(f)), is_close(close) {}
+void OpenCloseStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 DataUnlockStmt::DataUnlockStmt(std::string v) : var_name(std::move(v)) {}
 void DataUnlockStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 

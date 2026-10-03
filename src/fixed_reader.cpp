@@ -409,6 +409,23 @@ static void finalizeFSpec(Program* program, PendingFSpec& pending) {
     if (it != kw.end()) pending.dclf->extdesc = it->second;
     it = kw.find("PREFIX");
     if (it != kw.end()) pending.dclf->prefix = upper(it->second);
+    // EXTFILE('path') opens that file; EXTFILE(var) the one var names when
+    // the file is opened. *EXTDESC means the file EXTDESC names.
+    it = kw.find("EXTFILE");
+    if (it != kw.end()) {
+        std::string v = trim(it->second);
+        if (v.size() >= 2 && v.front() == '\'' && v.back() == '\'') {
+            std::string body = v.substr(1, v.size() - 2), out;
+            for (size_t i = 0; i < body.size(); i++) {
+                out += body[i];
+                if (body[i] == '\'' && i + 1 < body.size() && body[i + 1] == '\'') i++;
+            }
+            pending.dclf->extfile = out;
+        } else if (!v.empty() && upper(v) != "*EXTDESC") {
+            pending.dclf->extfile = upper(v);
+            pending.dclf->extfile_var = true;
+        }
+    }
 
     pending.dclf->line = pending.line;
     program->statements.emplace_back(pending.dclf);

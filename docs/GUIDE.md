@@ -3126,6 +3126,31 @@ program-described. The record length is in positions 23-27. Field names from
 the I-spec become ordinary program variables. Specifications come in the order
 H, F, D, I, C, O (IBM: RNF0257).
 
+### Which File Is Opened
+
+A program-described file is the file `<name>.txt` (the file name in lower
+case) in the current directory, unless the F-spec names another with
+`EXTFILE`: `EXTFILE('input.dta')` opens that path, and `EXTFILE(FNAME)` the
+path held in the variable `FNAME` when the file is opened — as the program
+starts, or, with `USROPN`, at the `OPEN`:
+
+```rpgle
+     FEMP       IF   F   48        DISK    EXTFILE(FNAME) USROPN
+     DFNAME            S             64A
+      ...
+       FNAME = 'employees.dta';
+       OPEN EMP;
+       READ EMP;
+       ...
+       CLOSE EMP;
+```
+
+`OPEN` of a file already open is status 1215, and a file that can't be opened
+1216; `OPEN(E)` sets `%ERROR` and `%STATUS` instead. An I/O operation on a file
+that isn't open is status 1211. `CLOSE *ALL` closes every file, and `%OPEN(file)`
+tells whether a file is open. A file closed and opened again starts again from
+its first record.
+
 ### I-Spec — Input Layout
 
 An I-spec file has one **record identification** line per record type,

@@ -381,6 +381,8 @@ static void parse_ctlopt(const char* text) {
 "IN(E)"             { yylval.sval = strdup("E"); return KW_IN_EXT; }
 "OUT(E)"            { yylval.sval = strdup("E"); return KW_OUT_EXT; }
 "UNLOCK(E)"         { yylval.sval = strdup("E"); return KW_UNLOCK_EXT; }
+"OPEN(E)"           { yylval.sval = strdup("E"); return KW_OPEN_EXT; }
+"CLOSE(E)"          { yylval.sval = strdup("E"); return KW_CLOSE_EXT; }
 "CALLP("[EHMNRP]+")" {
     char *p = strchr(yytext, '(') + 1;
     char ext[16] = {0}; int i = 0;
@@ -447,6 +449,8 @@ static void parse_ctlopt(const char* text) {
 "DTAARA"            { return KW_DTAARA; }
 "OUT"               { return KW_OUT; }
 "UNLOCK"            { return KW_UNLOCK; }
+"OPEN"              { return KW_OPEN; }
+"CLOSE"             { return KW_CLOSE; }
 "RTNPARM"           { return KW_RTNPARM; }
 "OPDESC"            { return KW_OPDESC; }
 "ASCEND"            { return KW_ASCEND; }
@@ -581,6 +585,7 @@ static void parse_ctlopt(const char* text) {
 "%UNSH"             { return BIF_UNSH; }
 "%PARMNUM"          { return BIF_PARMNUM; }
 "%EOF"              { return BIF_EOF; }
+"%OPEN"             { return BIF_OPEN; }
 "%DATE"             { return BIF_DATE; }
 "%TIME"             { return BIF_TIME; }
 "%TIMESTAMP"        { return BIF_TIMESTAMP; }

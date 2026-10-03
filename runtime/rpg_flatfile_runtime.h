@@ -56,6 +56,8 @@ public:
     // on a real I/O failure (e.g. permission denied).
     bool open(const std::string& path, int recordLen) {
         recordLen_ = recordLen;
+        readPos_ = 0;
+        lastRecordPos_ = -1;
         file_.open(path, std::ios::in | std::ios::out | std::ios::binary);
         if (!file_.is_open()) {
             // Doesn't exist yet — create it, then reopen in read+write mode.

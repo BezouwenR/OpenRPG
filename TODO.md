@@ -1994,7 +1994,7 @@ These features are IBM i-specific, legacy, or otherwise not applicable:
 - NULLIND — Null indicator association
 - OPDESC — Operational descriptors
 - RTNPARM, NOOPT — Procedure/variable keywords
-- %OPEN, %KDS, %FIELDS, %EQUAL, %NULLIND — File/Record BIFs
+- %KDS, %FIELDS, %EQUAL, %NULLIND — File/Record BIFs
 - BNDDIR — Binding directory
 - STGMDL, ALLOC(*TERASPACE) — Storage model
 - Open Access / Handler programs

@@ -434,6 +434,8 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %token KW_DSPLY
 %token KW_EVAL KW_EVAL_CORR KW_EVALR KW_CALLP KW_LEAVESR KW_ON_EXIT KW_DEALLOC KW_TEST
 %token <sval> KW_EVAL_EXT KW_EVALR_EXT KW_CALLP_EXT KW_IN_EXT KW_OUT_EXT KW_UNLOCK_EXT
+%token <sval> KW_OPEN_EXT KW_CLOSE_EXT
+%token KW_OPEN KW_CLOSE BIF_OPEN
 %token KW_STATIC KW_TEMPLATE KW_BASED KW_OPTIONS KW_NOPASS KW_OMIT
 %token KW_EXPORT KW_IMPORT KW_EXTPGM KW_EXTPROC KW_CTLOPT KW_OVERLOAD
 %token KW_RETURN
@@ -511,6 +513,7 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %type <on_error> on_error_clause on_error_codes on_error_code_list
 %type <expr> on_error_code
 %type <stmt> monitor_stmt begsr_stmt exsr_stmt goto_stmt tag_stmt move_stmt call_stmt exec_sql_stmt xml_into_stmt
+%type <stmt> open_close_stmt
 %type <stmt> in_da_stmt out_da_stmt unlock_da_stmt data_into_stmt data_gen_stmt snd_msg_stmt except_stmt
 %type <sval> snd_msg_type da_name like_name
 %type <stmt> chain_stmt read_stmt readc_stmt reade_stmt readp_stmt readpe_stmt
@@ -630,6 +633,7 @@ statement:
     | in_da_stmt    { $$ = $1; SET_LINE($$); }
     | out_da_stmt   { $$ = $1; SET_LINE($$); }
     | unlock_da_stmt { $$ = $1; SET_LINE($$); }
+    | open_close_stmt { $$ = $1; SET_LINE($$); }
     | chain_stmt   { $$ = $1; SET_LINE($$); }
     | read_stmt    { $$ = $1; SET_LINE($$); }
     | readc_stmt   { $$ = $1; SET_LINE($$); }
@@ -1229,6 +1233,25 @@ out_da_stmt:
     | KW_OUT_EXT da_lock_opt da_name SEMICOLON {
         auto* s = new rpg::DataOutStmt($3); s->lock = $2; s->extenders = $1; $$ = s;
         free($1); free($3);
+    }
+    ;
+
+/* OPEN file and CLOSE file, CLOSE *ALL: a USROPN file is opened and
+   closed by the program. */
+open_close_stmt:
+    KW_OPEN IDENTIFIER SEMICOLON { $$ = new rpg::OpenCloseStmt($2, false); free($2); }
+    | KW_OPEN_EXT IDENTIFIER SEMICOLON {
+        auto* s = new rpg::OpenCloseStmt($2, false); s->extenders = $1; $$ = s;
+        free($1); free($2);
+    }
+    | KW_CLOSE IDENTIFIER SEMICOLON { $$ = new rpg::OpenCloseStmt($2, true); free($2); }
+    | KW_CLOSE_EXT IDENTIFIER SEMICOLON {
+        auto* s = new rpg::OpenCloseStmt($2, true); s->extenders = $1; $$ = s;
+        free($1); free($2);
+    }
+    | KW_CLOSE KW_ALL SEMICOLON { $$ = new rpg::OpenCloseStmt("*ALL", true); }
+    | KW_CLOSE_EXT KW_ALL SEMICOLON {
+        auto* s = new rpg::OpenCloseStmt("*ALL", true); s->extenders = $1; $$ = s; free($1);
     }
     ;
 
@@ -2540,6 +2563,8 @@ op_name:
     | KW_RETURN { $$ = strdup("RETURN"); }
     | KW_OUT { $$ = strdup("OUT"); }
     | KW_UNLOCK { $$ = strdup("UNLOCK"); }
+    | KW_OPEN { $$ = strdup("OPEN"); }
+    | KW_CLOSE { $$ = strdup("CLOSE"); }
     | KW_IN { $$ = strdup("IN"); }
     | KW_IF { $$ = strdup("IF"); }
     | KW_ELSEIF { $$ = strdup("ELSEIF"); }
@@ -2822,6 +2847,12 @@ primary_expr:
         args->push_back(new rpg::Identifier($3));
         free($3);
         $$ = make_bif("EOF", args);
+    }
+    | BIF_OPEN LPAREN IDENTIFIER RPAREN {
+        auto* args = new std::vector<rpg::Expression*>();
+        args->push_back(new rpg::Identifier($3));
+        free($3);
+        $$ = make_bif("OPEN", args);
     }
     | BIF_ALLOC LPAREN arg_list RPAREN {
         $$ = make_bif("ALLOC", $3);

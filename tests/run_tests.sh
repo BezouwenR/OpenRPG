@@ -893,6 +893,7 @@ run_test "328" "Data structure subfields as host variables" "$TESTDIR/test328_sq
 run_test "329" "COMMIT and ROLLBACK under commitment control" "$TESTDIR/test329_sql_commit_rollback.sqlrpgle" "run-sql"
 run_test "330" "SET OPTION COMMIT = *NONE" "$TESTDIR/test330_sql_commit_none.sqlrpgle" "run-sql"
 run_test "331" "NULL without a null indicator: SQLCODE -305" "$TESTDIR/test331_sql_null_no_indicator.sqlrpgle" "run-sql"
+run_test "332" "EXTFILE, USROPN, OPEN, CLOSE and %OPEN" "$TESTDIR/test332_extfile_usropn.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be
