@@ -6126,7 +6126,7 @@ void CodeGen::visit(OpenCloseStmt& node) {
                  << ".\");\n";
         } else {
             DclF* df = file_defs_[f];
-            emitRlaFileOpen(f, ext_file_descs_[f], df && df->keyed);
+            emitRlaFileOpen(f, ext_file_descs_[f], df && df->keyed, true);
         }
         emitIndent(); out_ << f << "_eof = false;\n";
     }
@@ -6337,7 +6337,16 @@ std::string CodeGen::rlaKeyColName(const std::string& fname) const {
 }
 
 // Emit the lazy-open block for a file (prepares all ODBC statements on first use)
-void CodeGen::emitRlaFileOpen(const std::string& fname, const ExternalFileDesc& desc, bool keyed) {
+void CodeGen::emitRlaFileOpen(const std::string& fname, const ExternalFileDesc& desc, bool keyed,
+                              bool explicitOpen) {
+    // A USROPN file is opened by OPEN only; any other operation finds it
+    // open or fails with status 1211.
+    auto df = file_defs_.find(fname);
+    if (!explicitOpen && df != file_defs_.end() && df->second->usropn) {
+        emitIndent(); out_ << "if (!" << fname << "_open) rpg_raise(1211, \"RNX1211: I/O operation "
+                           << "tried on file " << fname << ", which is not open.\");\n";
+        return;
+    }
     std::string cols = rlaColumnList(desc);
     std::string tbl  = desc.tableName;
     std::string keyCol = desc.fields.empty() ? "1" : desc.fields[0].name;

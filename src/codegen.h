@@ -317,7 +317,8 @@ private:
     static std::string sqlCommentText(const std::string& sql);
 
     // RLA codegen helpers
-    void emitRlaFileOpen(const std::string& fname, const ExternalFileDesc& desc, bool keyed);
+    void emitRlaFileOpen(const std::string& fname, const ExternalFileDesc& desc, bool keyed,
+                         bool explicitOpen = false);
     std::string rlaFieldVar(const std::string& fname, const std::string& fieldName) const;
     std::string rlaKeyColName(const std::string& fname) const;
     std::string rlaColumnList(const ExternalFileDesc& desc) const;
