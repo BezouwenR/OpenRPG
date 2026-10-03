@@ -25,6 +25,32 @@
 #include <ostream>
 #include <iomanip>
 #include <cctype>
+#include <cstdarg>
+
+// printf-style formatting into a string sized to fit. A fixed char buffer
+// can cut the text short -- %.*f of a wide decimal field runs past 64
+// characters -- and GCC warns about every such snprintf where a width or
+// precision is a variable (-Wformat-truncation, on by default on Ubuntu;
+// issue #19). The format attribute keeps the arguments type-checked.
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((format(printf, 1, 2)))
+#endif
+inline std::string rpg_sprintf(const char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    va_list ap2;
+    va_copy(ap2, ap);
+    int n = std::vsnprintf(nullptr, 0, fmt, ap);
+    va_end(ap);
+    std::string s;
+    if (n > 0) {
+        s.resize(static_cast<size_t>(n) + 1);
+        std::vsnprintf(&s[0], s.size(), fmt, ap2);
+        s.resize(static_cast<size_t>(n));
+    }
+    va_end(ap2);
+    return s;
+}
 
 // %GETENV - read environment variable (returns empty string if not set)
 inline std::string rpg_getenv(const std::string& name) {
@@ -1080,8 +1106,8 @@ inline std::string rpg_to_char(bool v) { return v ? "1" : "0"; }
 // of -0.5 "-.50", of zero at two decimals ".00" (verified on PUB400).
 inline std::string rpg_to_char_packed(double v, int dec) {
     rpg_chk_dec(v);
-    char buf[64];
-    std::snprintf(buf, sizeof(buf), "%.*f", dec, v);
+    std::string buf;
+    buf = rpg_sprintf("%.*f", dec, v);
     std::string s = buf;
     if (dec > 0) {
         if (s.compare(0, 2, "0.") == 0) s.erase(0, 1);
@@ -1096,14 +1122,14 @@ inline std::string rpg_to_char_packed(double v, int dec) {
 // significant digits and a three-digit exponent, "+1.500000000000000E+000";
 // a 4-byte one 8 and two, "+1.5000000E+00". Both verified on PUB400.
 inline std::string rpg_float_text(double v, bool four_byte) {
-    char buf[64];
-    std::snprintf(buf, sizeof(buf), "%+.*E", four_byte ? 7 : 15, v);
+    std::string buf;
+    buf = rpg_sprintf("%+.*E", four_byte ? 7 : 15, v);
     std::string s = buf;
     size_t e = s.find('E');
     if (e == std::string::npos) return s;   // inf / nan
     int exp = std::atoi(s.c_str() + e + 1);
-    char tail[16];
-    std::snprintf(tail, sizeof(tail), four_byte ? "E%c%02d" : "E%c%03d",
+    std::string tail;
+    tail = rpg_sprintf(four_byte ? "E%c%02d" : "E%c%03d",
                   exp < 0 ? '-' : '+', exp < 0 ? -exp : exp);
     return s.substr(0, e) + tail;
 }
@@ -1121,8 +1147,8 @@ inline std::tm rpg_parse_date_tm(const std::string& s) {
 }
 
 inline std::string rpg_format_date_tm(const std::tm& t) {
-    char buf[32];
-    std::snprintf(buf, sizeof(buf), "%04d-%02d-%02d",
+    std::string buf;
+    buf = rpg_sprintf("%04d-%02d-%02d",
                   t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
     return buf;
 }
@@ -1313,8 +1339,8 @@ inline std::string rpg_parse_date_fmt(const std::string& s, const std::string& f
     } else {
         return s; // unknown format, pass through
     }
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%04d-%02d-%02d", y, m, d);
+    std::string buf;
+    buf = rpg_sprintf("%04d-%02d-%02d", y, m, d);
     return buf;
 }
 
@@ -1324,31 +1350,31 @@ inline std::string rpg_format_date_fmt(const std::string& iso, const std::string
     int y = std::stoi(iso.substr(0, 4));
     int m = std::stoi(iso.substr(5, 2));
     int d = std::stoi(iso.substr(8, 2));
-    char buf[32];
+    std::string buf;
     if (fmt == "*USA") {
-        snprintf(buf, sizeof(buf), "%02d/%02d/%04d", m, d, y);
+        buf = rpg_sprintf("%02d/%02d/%04d", m, d, y);
     } else if (fmt == "*EUR") {
-        snprintf(buf, sizeof(buf), "%02d.%02d.%04d", d, m, y);
+        buf = rpg_sprintf("%02d.%02d.%04d", d, m, y);
     } else if (fmt == "*JIS") {
         return iso;
     } else if (fmt == "*MDY") {
-        snprintf(buf, sizeof(buf), "%02d/%02d/%02d", m, d, y % 100);
+        buf = rpg_sprintf("%02d/%02d/%02d", m, d, y % 100);
     } else if (fmt == "*DMY") {
-        snprintf(buf, sizeof(buf), "%02d/%02d/%02d", d, m, y % 100);
+        buf = rpg_sprintf("%02d/%02d/%02d", d, m, y % 100);
     } else if (fmt == "*YMD") {
-        snprintf(buf, sizeof(buf), "%02d/%02d/%02d", y % 100, m, d);
+        buf = rpg_sprintf("%02d/%02d/%02d", y % 100, m, d);
     } else if (fmt == "*JUL") {
         int doy = rpg_day_of_year(y, m, d);
-        snprintf(buf, sizeof(buf), "%02d/%03d", y % 100, doy);
+        buf = rpg_sprintf("%02d/%03d", y % 100, doy);
     } else if (fmt == "*LONGJUL") {
         int doy = rpg_day_of_year(y, m, d);
-        snprintf(buf, sizeof(buf), "%04d/%03d", y, doy);
+        buf = rpg_sprintf("%04d/%03d", y, doy);
     } else if (fmt == "*CYMD") {
-        snprintf(buf, sizeof(buf), "%d%02d/%02d/%02d", (y - 1900) / 100, y % 100, m, d);
+        buf = rpg_sprintf("%d%02d/%02d/%02d", (y - 1900) / 100, y % 100, m, d);
     } else if (fmt == "*CMDY") {
-        snprintf(buf, sizeof(buf), "%d%02d/%02d/%02d", (y - 1900) / 100, m, d, y % 100);
+        buf = rpg_sprintf("%d%02d/%02d/%02d", (y - 1900) / 100, m, d, y % 100);
     } else if (fmt == "*CDMY") {
-        snprintf(buf, sizeof(buf), "%d%02d/%02d/%02d", (y - 1900) / 100, d, m, y % 100);
+        buf = rpg_sprintf("%d%02d/%02d/%02d", (y - 1900) / 100, d, m, y % 100);
     } else {
         return iso;
     }
@@ -1371,8 +1397,8 @@ inline std::string rpg_parse_time_fmt(const std::string& s, const std::string& f
     } else {
         return s;
     }
-    char buf[16];
-    snprintf(buf, sizeof(buf), "%02d:%02d:%02d", h, m, sec);
+    std::string buf;
+    buf = rpg_sprintf("%02d:%02d:%02d", h, m, sec);
     return buf;
 }
 
@@ -1382,16 +1408,16 @@ inline std::string rpg_format_time_fmt(const std::string& iso, const std::string
     int h = std::stoi(iso.substr(0, 2));
     int m = std::stoi(iso.substr(3, 2));
     int s = std::stoi(iso.substr(6, 2));
-    char buf[32];
+    std::string buf;
     if (fmt == "*USA") {
         const char* ampm = (h >= 12) ? "PM" : "AM";
         int h12 = h % 12;
         if (h12 == 0) h12 = 12;
-        snprintf(buf, sizeof(buf), "%02d:%02d %s", h12, m, ampm);
+        buf = rpg_sprintf("%02d:%02d %s", h12, m, ampm);
     } else if (fmt == "*HMS") {
-        snprintf(buf, sizeof(buf), "%02d:%02d:%02d", h, m, s);
+        buf = rpg_sprintf("%02d:%02d:%02d", h, m, s);
     } else if (fmt == "*EUR") {
-        snprintf(buf, sizeof(buf), "%02d.%02d.%02d", h, m, s);
+        buf = rpg_sprintf("%02d.%02d.%02d", h, m, s);
     } else {
         return iso;
     }
@@ -1419,8 +1445,8 @@ inline RpgTime rpg_make_time(const std::string& s) { return RpgTime(s); }
 inline RpgTime rpg_current_time() {
     time_t now = time(nullptr);
     std::tm* t = localtime(&now);
-    char buf[16];
-    std::snprintf(buf, sizeof(buf), "%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
+    std::string buf;
+    buf = rpg_sprintf("%02d:%02d:%02d", t->tm_hour, t->tm_min, t->tm_sec);
     return RpgTime(buf);
 }
 
@@ -1429,8 +1455,8 @@ inline RpgTimestamp rpg_make_timestamp(const std::string& s) { return RpgTimesta
 inline RpgTimestamp rpg_current_timestamp() {
     time_t now = time(nullptr);
     std::tm* t = localtime(&now);
-    char buf[64];
-    std::snprintf(buf, sizeof(buf), "%04d-%02d-%02d-%02d.%02d.%02d.000000",
+    std::string buf;
+    buf = rpg_sprintf("%04d-%02d-%02d-%02d.%02d.%02d.000000",
                   t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
                   t->tm_hour, t->tm_min, t->tm_sec);
     return RpgTimestamp(buf);
@@ -1799,12 +1825,12 @@ inline RpgTime operator+(const RpgTime& t, const RpgDuration& dur) {
     }
     if (total_secs < 0) total_secs += 86400;
     total_secs %= 86400;
-    char buf[16];
-    std::snprintf(buf, sizeof(buf), "%02d:%02d:%02d", total_secs / 3600, (total_secs % 3600) / 60, total_secs % 60);
+    std::string buf;
+    buf = rpg_sprintf("%02d:%02d:%02d", total_secs / 3600, (total_secs % 3600) / 60, total_secs % 60);
     return RpgTime(buf);
 }
 
-inline RpgTimestamp operator+(const RpgTimestamp& ts, const RpgDuration& dur) {
+inline RpgTimestamp operator+(const RpgTimestamp& ts, const RpgDuration& /*dur*/) {
     // Simplified: delegate date part to RpgDate arithmetic
     return RpgTimestamp(ts.value); // stub for complex timestamp math
 }
@@ -2207,7 +2233,7 @@ inline std::string rpg_dt_digits(const std::string& iso, int kind, const std::st
 // status 112) when the digits are not a valid date or time.
 inline std::string rpg_dt_from_digits(const std::string& g, int kind, const std::string& f) {
     for (char c : g) if (c < '0' || c > '9') { rpg_status_code() = 112; rpg_error_flag() = true; return std::string(); }
-    char buf[40];
+    std::string buf;
     if (kind == 2) {
         int y = rpg_dt_num(g,0,4), mo = rpg_dt_num(g,4,2), d = rpg_dt_num(g,6,2);
         int h = rpg_dt_num(g,8,2), mi = rpg_dt_num(g,10,2), s = rpg_dt_num(g,12,2);
@@ -2215,7 +2241,7 @@ inline std::string rpg_dt_from_digits(const std::string& g, int kind, const std:
             (h == 24 && (mi != 0 || s != 0))) {
             rpg_status_code() = 112; rpg_error_flag() = true; return std::string();
         }
-        snprintf(buf, sizeof(buf), "%04d-%02d-%02d-%02d.%02d.%02d.%s",
+        buf = rpg_sprintf("%04d-%02d-%02d-%02d.%02d.%02d.%s",
                  y, mo, d, h, mi, s, g.substr(14, 6).c_str());
         return buf;
     }
@@ -2226,7 +2252,7 @@ inline std::string rpg_dt_from_digits(const std::string& g, int kind, const std:
         if (h > 24 || mi > 59 || s > 59 || (h == 24 && (mi != 0 || s != 0))) {
             rpg_status_code() = 112; rpg_error_flag() = true; return std::string();
         }
-        snprintf(buf, sizeof(buf), "%02d:%02d:%02d", h, mi, s);
+        buf = rpg_sprintf("%02d:%02d:%02d", h, mi, s);
         return buf;
     }
     int y = 0, m = 0, d = 0, doy = 0;
@@ -2251,7 +2277,7 @@ inline std::string rpg_dt_from_digits(const std::string& g, int kind, const std:
     if (!rpg_dt_valid_ymd(y, m, d)) {
         rpg_status_code() = 112; rpg_error_flag() = true; return std::string();
     }
-    snprintf(buf, sizeof(buf), "%04d-%02d-%02d", y, m, d);
+    buf = rpg_sprintf("%04d-%02d-%02d", y, m, d);
     return buf;
 }
 
@@ -2262,8 +2288,8 @@ inline std::string rpg_dt_text(const std::string& iso, int kind,
         int h = rpg_dt_num(iso, 0, 2), mi = rpg_dt_num(iso, 3, 2);
         const char* ap = (h >= 12) ? "PM" : "AM";
         int h12 = h % 12; if (h12 == 0) h12 = 12;
-        char buf[16];
-        snprintf(buf, sizeof(buf), "%02d%c%02d %s", h12, sep ? sep : ':', mi, ap);
+        std::string buf;
+        buf = rpg_sprintf("%02d%c%02d %s", h12, sep ? sep : ':', mi, ap);
         return buf;
     }
     std::string g = rpg_dt_digits(iso, kind, f);
@@ -2296,8 +2322,8 @@ inline std::string rpg_dt_parse(const std::string& t, int kind,
         char ap = t.size() > 6 ? static_cast<char>(toupper((unsigned char)t[6])) : 'A';
         if (ap == 'P' && h != 12) h += 12;
         if (ap == 'A' && h == 12) h = 0;
-        char buf[16];
-        snprintf(buf, sizeof(buf), "%02d:%02d:00", h, mi);
+        std::string buf;
+        buf = rpg_sprintf("%02d:%02d:00", h, mi);
         return buf;
     }
     std::string g;
