@@ -5,7 +5,18 @@
 // Only included when the RPG source contains EXEC SQL statements
 
 #ifdef _WIN32
+// ODBC needs only <windows.h>'s basic types (HWND, DWORD). The window
+// manager and graphics declarations (NOUSER, NOGDI) are left out: their
+// names -- MSG, the message structure, above all -- are ordinary RPG
+// field names, and a program's MSG field met "reference to 'MSG' is
+// ambiguous" from the C++ compiler.
 #  define WIN32_LEAN_AND_MEAN
+#  ifndef NOUSER
+#    define NOUSER
+#  endif
+#  ifndef NOGDI
+#    define NOGDI
+#  endif
 #  include <windows.h>
 #endif
 #include <sql.h>
