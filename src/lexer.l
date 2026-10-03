@@ -236,8 +236,10 @@ static void parse_ctlopt(const char* text) {
     else return KW_FREE;
 }
 
- /* EXEC SQL: switch to SQL mode and capture text until semicolon */
-[Ee][Xx][Ee][Cc][ \t]+[Ss][Qq][Ll][ \t]+ {
+ /* EXEC SQL: switch to SQL mode and capture text until semicolon. The
+    statement often starts on the next line, so a line break may follow
+    EXEC SQL as blanks do. */
+[Ee][Xx][Ee][Cc][ \t\r\n]+[Ss][Qq][Ll][ \t\r\n]+ {
     sql_buffer.clear();
     BEGIN(SQL);
 }
