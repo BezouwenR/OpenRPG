@@ -548,6 +548,9 @@ static Expression* parseInzValue(const std::string& text, int lineNo,
         if (fig == "*ON")    return new IntLiteral(1);
         if (fig == "*OFF")   return new IntLiteral(0);
         if (fig == "*NULL")  return new Identifier("nullptr");
+        // INZ(*SYS): a date, time or timestamp starts as the current one,
+        // as with free-form INZ(*SYS).
+        if (fig == "*SYS")   return new Identifier("RPG_SYS");
         report_fixed_format_error(lineNo, "D-spec: INZ(" + v + ") on field '" +
                                    fieldName + "' — figurative constant not supported");
         return nullptr;
