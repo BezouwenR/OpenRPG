@@ -1,6 +1,7 @@
 #include "sql_utils.h"
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 #include <regex>
 
 namespace rpg {
@@ -293,6 +294,26 @@ std::vector<DiagItem> parseGetDiagnostics(const std::string& sql) {
     if (upper.compare(i, 15, "GET DIAGNOSTICS") == 0) i += 15;
     else if (upper.compare(i, 14, "GET DIAGNOSTIC") == 0) i += 14;
 
+    // Optional CURRENT/STACKED, then CONDITION n (or EXCEPTION n) before
+    // the condition items -- MESSAGE_TEXT and the like. There is only
+    // ever one condition here, the last statement's.
+    auto skipWord = [&](const char* w) {
+        size_t j = i;
+        while (j < upper.size() && std::isspace(static_cast<unsigned char>(upper[j]))) j++;
+        size_t n = std::strlen(w);
+        if (upper.compare(j, n, w) == 0 && (j + n >= upper.size() || !isIdentChar(upper[j + n]))) {
+            i = j + n;
+            return true;
+        }
+        return false;
+    };
+    if (!skipWord("CURRENT")) skipWord("STACKED");
+    if (skipWord("CONDITION") || skipWord("EXCEPTION")) {
+        while (i < upper.size() && std::isspace(static_cast<unsigned char>(upper[i]))) i++;
+        if (i < upper.size() && upper[i] == ':') i = hostNameEnd(upper, i + 1);
+        else while (i < upper.size() && std::isdigit(static_cast<unsigned char>(upper[i]))) i++;
+    }
+
     std::vector<DiagItem> items;
     // Parse assignments: :var = ITEM_NAME [, :var2 = ITEM_NAME2]
     while (i < upper.size()) {
@@ -300,7 +321,7 @@ std::vector<DiagItem> parseGetDiagnostics(const std::string& sql) {
         if (i >= upper.size() || upper[i] != ':') break;
         i++; // skip ':'
         size_t start = i;
-        while (i < upper.size() && isIdentChar(upper[i])) i++;
+        i = hostNameEnd(upper, i);
         std::string var = upper.substr(start, i - start);
         // Skip whitespace and '='
         while (i < upper.size() && std::isspace(static_cast<unsigned char>(upper[i]))) i++;

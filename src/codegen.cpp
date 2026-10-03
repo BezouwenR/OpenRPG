@@ -646,14 +646,34 @@ void CodeGen::visit(ExecSqlStmt& node) {
         case SqlStmtKind::GET_DIAGNOSTICS: {
             auto items = parseGetDiagnostics(node.sql_text);
             for (auto& item : items) {
-                emitIndent();
-                if (item.item == "ROW_COUNT") {
-                    out_ << item.var << " = static_cast<int>(__sql_env.row_count);\n";
-                } else if (item.item == "DB2_RETURN_STATUS" || item.item == "RETURN_STATUS") {
-                    out_ << item.var << " = __sql_env.sqlcode;\n";
-                } else {
-                    out_ << item.var << " = __sql_env.sqlcode; // GET DIAGNOSTICS " << item.item << "\n";
+                std::string value;
+                if (item.item == "ROW_COUNT")
+                    value = "static_cast<int>(__sql_env.row_count)";
+                else if (item.item == "NUMBER")
+                    value = "(__sql_env.sqlcode != 0 ? 1 : 0)";
+                else if (item.item == "MORE")
+                    value = "std::string(\"N\")";
+                else if (item.item == "MESSAGE_TEXT")
+                    value = "__sql_env.message";
+                else if (item.item == "MESSAGE_LENGTH" || item.item == "MESSAGE_OCTET_LENGTH")
+                    value = "static_cast<int>(__sql_env.message.size())";
+                else if (item.item == "RETURNED_SQLSTATE")
+                    value = "__sql_env.sqlstate";
+                else if (item.item == "DB2_RETURNED_SQLCODE" || item.item == "DB2_RETURN_STATUS" ||
+                         item.item == "RETURN_STATUS")
+                    value = "__sql_env.sqlcode";
+                else if (item.item == "DB2_MESSAGE_ID")
+                    value = "__sql_env.messageId()";
+                else {
+                    report_semantic_error(node.line, "GET DIAGNOSTICS " + item.item + " is not "
+                        "supported; the items are ROW_COUNT, NUMBER, MORE, MESSAGE_TEXT, "
+                        "MESSAGE_LENGTH, MESSAGE_OCTET_LENGTH, RETURNED_SQLSTATE, "
+                        "DB2_RETURNED_SQLCODE, DB2_MESSAGE_ID and DB2_RETURN_STATUS");
+                    continue;
                 }
+                std::string var = sqlHostRef(item.var);
+                emitIndent();
+                out_ << var << " = " << fitValue(attrsOfName(var), value, FitMode::Scale) << ";\n";
             }
             break;
         }
@@ -4250,6 +4270,15 @@ void CodeGen::visit(Identifier& node) {
         }
         if (node.name == "SQLSTT" || node.name == "SQLSTATE") {
             expr_ << "__sql_env.sqlstate";
+            return;
+        }
+        // The SQLCA's message fields: SQLERRMC, CHAR(70), and its length.
+        if (node.name == "SQLERRMC" || node.name == "SQLERM") {
+            expr_ << "__sql_env.sqlerrmc()";
+            return;
+        }
+        if (node.name == "SQLERRML" || node.name == "SQLERML" || node.name == "SQLERL") {
+            expr_ << "__sql_env.sqlerml()";
             return;
         }
     }

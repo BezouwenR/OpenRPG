@@ -1067,6 +1067,26 @@ EXEC SQL GET DIAGNOSTICS :rowCount = ROW_COUNT;
 DSPLY ('Updated ' + %CHAR(rowCount) + ' employees');
 ```
 
+After a statement fails, `CONDITION 1` gives the driver's message and codes:
+
+```rpgle
+DCL-S msg VARCHAR(200);
+DCL-S state CHAR(5);
+
+EXEC SQL GET DIAGNOSTICS CONDITION 1
+  :msg = MESSAGE_TEXT, :state = RETURNED_SQLSTATE;
+```
+
+The condition items are `MESSAGE_TEXT`, `MESSAGE_LENGTH`, `RETURNED_SQLSTATE`,
+`DB2_RETURNED_SQLCODE` and `DB2_MESSAGE_ID`; the statement items `ROW_COUNT`,
+`NUMBER` and `MORE`. The SQLCA's `SQLERRMC` (`SQLERM`) holds the first 70
+characters of the message, and `SQLERRML` (`SQLERL`) its length.
+
+`SQLCODE` is the one Db2 for i gives for the SQLSTATE the database returns --
+-204 for a table that doesn't exist, -803 for a duplicate key, -911 for a
+deadlock -- so error handling written for IBM i works unchanged. An SQLSTATE
+with no Db2 equivalent gives the driver's own error number, negated, or -1.
+
 ### SQLCODE and SQLSTATE
 
 After each SQL statement, you can check:

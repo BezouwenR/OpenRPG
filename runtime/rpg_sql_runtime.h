@@ -38,6 +38,59 @@ public:
     int sqlcode = 0;
     std::string sqlstate = "00000";
     SQLLEN row_count = 0; // last statement's row count (for GET DIAGNOSTICS)
+    // The driver's message for the last statement that failed or warned:
+    // GET DIAGNOSTICS ... MESSAGE_TEXT, and SQLERRMC in the SQLCA.
+    std::string message;
+
+    // SQLERRMC is CHAR(70) and SQLERML its length, as in the SQLCA.
+    std::string sqlerrmc() const {
+        std::string m = message.substr(0, 70);
+        m.resize(70, ' ');
+        return m;
+    }
+    int sqlerml() const { return static_cast<int>(std::min<size_t>(message.size(), 70)); }
+    // DB2_MESSAGE_ID: SQL0204 for SQLCODE -204, as on IBM i.
+    std::string messageId() const {
+        if (sqlcode == 0) return "";
+        std::string n = std::to_string(sqlcode < 0 ? -sqlcode : sqlcode);
+        if (n.size() < 4) n = std::string(4 - n.size(), '0') + n;
+        return (n.size() > 4 ? "SQ" : "SQL") + n;
+    }
+
+    // The SQLCODE Db2 for i gives for an SQLSTATE, so error handling
+    // written for IBM i (IF SQLCODE = -803) works whatever the database.
+    // An SQLSTATE not listed keeps the driver's native code, or -1.
+    static int db2Sqlcode(const std::string& state, int native) {
+        static const std::map<std::string, int> codes = {
+            {"42P01", -204}, {"42S02", -204}, {"42704", -204},   // object not found
+            {"42703", -206}, {"42S22", -206},                    // column not found
+            {"23505", -803}, {"23000", -803},                    // duplicate key
+            {"23502", -407},                                     // NULL into NOT NULL
+            {"23503", -530},                                     // foreign key
+            {"23514", -545},                                     // check constraint
+            {"42601", -104}, {"42000", -104},                    // syntax error
+            {"42883", -440},                                     // no such function
+            {"42804", -401}, {"42846", -461},                    // incompatible types
+            {"22001", -302},                                     // value too long
+            {"22003", -406},                                     // numeric out of range
+            {"22007", -181}, {"22008", -181},                    // bad date/time value
+            {"22012", -802},                                     // division by zero
+            {"22018", -420},                                     // bad character for a number
+            {"22002", -305},                                     // NULL, no indicator
+            {"21000", -811},                                     // more than one row
+            {"24000", -501},                                     // cursor not open
+            {"26000", -514},                                     // statement not prepared
+            {"40001", -911}, {"40P01", -911},                    // deadlock / rollback
+            {"42501", -551},                                     // not authorized
+            {"42710", -601}, {"42P07", -601}, {"42S01", -601},   // object already exists
+            {"08001", -30080}, {"08003", -900}, {"08006", -30081}, // connection
+        };
+        auto it = codes.find(state);
+        if (it != codes.end()) return it->second;
+        if (native > 0) return -native;
+        return -1;
+    }
+
     bool isConnected_ = false;
     // Commitment control, as CRTSQLRPGI's default COMMIT(*CHG) has it: a
     // change waits for COMMIT, and ROLLBACK undoes it. SET OPTION
@@ -316,6 +369,7 @@ public:
         if ((frc == SQL_SUCCESS || frc == SQL_SUCCESS_WITH_INFO) && ind == SQL_NULL_DATA) {
             sqlcode = -305;
             sqlstate = "22002";
+            message = "Indicator variable required.";
         }
     }
 
@@ -348,6 +402,7 @@ public:
 
 private:
     void updateDiag(SQLSMALLINT handleType, SQLHANDLE handle, SQLRETURN rc) {
+        message.clear();
         if (rc == SQL_SUCCESS) {
             sqlcode = 0;
             sqlstate = "00000";
@@ -360,15 +415,21 @@ private:
         }
         SQLCHAR state[6] = {};
         SQLINTEGER nativeError = 0;
-        SQLCHAR msg[512] = {};
+        std::vector<SQLCHAR> msg(1024);
         SQLSMALLINT msgLen = 0;
-        if (SQLGetDiagRec(handleType, handle, 1, state, &nativeError,
-                          msg, sizeof(msg), &msgLen) == SQL_SUCCESS) {
+        SQLRETURN drc = SQLGetDiagRec(handleType, handle, 1, state, &nativeError,
+                                      msg.data(), static_cast<SQLSMALLINT>(msg.size()), &msgLen);
+        if (drc == SQL_SUCCESS_WITH_INFO && msgLen >= static_cast<SQLSMALLINT>(msg.size())) {
+            msg.resize(static_cast<size_t>(msgLen) + 1);   // the message didn't fit
+            drc = SQLGetDiagRec(handleType, handle, 1, state, &nativeError,
+                                msg.data(), static_cast<SQLSMALLINT>(msg.size()), &msgLen);
+        }
+        if (drc == SQL_SUCCESS || drc == SQL_SUCCESS_WITH_INFO) {
             sqlstate = std::string((char*)state, 5);
-            sqlcode = (rc == SQL_SUCCESS_WITH_INFO) ? 0 : -static_cast<int>(nativeError);
-            if (sqlcode == 0 && rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
-                sqlcode = -1;
-            }
+            message = std::string((char*)msg.data());
+            while (!message.empty() && (message.back() == '\n' || message.back() == '\r'))
+                message.pop_back();
+            sqlcode = (rc == SQL_SUCCESS_WITH_INFO) ? 0 : db2Sqlcode(sqlstate, static_cast<int>(nativeError));
         } else {
             sqlcode = (rc == SQL_SUCCESS_WITH_INFO) ? 0 : -1;
             sqlstate = "HY000";

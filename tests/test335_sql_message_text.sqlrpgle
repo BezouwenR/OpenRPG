@@ -1,0 +1,47 @@
+**FREE
+// The error's message: GET DIAGNOSTICS CONDITION 1 ... = MESSAGE_TEXT,
+// and the SQLCA's SQLERRMC and SQLERML.
+DCL-S connStr VARCHAR(200);
+DCL-S msg VARCHAR(200);
+DCL-S msgLen INT(10);
+DCL-S state CHAR(5);
+DCL-S code INT(10);
+DCL-S rows INT(10);
+DCL-DS diag QUALIFIED;
+  text CHAR(40);
+END-DS;
+
+connStr = 'Driver={SQLite3};Database=/tmp/rpgc_test335.sqlite;';
+/IF DEFINED(*OPENRPG)
+EXEC SQL CONNECT USING :connStr;
+/ENDIF
+EXEC SQL UPDATE no_such_table SET a = 1;
+EXEC SQL GET DIAGNOSTICS CONDITION 1
+  :msg = MESSAGE_TEXT, :msgLen = MESSAGE_LENGTH,
+  :state = RETURNED_SQLSTATE, :code = DB2_RETURNED_SQLCODE;
+IF %SCAN('no_such_table' : msg) > 0 AND msgLen = %LEN(msg) AND code = SQLCOD;
+  DSPLY 'message names the table';
+ENDIF;
+IF state = SQLSTT AND SQLCOD < 0;
+  DSPLY 'state and code match';
+ENDIF;
+EXEC SQL GET DIAGNOSTICS CONDITION 1 :diag.text = MESSAGE_TEXT;
+IF %SCAN('no_such_table' : diag.text) > 0;
+  DSPLY 'into a subfield';
+ENDIF;
+IF %SCAN('no_such_table' : SQLERRMC) > 0 AND SQLERML = %LEN(%TRIMR(SQLERRMC));
+  DSPLY 'SQLERRMC';
+ENDIF;
+
+EXEC SQL DROP TABLE IF EXISTS ok335;
+EXEC SQL CREATE TABLE ok335 (a INTEGER);
+EXEC SQL INSERT INTO ok335 VALUES(1);
+EXEC SQL GET DIAGNOSTICS :rows = ROW_COUNT;
+EXEC SQL GET DIAGNOSTICS CONDITION 1 :msg = MESSAGE_TEXT;
+DSPLY ('ok: rows ' + %CHAR(rows) + ' msg len ' + %CHAR(%LEN(msg)));
+EXEC SQL DROP TABLE ok335;
+/IF DEFINED(*OPENRPG)
+EXEC SQL DISCONNECT;
+/ENDIF
+*INLR = *ON;
+RETURN;
