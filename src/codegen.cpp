@@ -3212,9 +3212,29 @@ void CodeGen::visit(DotExpr& node) {
     if (auto* obj = dynamic_cast<Identifier*>(node.object.get()); obj && !in_bare_subfield_)
         checkQualifiedRef(obj->name, node.field);
     // An OVERLAY subfield is a view built on demand, not a data member, so
-    // it is reached by calling its accessor.
+    // it is reached by calling its accessor. Whether it is one depends on
+    // the layout the object has, which a LIKEDS data structure, parameter
+    // or subfield takes from its parent.
+    std::function<const DclDS*(const Expression&)> layoutOf = [&](const Expression& e) -> const DclDS* {
+        if (auto* id = dynamic_cast<const Identifier*>(&e)) {
+            auto lp = likeds_params_.find(id->name);
+            if (lp != likeds_params_.end()) return resolveDsDef(lp->second);
+        }
+        if (auto* dot = dynamic_cast<const DotExpr*>(&e)) {
+            const DclDS* parent = layoutOf(*dot->object);
+            if (!parent) return nullptr;
+            for (auto& f : parent->fields)
+                if (f.name == dot->field && !f.likeds.empty()) return resolveDsDef(f.likeds);
+            return nullptr;
+        }
+        return dsOfExpr(e);
+    };
     auto isOverlay = [&](const std::string& dsName) {
         auto it = overlay_subfields_.find(dsName);
+        if (it != overlay_subfields_.end() && it->second.count(node.field) > 0) return true;
+        const DclDS* layout = layoutOf(*node.object);
+        if (!layout) return false;
+        it = overlay_subfields_.find(layout->name);
         return it != overlay_subfields_.end() && it->second.count(node.field) > 0;
     };
 
@@ -3227,7 +3247,7 @@ void CodeGen::visit(DotExpr& node) {
         node.object->accept(*this);
         expr_ << "." << node.field;
         auto* obj = dynamic_cast<Identifier*>(node.object.get());
-        if (obj && isOverlay(obj->name)) expr_ << "()";
+        if (isOverlay(obj ? obj->name : std::string())) expr_ << "()";
     }
 }
 

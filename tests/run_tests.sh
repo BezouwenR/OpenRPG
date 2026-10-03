@@ -881,6 +881,7 @@ run_test "319" "Subroutines in a subprocedure" "$TESTDIR/test319_begsr_in_proc.r
 run_test "320" "A data structure as a character value" "$TESTDIR/test320_ds_as_char.rpgle" "run"
 run_test "321" "DCL-DS *N, an unnamed data structure" "$TESTDIR/test321_ds_unnamed.rpgle" "run"
 run_test "322" "Fixed-form DS with no name" "$TESTDIR/test322_fixed_ds_unnamed.rpgle" "run"
+run_test "323" "OVERLAY subfields through LIKEDS" "$TESTDIR/test323_likeds_overlay.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be
