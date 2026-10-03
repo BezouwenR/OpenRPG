@@ -227,9 +227,12 @@ public:
     }
 
     // Type-dispatched parameter binding (template enables if constexpr)
+    // The value is copied into a buffer, so anything holding one will do:
+    // a variable, or the value of an OVERLAY subfield's view.
     template<typename T>
-    void bindParam(SQLHSTMT hstmt, int idx, T& val) {
-        if constexpr (std::is_same_v<std::decay_t<T>, std::string>) {
+    void bindParam(SQLHSTMT hstmt, int idx, const T& val) {
+        if constexpr (std::is_same_v<std::decay_t<T>, std::string> ||
+                      std::is_same_v<std::decay_t<T>, RpgCharOverlay>) {
             // Bound without trailing blanks. A CHAR(n) field always holds n
             // bytes, so a key of 'C002' arrives as 'C002      '. DB2 on
             // IBM i compares character values blank-padded, so that still
@@ -237,7 +240,7 @@ public:
             // exactly, and it would not. Trimming gives DB2's result on a
             // database that doesn't pad. The cost: a VARCHAR host variable
             // that deliberately ends in blanks loses them.
-            param_bufs_.push_back(val);
+            param_bufs_.push_back(std::string(val));
             auto& buf = param_bufs_.back();
             while (!buf.empty() && buf.back() == ' ') buf.pop_back();
             SQLBindParameter(hstmt, idx, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
@@ -277,7 +280,7 @@ public:
 
     // Bind a parameter with an SQL indicator variable (ind < 0 → SQL NULL)
     template<typename T>
-    void bindParamWithInd(SQLHSTMT hstmt, int idx, T& val, int ind_val) {
+    void bindParamWithInd(SQLHSTMT hstmt, int idx, const T& val, int ind_val) {
         if (ind_val < 0) {
             null_ind_bufs_.push_back(SQL_NULL_DATA);
             SQLBindParameter(hstmt, idx, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,

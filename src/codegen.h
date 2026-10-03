@@ -292,6 +292,8 @@ private:
     void emitSqlBindCol(const std::string& var, int index, const std::string& handle = "__hstmt");
     // Expand DS host variables into qualified field names (e.g., :row → ROW.ID, ROW.NAME, ...)
     std::vector<std::string> expandSqlIntoVars(const std::vector<std::string>& vars);
+    std::string sqlHostRef(const std::string& name) const;
+    std::string sqlHostValue(const std::string& name);
     std::vector<HostVarWithInd> expandSqlIntoVarsWithInd(const std::vector<HostVarWithInd>& vars);
     std::vector<std::pair<std::string, std::string>> multiRowTargets(const std::vector<std::string>& vars);
     std::string expandDsArrayHostVars(const std::string& sql);

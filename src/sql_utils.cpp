@@ -15,6 +15,18 @@ static bool isIdentChar(char c) {
     return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
 }
 
+// The end of a host variable's name starting at i: a name, or a qualified
+// subfield (:rec.txt, :order.line.qty), which is a host variable too.
+static size_t hostNameEnd(const std::string& sql, size_t i) {
+    while (i < sql.size() && isIdentChar(sql[i])) i++;
+    while (i + 1 < sql.size() && sql[i] == '.' &&
+           (std::isalpha(static_cast<unsigned char>(sql[i + 1])) || sql[i + 1] == '_')) {
+        i++;
+        while (i < sql.size() && isIdentChar(sql[i])) i++;
+    }
+    return i;
+}
+
 std::vector<std::string> extractHostVariables(const std::string& sql) {
     std::vector<std::string> vars;
     bool in_string = false;
@@ -25,7 +37,7 @@ std::vector<std::string> extractHostVariables(const std::string& sql) {
         if (sql[i] == ':' && i + 1 < sql.size() && (std::isalpha(static_cast<unsigned char>(sql[i+1])) || sql[i+1] == '_')) {
             size_t start = i + 1;
             size_t end = start;
-            while (end < sql.size() && isIdentChar(sql[end])) end++;
+            end = hostNameEnd(sql, end);
             vars.push_back(toUpper(sql.substr(start, end - start)));
             i = end;
             // Skip indicator variable (:var :ind — the :ind is not a separate parameter)
@@ -34,7 +46,7 @@ std::vector<std::string> extractHostVariables(const std::string& sql) {
             if (j < sql.size() && sql[j] == ':' && j + 1 < sql.size() &&
                 (std::isalpha(static_cast<unsigned char>(sql[j+1])) || sql[j+1] == '_')) {
                 j++;
-                while (j < sql.size() && isIdentChar(sql[j])) j++;
+                j = hostNameEnd(sql, j);
                 i = j;
             }
         } else {
@@ -54,7 +66,7 @@ std::string replaceHostVarsWithMarkers(const std::string& sql) {
         if (sql[i] == ':' && i + 1 < sql.size() && (std::isalpha(static_cast<unsigned char>(sql[i+1])) || sql[i+1] == '_')) {
             result += '?';
             size_t end = i + 1;
-            while (end < sql.size() && isIdentChar(sql[end])) end++;
+            end = hostNameEnd(sql, end);
             i = end;
             // Skip indicator variable (:var :ind → single ?)
             size_t j = i;
@@ -62,7 +74,7 @@ std::string replaceHostVarsWithMarkers(const std::string& sql) {
             if (j < sql.size() && sql[j] == ':' && j + 1 < sql.size() &&
                 (std::isalpha(static_cast<unsigned char>(sql[j+1])) || sql[j+1] == '_')) {
                 j++;
-                while (j < sql.size() && isIdentChar(sql[j])) j++;
+                j = hostNameEnd(sql, j);
                 i = j;
             }
         } else {
@@ -100,7 +112,7 @@ std::string stripSelectInto(const std::string& sql, std::vector<std::string>& in
         if (i >= sql.size() || sql[i] != ':') break;
         i++; // skip ':'
         size_t var_start = i;
-        while (i < sql.size() && isIdentChar(sql[i])) i++;
+        i = hostNameEnd(sql, i);
         into_vars.push_back(toUpper(sql.substr(var_start, i - var_start)));
         clause_end = i;
         // Skip whitespace
@@ -183,7 +195,7 @@ std::vector<std::string> extractFetchIntoVars(const std::string& sql) {
         if (i >= sql.size() || sql[i] != ':') break;
         i++; // skip ':'
         size_t var_start = i;
-        while (i < sql.size() && isIdentChar(sql[i])) i++;
+        i = hostNameEnd(sql, i);
         vars.push_back(toUpper(sql.substr(var_start, i - var_start)));
         while (i < sql.size() && std::isspace(static_cast<unsigned char>(sql[i]))) i++;
         if (i < sql.size() && sql[i] == ',') {
@@ -330,7 +342,7 @@ void parseCall(const std::string& sql, std::string& proc_name, std::vector<std::
             if (i < sql.size() && sql[i] == ':') {
                 i++; // skip ':'
                 start = i;
-                while (i < sql.size() && isIdentChar(sql[i])) i++;
+                i = hostNameEnd(sql, i);
                 params.push_back(toUpper(sql.substr(start, i - start)));
             }
             while (i < sql.size() && std::isspace(static_cast<unsigned char>(sql[i]))) i++;
@@ -586,7 +598,7 @@ static bool tryReadIndicator(const std::string& sql, size_t i, std::string& ind_
         (std::isalpha(static_cast<unsigned char>(sql[j+1])) || sql[j+1] == '_')) {
         j++;
         size_t start = j;
-        while (j < sql.size() && isIdentChar(sql[j])) j++;
+        j = hostNameEnd(sql, j);
         ind_var = toUpper(sql.substr(start, j - start));
         next_i = j;
         return true;
@@ -605,7 +617,7 @@ std::vector<HostVarWithInd> extractHostVarsWithInd(const std::string& sql) {
             (std::isalpha(static_cast<unsigned char>(sql[i+1])) || sql[i+1] == '_')) {
             size_t start = i + 1;
             size_t end = start;
-            while (end < sql.size() && isIdentChar(sql[end])) end++;
+            end = hostNameEnd(sql, end);
             std::string var = toUpper(sql.substr(start, end - start));
             i = end;
             std::string ind_var;
@@ -639,7 +651,7 @@ std::vector<HostVarWithInd> extractSelectIntoWithInd(const std::string& sql, std
         if (i >= sql.size() || sql[i] != ':') break;
         i++;
         size_t var_start = i;
-        while (i < sql.size() && isIdentChar(sql[i])) i++;
+        i = hostNameEnd(sql, i);
         std::string var = toUpper(sql.substr(var_start, i - var_start));
         clause_end = i;
         std::string ind_var;
@@ -670,7 +682,7 @@ std::vector<HostVarWithInd> extractFetchIntoWithInd(const std::string& sql) {
         if (i >= sql.size() || sql[i] != ':') break;
         i++;
         size_t var_start = i;
-        while (i < sql.size() && isIdentChar(sql[i])) i++;
+        i = hostNameEnd(sql, i);
         std::string var = toUpper(sql.substr(var_start, i - var_start));
         std::string ind_var;
         size_t next_i;

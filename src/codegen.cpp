@@ -191,14 +191,42 @@ std::string CodeGen::sqlCommentText(const std::string& sql) {
     return result;
 }
 
+// A host variable as the C++ names it: a subfield of a data structure
+// that isn't QUALIFIED is written :txt, and lives in its DS's struct.
+std::string CodeGen::sqlHostRef(const std::string& name) const {
+    if (name.find('.') == std::string::npos) {
+        auto it = unqualified_subfields_.find(name);
+        if (it != unqualified_subfields_.end()) return it->second + "." + name;
+    }
+    return name;
+}
+
+// An input host variable's value, generated as any reference to it is --
+// so a subfield of a data structure that isn't QUALIFIED, or an OVERLAY
+// subfield (a view, called to build), comes out right.
+std::string CodeGen::sqlHostValue(const std::string& name) {
+    size_t dot = name.find('.');
+    std::unique_ptr<Expression> e = std::make_unique<Identifier>(name.substr(0, dot));
+    while (dot != std::string::npos) {
+        size_t next = name.find('.', dot + 1);
+        e = std::make_unique<DotExpr>(std::move(e), name.substr(dot + 1, next == std::string::npos
+                                                                ? std::string::npos : next - dot - 1));
+        dot = next;
+    }
+    return emitExpr(*e);
+}
+
 void CodeGen::emitSqlBindParam(const std::string& var, int index, const std::string& handle) {
+    std::string value = sqlHostValue(var);
     emitIndent();
-    out_ << "__sql_env.bindParam(" << handle << ", " << index << ", " << var << ");\n";
+    out_ << "__sql_env.bindParam(" << handle << ", " << index << ", " << value << ");\n";
 }
 
 void CodeGen::emitSqlBindParamWithInd(const std::string& var, const std::string& ind_var, int index, const std::string& handle) {
+    std::string value = sqlHostValue(var), ind = sqlHostValue(ind_var);
     emitIndent();
-    out_ << "__sql_env.bindParamWithInd(" << handle << ", " << index << ", " << var << ", (int)" << ind_var << ");\n";
+    out_ << "__sql_env.bindParamWithInd(" << handle << ", " << index << ", " << value
+         << ", (int)" << ind << ");\n";
 }
 
 void CodeGen::emitSqlBindCol(const std::string& var, int index, const std::string& handle) {
@@ -215,12 +243,13 @@ std::vector<std::string> CodeGen::expandSqlIntoVars(const std::vector<std::strin
     for (auto& v : vars) {
         auto dit = ds_defs_.find(v);
         if (dit != ds_defs_.end()) {
-            // It's a DS — expand into qualified field references
+            // It's a DS — expand into qualified field references. An
+            // OVERLAY subfield is a view of bytes another one holds.
             for (auto& f : dit->second->fields) {
-                expanded.push_back(v + "." + f.name);
+                if (f.overlay_field.empty()) expanded.push_back(v + "." + f.name);
             }
         } else {
-            expanded.push_back(v);
+            expanded.push_back(sqlHostRef(v));
         }
     }
     return expanded;
@@ -232,10 +261,11 @@ std::vector<HostVarWithInd> CodeGen::expandSqlIntoVarsWithInd(const std::vector<
         auto dit = ds_defs_.find(hvwi.var);
         if (dit != ds_defs_.end() && hvwi.ind_var.empty()) {
             for (auto& f : dit->second->fields) {
-                expanded.push_back({hvwi.var + "." + f.name, ""});
+                if (f.overlay_field.empty()) expanded.push_back({hvwi.var + "." + f.name, ""});
             }
         } else {
-            expanded.push_back(hvwi);
+            expanded.push_back({sqlHostRef(hvwi.var),
+                                hvwi.ind_var.empty() ? hvwi.ind_var : sqlHostRef(hvwi.ind_var)});
         }
     }
     return expanded;
@@ -2167,8 +2197,15 @@ CodeGen::FieldAttrs CodeGen::attrsOf(const Expression& e) const {
 CodeGen::FieldAttrs CodeGen::attrsOfName(const std::string& cppName) const {
     size_t dot = cppName.find('.');
     if (dot == std::string::npos) return attrsOf(Identifier(cppName));
-    DotExpr de(std::make_unique<Identifier>(cppName.substr(0, dot)), cppName.substr(dot + 1));
-    return attrsOf(de);
+    // A.B.C as (A.B).C
+    std::unique_ptr<Expression> e = std::make_unique<Identifier>(cppName.substr(0, dot));
+    while (dot != std::string::npos) {
+        size_t next = cppName.find('.', dot + 1);
+        e = std::make_unique<DotExpr>(std::move(e), cppName.substr(dot + 1, next == std::string::npos
+                                                                      ? std::string::npos : next - dot - 1));
+        dot = next;
+    }
+    return attrsOf(*e);
 }
 
 // Every assignment in RPG leaves the target holding a value of its
