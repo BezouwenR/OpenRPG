@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <functional>
+#include <regex>
 
 namespace rpg {
 
@@ -314,10 +315,37 @@ std::string CodeGen::expandDsArrayHostVars(const std::string& sql) {
     return out;
 }
 
+static bool isSqlSetOption(const std::string& sql);
+
 void CodeGen::visit(ExecSqlStmt& node) {
     uses_sql_ = true;
     emitIndent();
     out_ << "// EXEC SQL " << sqlCommentText(node.sql_text) << "\n";
+
+    // SET OPTION sets precompiler options. COMMIT is the one with an effect
+    // here: *NONE and *NC turn commitment control off, the isolation
+    // levels (*CHG/*UR, *CS, *ALL/*RS, *RR) leave it on. The rest name
+    // things this compiler has no use for, and are not SQL to send to the
+    // database.
+    if (isSqlSetOption(node.sql_text)) {
+        std::string up = node.sql_text;
+        for (auto& c : up) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+        std::regex commitRe(R"(\bCOMMIT\s*=\s*(\*[A-Z]+))");
+        std::smatch m;
+        if (std::regex_search(up, m, commitRe)) {
+            std::string v = m[1];
+            if (v == "*NONE" || v == "*NC") {
+                emitIndent(); out_ << "__sql_env.setCommitControl(false);\n";
+            } else if (v == "*CHG" || v == "*UR" || v == "*CS" || v == "*ALL" ||
+                       v == "*RS" || v == "*RR") {
+                emitIndent(); out_ << "__sql_env.setCommitControl(true);\n";
+            } else {
+                report_semantic_error(node.line, "SET OPTION COMMIT = " + v + " is not a "
+                    "commitment control level; use *NONE, *NC, *CHG, *UR, *CS, *ALL, *RS or *RR");
+            }
+        }
+        return;
+    }
 
     switch (node.kind) {
         case SqlStmtKind::COMMIT:
@@ -737,7 +765,19 @@ void CodeGen::visit(ExecSqlStmt& node) {
 // anywhere. Subroutines are calculations. Subprocedure definitions are
 // neither — they follow the main section by design — and fixed-format
 // I/O-spec layouts have spec-order rules of their own.
+// EXEC SQL SET OPTION sets precompiler options, not something done at run
+// time; it usually comes first in the source, ahead of the declarations.
+static bool isSqlSetOption(const std::string& sql) {
+    std::string up;
+    for (char c : sql) up += static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+    size_t b = up.find_first_not_of(" \t\r\n");
+    if (b == std::string::npos || up.compare(b, 3, "SET") != 0) return false;
+    size_t o = up.find_first_not_of(" \t\r\n", b + 3);
+    return o != std::string::npos && o > b + 3 && up.compare(o, 6, "OPTION") == 0;
+}
+
 static bool isDeclaration(const Statement* s) {
+    if (auto* sql = dynamic_cast<const ExecSqlStmt*>(s)) return isSqlSetOption(sql->sql_text);
     return dynamic_cast<const DclS*>(s) || dynamic_cast<const DclDS*>(s) ||
            dynamic_cast<const DclC*>(s) || dynamic_cast<const DclPR*>(s) ||
            dynamic_cast<const DclF*>(s) || dynamic_cast<const DclEnum*>(s);

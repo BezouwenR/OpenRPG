@@ -1030,6 +1030,14 @@ EXEC SQL CLOSE c1;
 
 ### Transaction Control
 
+A program runs under commitment control, as one created by CRTSQLRPGI with
+its default `COMMIT(*CHG)` does: a change waits for `COMMIT`, and `ROLLBACK`
+undoes everything since the last one. Work still pending when the program
+ends normally, or at `DISCONNECT`, is committed; when the program ends in
+error it is rolled back. `EXEC SQL SET OPTION COMMIT = *NONE;` (or `*NC`),
+written ahead of the other SQL statements, turns commitment control off, so
+each statement is committed as it runs.
+
 ```rpgle
 EXEC SQL INSERT INTO accounts (id, balance) VALUES(1, 1000.00);
 EXEC SQL INSERT INTO accounts (id, balance) VALUES(2, 500.00);

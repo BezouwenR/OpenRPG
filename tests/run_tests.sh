@@ -890,6 +890,8 @@ run_test "325" "Reject changing a CONST LIKEDS parameter" "$TESTDIR/test325_err_
 run_test "326" "Reject a by-reference argument of another size" "$TESTDIR/test326_err_byref_size.rpgle" "error"
 run_test "327" "EXEC SQL with the statement on the next line" "$TESTDIR/test327_exec_sql_newline.sqlrpgle" "run-sql"
 run_test "328" "Data structure subfields as host variables" "$TESTDIR/test328_sql_subfield_hostvar.sqlrpgle" "run-sql"
+run_test "329" "COMMIT and ROLLBACK under commitment control" "$TESTDIR/test329_sql_commit_rollback.sqlrpgle" "run-sql"
+run_test "330" "SET OPTION COMMIT = *NONE" "$TESTDIR/test330_sql_commit_none.sqlrpgle" "run-sql"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

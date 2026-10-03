@@ -22,6 +22,7 @@
 #  undef CONST
 #  undef ERROR
 #endif
+#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <map>
@@ -38,6 +39,13 @@ public:
     std::string sqlstate = "00000";
     SQLLEN row_count = 0; // last statement's row count (for GET DIAGNOSTICS)
     bool isConnected_ = false;
+    // Commitment control, as CRTSQLRPGI's default COMMIT(*CHG) has it: a
+    // change waits for COMMIT, and ROLLBACK undoes it. SET OPTION
+    // COMMIT = *NONE (or *NC) turns it off: each statement is committed
+    // as it runs. Work still pending when the program ends normally, or
+    // at DISCONNECT, is committed; when it ends in error the connection
+    // is dropped without a commit, and the database rolls the work back.
+    bool commitControl_ = true;
 
     // Named cursors: cursor name → statement handle
     std::map<std::string, SQLHSTMT> cursors;
@@ -61,6 +69,7 @@ public:
             }
         }
         if (hdbc != SQL_NULL_HDBC) {
+            if (isConnected_ && commitControl_) SQLEndTran(SQL_HANDLE_DBC, hdbc, SQL_COMMIT);
             SQLDisconnect(hdbc);
             SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
         }
@@ -79,7 +88,7 @@ public:
             user.empty() ? nullptr : (SQLCHAR*)user.c_str(), SQL_NTS,
             password.empty() ? nullptr : (SQLCHAR*)password.c_str(), SQL_NTS);
         updateDiag(SQL_HANDLE_DBC, hdbc, rc);
-        if (rc == SQL_SUCCESS || rc == SQL_SUCCESS_WITH_INFO) isConnected_ = true;
+        if (rc == SQL_SUCCESS || rc == SQL_SUCCESS_WITH_INFO) { isConnected_ = true; applyCommitControl(); }
     }
 
     // Connect using connection string
@@ -95,11 +104,24 @@ public:
             outConn, sizeof(outConn), &outLen,
             SQL_DRIVER_NOPROMPT);
         updateDiag(SQL_HANDLE_DBC, hdbc, rc);
-        if (rc == SQL_SUCCESS || rc == SQL_SUCCESS_WITH_INFO) isConnected_ = true;
+        if (rc == SQL_SUCCESS || rc == SQL_SUCCESS_WITH_INFO) { isConnected_ = true; applyCommitControl(); }
+    }
+
+    // SET OPTION COMMIT = ...
+    void setCommitControl(bool on) {
+        commitControl_ = on;
+        if (isConnected_) applyCommitControl();
+    }
+
+    void applyCommitControl() {
+        SQLSetConnectAttr(hdbc, SQL_ATTR_AUTOCOMMIT,
+                          (SQLPOINTER)(uintptr_t)(commitControl_ ? SQL_AUTOCOMMIT_OFF : SQL_AUTOCOMMIT_ON),
+                          SQL_IS_UINTEGER);
     }
 
     void disconnect() {
         if (!isConnected_) return;
+        if (commitControl_) SQLEndTran(SQL_HANDLE_DBC, hdbc, SQL_COMMIT);
         SQLRETURN rc = SQLDisconnect(hdbc);
         updateDiag(SQL_HANDLE_DBC, hdbc, rc);
         isConnected_ = false;

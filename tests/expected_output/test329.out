@@ -1,0 +1,4 @@
+before rollback 1
+rollback SQLCOD 0
+after rollback 30
+after commit 31
