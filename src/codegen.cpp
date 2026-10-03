@@ -4372,6 +4372,17 @@ void CodeGen::visit(FuncCall& node) {
 
 void CodeGen::visit(BIFCall& node) {
     checkLookupArray(node);
+    // The first operand of a numeric conversion, which can be character
+    // (%DEC('42':9:0), %INT(%GETENV(...))): converted by IBM's rules.
+    auto numArg = [&](bool is_float = false) {
+        if (!node.args.empty() && argCategory(*node.args[0]) == ArgCat::Char) {
+            expr_ << "rpg_char_num(";
+            node.args[0]->accept(*this);
+            expr_ << (is_float ? ", true)" : ")");
+        } else {
+            node.args[0]->accept(*this);
+        }
+    };
     if (node.name == "CHAR") {
         // Check if arg is a date/time variable and DATFMT/TIMFMT is set
         FieldAttrs aa = attrsOf(*node.args[0]);
@@ -4464,12 +4475,12 @@ void CodeGen::visit(BIFCall& node) {
     } else if (node.name == "DEC") {
         // %DEC(expr) → convert to double
         expr_ << "static_cast<double>(";
-        node.args[0]->accept(*this);
+        numArg();
         expr_ << ")";
     } else if (node.name == "INT") {
         // %INT(expr) → convert to int
         expr_ << "static_cast<int>(";
-        node.args[0]->accept(*this);
+        numArg();
         expr_ << ")";
     } else if (node.name == "ELEM") {
         // %ELEM(array) → size; %ELEM(array:*ALLOC) → capacity
@@ -4661,7 +4672,7 @@ void CodeGen::visit(BIFCall& node) {
         expr_ << ")";
     } else if (node.name == "FLOAT") {
         expr_ << "static_cast<double>(";
-        node.args[0]->accept(*this);
+        numArg(true);
         expr_ << ")";
     } else if (node.name == "SQRT") {
         expr_ << "std::sqrt(static_cast<double>(";
@@ -4769,16 +4780,16 @@ void CodeGen::visit(BIFCall& node) {
         expr_ << ")";
     } else if (node.name == "UNS") {
         expr_ << "static_cast<unsigned int>(";
-        node.args[0]->accept(*this);
+        numArg();
         expr_ << ")";
     } else if (node.name == "INTH") {
         expr_ << "static_cast<int>(std::round(static_cast<double>(";
-        node.args[0]->accept(*this);
+        numArg();
         expr_ << ")))";
     } else if (node.name == "DECH") {
         // %DECH(expr:digits:decimals) — round to decimals then cast
         expr_ << "rpg_dech(";
-        node.args[0]->accept(*this);
+        numArg();
         if (node.args.size() > 2) {
             expr_ << ", ";
             node.args[2]->accept(*this);
@@ -5058,7 +5069,7 @@ void CodeGen::visit(BIFCall& node) {
         expr_ << ", " << (fa.known && fa.type == RPGType::FLOAT4 ? "true" : "false") << ")";
     } else if (node.name == "UNSH") {
         expr_ << "rpg_unsh(";
-        node.args[0]->accept(*this);
+        numArg();
         expr_ << ")";
     } else if (node.name == "PARMNUM") {
         // %PARMNUM returns the ordinal position of a parameter (compile-time)

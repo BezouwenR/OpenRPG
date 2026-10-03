@@ -1458,6 +1458,48 @@ inline bool rpg_test_date(const RpgDate& d) {
 
 
 // --- %DECH: round to specified decimal places ---
+// A character operand of %DEC, %DECH, %INT, %INTH, %UNS, %UNSH or %FLOAT
+// (V5R3): an optional sign, '+' or '-', before or after the digits; an
+// optional decimal point, a period or a comma; blanks anywhere. Only
+// %FLOAT takes an exponent ('1.2E6'). Anything else is status 105.
+inline double rpg_char_num(const std::string& s, bool is_float = false) {
+    std::string t;
+    bool neg = false, sign = false, digits = false, point = false, after = false;
+    bool exp = false, exp_digits = false;
+    for (char c : s) {
+        if (c == ' ') continue;
+        if (exp) {
+            if ((c == '+' || c == '-') && !exp_digits && t.back() == 'E') t += c;
+            else if (c >= '0' && c <= '9') { t += c; exp_digits = true; }
+            else goto bad;
+            continue;
+        }
+        if (c >= '0' && c <= '9') {
+            if (after) goto bad;
+            t += c; digits = true;
+        } else if (c == '.' || c == ',') {
+            if (point || after) goto bad;
+            t += '.'; point = true;
+        } else if (c == '+' || c == '-') {
+            if (sign) goto bad;
+            sign = true; neg = c == '-';
+            if (digits || point) after = true;     // a trailing sign
+        } else if ((c == 'E' || c == 'e') && is_float && digits && !after) {
+            t += 'E'; exp = true;
+        } else {
+            goto bad;
+        }
+    }
+    if (!digits || (exp && !exp_digits)) goto bad;
+    {
+        double v = std::strtod(t.c_str(), nullptr);
+        return neg ? -v : v;
+    }
+bad:
+    rpg_raise(105, "RNX0105: A character representation of a numeric value is in error ('" +
+              s + "')");
+}
+
 inline double rpg_dech(double val, int decimals) {
     double factor = std::pow(10.0, decimals);
     return std::round(val * factor) / factor;
