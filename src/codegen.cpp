@@ -2525,7 +2525,14 @@ void CodeGen::checkAssignTypes(const Expression& target, const Expression& value
 
 void CodeGen::visit(EvalStmt& node) {
     checkAssignTypes(*node.target, *node.value, node.line > 0 ? node.line : cur_stmt_line_);
-    if (argCategory(*node.target) == ArgCat::Char) dsAsChars(node.value);
+    if (argCategory(*node.target) == ArgCat::Char) {
+        dsAsChars(node.value);
+        indAsChars(node.value);
+    } else if (argCategory(*node.target) == ArgCat::Ind && argCategory(*node.value) == ArgCat::Char) {
+        std::vector<std::unique_ptr<Expression>> args;
+        args.push_back(std::move(node.value));
+        node.value = std::make_unique<BIFCall>("__CHARSIND", std::move(args));
+    }
     if (auto* uid = dynamic_cast<Identifier*>(node.value.get()); uid && uid->name == "RPG_USER")
         report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_,
             "*USER is only valid as an initial value, INZ(*USER); declare a CHAR(10) field "
@@ -4465,6 +4472,11 @@ void CodeGen::visit(BinaryExpr& node) {
         if (l == ArgCat::DS && (r == ArgCat::Char || r == ArgCat::DS)) dsAsChars(node.left);
         if (r == ArgCat::DS && (l == ArgCat::Char || l == ArgCat::DS)) dsAsChars(node.right);
     }
+    if (node.op == BinOp::ADD) {
+        ArgCat l = argCategory(*node.left), r = argCategory(*node.right);
+        if (l == ArgCat::Ind && r == ArgCat::Char) indAsChars(node.left);
+        if (r == ArgCat::Ind && l == ArgCat::Char) indAsChars(node.right);
+    }
     if (node.op == BinOp::POWER) {
         expr_ << "std::pow(";
         node.left->accept(*this);
@@ -4589,6 +4601,15 @@ void CodeGen::dsAsChars(std::unique_ptr<Expression>& e) {
     e = std::make_unique<BIFCall>("__DSCHARS", std::move(args));
 }
 
+// An indicator met by a character value is its character, '1' or '0'.
+void CodeGen::indAsChars(std::unique_ptr<Expression>& e) {
+    if (!e || argCategory(*e) != ArgCat::Ind) return;
+    if (auto* id = dynamic_cast<Identifier*>(e.get()); id && array_vars_.count(id->name)) return;
+    std::vector<std::unique_ptr<Expression>> args;
+    args.push_back(std::move(e));
+    e = std::make_unique<BIFCall>("__INDCHARS", std::move(args));
+}
+
 CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
     if (auto* il = dynamic_cast<const IntLiteral*>(&e)) return il->indicator ? ArgCat::Ind : ArgCat::Numeric;
     if (dynamic_cast<const FloatLiteral*>(&e)) return ArgCat::Numeric;
@@ -4615,7 +4636,7 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
     }
     if (auto* bif = dynamic_cast<const BIFCall*>(&e)) {
         static const std::set<std::string> chr = {"CHAR", "TRIM", "TRIML", "TRIMR", "SUBST", "UPPER",
-            "LOWER", "XLATE", "SCANRPL", "REPLACE", "EDITC", "EDITW", "STR", "EDITFLT", "__DSCHARS"};
+            "LOWER", "XLATE", "SCANRPL", "REPLACE", "EDITC", "EDITW", "STR", "EDITFLT", "__DSCHARS", "__INDCHARS"};
         static const std::set<std::string> num = {"INT", "INTH", "DEC", "DECH", "FLOAT", "UNS", "UNSH",
             "LEN", "SCAN", "SCANR", "CHECK", "CHECKR", "ELEM", "ABS", "DIV", "REM", "SIZE", "DIFF",
             "SUBDT", "LOOKUP", "LOOKUPLT", "LOOKUPLE", "LOOKUPGT", "LOOKUPGE", "STATUS", "PARMS",
@@ -5006,6 +5027,12 @@ void CodeGen::visit(BIFCall& node) {
         "LOWER", "XLATE", "SCANRPL", "REPLACE", "SCAN", "SCANR", "CHECK", "CHECKR", "LEN"};
     if (strBifs.count(node.name))
         for (auto& a : node.args) dsAsChars(a);
+    if (node.name == "__INDCHARS" || node.name == "__CHARSIND") {
+        expr_ << (node.name == "__INDCHARS" ? "rpg_ind_chars(" : "rpg_chars_ind(");
+        node.args[0]->accept(*this);
+        expr_ << ")";
+        return;
+    }
     if (node.name == "__DSCHARS") {
         expr_ << "(";
         node.args[0]->accept(*this);

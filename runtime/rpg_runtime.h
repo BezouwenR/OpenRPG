@@ -204,9 +204,20 @@ inline auto rpg_fig_like(const RpgFigConst& f, const Other& other) {
         return f.num;
 }
 
+// An indicator is character data on IBM i, '1' or '0': 'flag=' + flag is
+// flag=1, and flag = '1' compares characters. Here it is a bool, so it goes
+// through these wherever it meets a character value. A character value
+// assigned to an indicator turns it on when it is '1'.
+inline std::string rpg_ind_chars(bool b) { return b ? "1" : "0"; }
+inline bool rpg_chars_ind(std::string_view s) { return !s.empty() && s[0] == '1'; }
+
 template<typename A, typename B, typename Op>
 inline bool rpg_compare(const A& a, const B& b, Op op) {
-    if constexpr (rpg_is_fig_v<A>)
+    if constexpr (std::is_same_v<A, bool> && rpg_is_char_v<B>)
+        return rpg_compare(rpg_ind_chars(a), b, op);
+    else if constexpr (rpg_is_char_v<A> && std::is_same_v<B, bool>)
+        return rpg_compare(a, rpg_ind_chars(b), op);
+    else if constexpr (rpg_is_fig_v<A>)
         return rpg_compare(rpg_fig_like(a, b), b, op);
     else if constexpr (rpg_is_fig_v<B>)
         return rpg_compare(a, rpg_fig_like(b, a), op);

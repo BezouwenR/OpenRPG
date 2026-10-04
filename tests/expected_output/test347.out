@@ -1,0 +1,10 @@
+flag=1
+1=flag
+1
+eq
+ne
+c1
+now 0
+[1    ]
+arr=1 ds.f=1 in50=1 lr=0
+ok
