@@ -942,6 +942,9 @@ run_test "339a" "Called program that can fail" "$TESTDIR/PGMFAIL.rpgle" "shared"
 run_test "339" "Program calls: not found, ended in error" "$TESTDIR/test339_call_errors.rpgle" "run"
 run_test "340a" "Called program written in C" "$TESTDIR/CSQUARE.c" "shared"
 run_test "340" "Calling a C program" "$TESTDIR/test340_call_c_program.rpgle" "run"
+run_test "341" "Integer sizes: INT(20), ranges of INT(3) to UNS(20)" "$TESTDIR/test341_int_sizes.rpgle" "run"
+run_test "342" "INT(20) host variables as BIGINT" "$TESTDIR/test342_sql_bigint.sqlrpgle" "run-sql"
+run_test "343" "Fixed-form 20I and 20U fields" "$TESTDIR/test343_fixed_int20.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

@@ -223,7 +223,8 @@ private:
     std::map<std::string, int> array_sort_;
     std::map<std::string, int> array_dim_;
     std::map<std::string, std::string> dtaara_name_vars_; // field -> variable in DTAARA(var)   // array -> DIM (the maximum, for *VAR/*AUTO)  // array -> 1 ASCEND, -1 DESCEND, 0 neither
-    std::string typeToString(RPGType type, int length = 0);
+    // digits: an integer's size; INT(20) and UNS(20) need 64 bits.
+    std::string typeToString(RPGType type, int length = 0, int digits = 0);
     int declaredDigits(const std::string& name) const;
     std::string declaredDtFormat(const std::string& name, RPGType type) const;
     std::string paramTypeToString(const ParamDecl& p);

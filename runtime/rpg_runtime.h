@@ -832,6 +832,62 @@ inline int rpg_fit_int(double v) {
         rpg_raise(103, "RNX0103: The target for a numeric operation is too small to hold the result.");
     return static_cast<int>(t);
 }
+// An integer field holds what its size does: INT(3) one byte, -128 to 127;
+// INT(5) two; INT(10) four; INT(20) eight bytes. A value outside that is
+// status 103, as on IBM i. Integer values are checked exactly, without
+// passing through a double, which can't hold every 64-bit value.
+inline void rpg__int_range(int digits, long long& lo, long long& hi) {
+    if (digits > 0 && digits <= 3)       { lo = -128;      hi = 127; }
+    else if (digits > 0 && digits <= 5)  { lo = -32768;    hi = 32767; }
+    else if (digits == 0 || digits <= 10) { lo = INT_MIN;  hi = INT_MAX; }
+    else                                 { lo = LLONG_MIN; hi = LLONG_MAX; }
+}
+[[noreturn]] inline void rpg__int_overflow() {
+    rpg_raise(103, "RNX0103: The target for a numeric operation is too small to hold the result.");
+}
+template <class T>
+inline long long rpg_fit_intn(T v, int digits) {
+    long long lo, hi;
+    rpg__int_range(digits, lo, hi);
+    if constexpr (std::is_integral_v<T>) {
+        if constexpr (std::is_unsigned_v<T>) {
+            if (static_cast<unsigned long long>(v) > static_cast<unsigned long long>(hi)) rpg__int_overflow();
+            return static_cast<long long>(v);
+        } else {
+            long long x = static_cast<long long>(v);
+            if (x < lo || x > hi) rpg__int_overflow();
+            return x;
+        }
+    } else {
+        double d = static_cast<double>(v);
+        rpg_chk_dec(d);
+        double t = std::trunc(d);
+        // 2^63 is the first double past LLONG_MAX
+        if (!std::isfinite(d) || t < static_cast<double>(lo) || t >= 9223372036854775808.0 ||
+            t > static_cast<double>(hi))
+            rpg__int_overflow();
+        return static_cast<long long>(t);
+    }
+}
+template <class T>
+inline unsigned long long rpg_fit_unsn(T v, int digits) {
+    unsigned long long hi = digits > 0 && digits <= 3 ? 255ULL : digits > 0 && digits <= 5 ? 65535ULL
+                          : digits == 0 || digits <= 10 ? 4294967295ULL : ULLONG_MAX;
+    if constexpr (std::is_integral_v<T>) {
+        if constexpr (std::is_signed_v<T>) { if (v < 0) rpg__int_overflow(); }
+        if (static_cast<unsigned long long>(v) > hi) rpg__int_overflow();
+        return static_cast<unsigned long long>(v);
+    } else {
+        double d = static_cast<double>(v);
+        rpg_chk_dec(d);
+        double t = std::trunc(d);
+        if (!std::isfinite(d) || t < 0.0 || t >= 18446744073709551616.0 ||
+            t > static_cast<double>(hi))
+            rpg__int_overflow();
+        return static_cast<unsigned long long>(t);
+    }
+}
+
 inline unsigned int rpg_fit_uns(double v) {
     rpg_chk_dec(v);
     double t = std::trunc(v);
@@ -1098,6 +1154,8 @@ inline std::string rpg_da_read(const std::string& name, int max_len) {
 // --- %CHAR: generic to-string conversion ---
 inline std::string rpg_to_char(int v) { return std::to_string(v); }
 inline std::string rpg_to_char(unsigned int v) { return std::to_string(v); }
+inline std::string rpg_to_char(long long v) { return std::to_string(v); }
+inline std::string rpg_to_char(unsigned long long v) { return std::to_string(v); }
 inline std::string rpg_to_char(double v) { return std::to_string(v); }
 inline std::string rpg_to_char(const std::string& v) { return v; }
 inline std::string rpg_to_char(bool v) { return v ? "1" : "0"; }

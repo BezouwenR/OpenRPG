@@ -331,6 +331,12 @@ public:
             while (!buf.empty() && buf.back() == ' ') buf.pop_back();
             SQLBindParameter(hstmt, idx, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
                              buf.size(), 0, (SQLCHAR*)buf.c_str(), buf.size() + 1, nullptr);
+        } else if constexpr (std::is_integral_v<std::decay_t<T>> && sizeof(T) == 8) {
+            // INT(20)/UNS(20): a BIGINT
+            param_big_bufs_.push_back(static_cast<SQLBIGINT>(val));
+            SQLBindParameter(hstmt, idx, SQL_PARAM_INPUT,
+                             std::is_unsigned_v<std::decay_t<T>> ? SQL_C_UBIGINT : SQL_C_SBIGINT,
+                             SQL_BIGINT, 0, 0, &param_big_bufs_.back(), 0, nullptr);
         } else if constexpr (std::is_integral_v<std::decay_t<T>>) {
             param_int_bufs_.push_back(static_cast<SQLINTEGER>(val));
             SQLBindParameter(hstmt, idx, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
@@ -348,6 +354,9 @@ public:
     void bindCol(SQLHSTMT hstmt, int idx, T& val, char* strbuf, SQLLEN strbufSize, SQLLEN& ind) {
         if constexpr (std::is_same_v<std::decay_t<T>, std::string>) {
             SQLBindCol(hstmt, idx, SQL_C_CHAR, strbuf, strbufSize, &ind);
+        } else if constexpr (std::is_integral_v<std::decay_t<T>> && sizeof(T) == 8) {
+            SQLBindCol(hstmt, idx, std::is_unsigned_v<std::decay_t<T>> ? SQL_C_UBIGINT : SQL_C_SBIGINT,
+                       &val, 0, &ind);
         } else if constexpr (std::is_integral_v<std::decay_t<T>>) {
             SQLBindCol(hstmt, idx, SQL_C_SLONG, &val, 0, &ind);
         } else {
@@ -400,6 +409,7 @@ public:
     void clearParamBufs() {
         param_bufs_.clear();
         param_int_bufs_.clear();
+        param_big_bufs_.clear();
         param_dbl_bufs_.clear();
         null_ind_bufs_.clear();
     }
@@ -408,6 +418,7 @@ public:
     // Using deque to avoid pointer invalidation on push_back (vector reallocates)
     std::deque<std::string> param_bufs_;
     std::deque<SQLINTEGER> param_int_bufs_;
+    std::deque<SQLBIGINT> param_big_bufs_;
     std::deque<SQLDOUBLE> param_dbl_bufs_;
     std::deque<SQLLEN> null_ind_bufs_;
 

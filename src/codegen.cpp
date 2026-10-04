@@ -112,7 +112,9 @@ void CodeGen::emitStatements(std::vector<std::unique_ptr<Statement>>& stmts) {
     }
 }
 
-std::string CodeGen::typeToString(RPGType type, int /*length*/) {
+std::string CodeGen::typeToString(RPGType type, int /*length*/, int digits) {
+    if (type == RPGType::INT10 && digits > 10) return "long long";
+    if (type == RPGType::UNS && digits > 10) return "unsigned long long";
     switch (type) {
         case RPGType::CHAR: return "std::string";
         case RPGType::VARCHAR: return "std::string";
@@ -139,7 +141,7 @@ std::string CodeGen::paramTypeToString(const ParamDecl& p) {
     if (!p.likeds.empty()) {
         base = p.likeds + "_t";
     } else {
-        base = typeToString(p.type, p.length);
+        base = typeToString(p.type, p.length, p.digits);
     }
     if (p.omit) {
         return base + "*";  // *OMIT params use pointers (nullptr = omitted)
@@ -1063,7 +1065,7 @@ void CodeGen::visit(Program& node) {
             }
             entry_params_.insert(pname);
             if (!entry_params_str.empty()) entry_params_str += ", ";
-            entry_params_str += typeToString(dit->second->type, dit->second->length) + "& " + pname;
+            entry_params_str += typeToString(dit->second->type, dit->second->length, dit->second->digits) + "& " + pname;
         }
     }
 
@@ -1421,7 +1423,7 @@ void CodeGen::visit(DclPR& node) {
             auto it = proc_sigs_.find(impl);
             if (it == proc_sigs_.end()) continue;
             const ProcInterface& sig = it->second;
-            std::string ret = sig.has_return ? typeToString(sig.return_type) : "void";
+            std::string ret = sig.has_return ? typeToString(sig.return_type, 0, sig.return_digits) : "void";
             out_ << "inline " << ret << " " << node.name << "(";
             for (size_t i = 0; i < sig.params.size(); i++) {
                 if (i > 0) out_ << ", ";
@@ -1463,7 +1465,7 @@ void CodeGen::visit(DclPR& node) {
 
     // Emit C++ forward declaration
     std::string ret = node.interface.has_return
-        ? typeToString(node.interface.return_type) : "void";
+        ? typeToString(node.interface.return_type, 0, node.interface.return_digits) : "void";
     out_ << ret << " " << cppName << "(";
     for (size_t i = 0; i < node.interface.params.size(); i++) {
         if (i > 0) out_ << ", ";
@@ -1490,7 +1492,7 @@ void CodeGen::visit(DclProc& node) {
                                   [](const ParamDecl& p) { return p.nopass; });
 
     std::string ret = node.interface.has_return
-        ? typeToString(node.interface.return_type) : "void";
+        ? typeToString(node.interface.return_type, 0, node.interface.return_digits) : "void";
     void_return_ = !node.interface.has_return;
     out_ << ret << " " << node.name << "(";
     for (size_t i = 0; i < node.interface.params.size(); i++) {
@@ -1546,7 +1548,7 @@ void CodeGen::visit(DclProc& node) {
             const_params_.insert(p.name);
             FieldAttrs pa = attrsOfName(p.name);
             emitIndent();
-            out_ << "const " << typeToString(p.type, p.length) << " " << p.name << " = "
+            out_ << "const " << typeToString(p.type, p.length, p.digits) << " " << p.name << " = "
                  << fitValue(pa, cppParamName(p), FitMode::Overflow) << ";\n";
             continue;
         }
@@ -2010,7 +2012,7 @@ void CodeGen::visit(DclS& node) {
     // IMPORT: emit as extern declaration
     if (node.is_import) {
         emitIndent();
-        out_ << "extern " << typeToString(node.type, node.length) << " " << node.name << ";\n";
+        out_ << "extern " << typeToString(node.type, node.length, node.digits) << " " << node.name << ";\n";
         return;
     }
 
@@ -2025,7 +2027,7 @@ void CodeGen::visit(DclS& node) {
             var_digits_[node.name] = var_digits_[node.like_var];
             var_decimals_[node.name] = var_decimals_[node.like_var];
             emitIndent();
-            std::string cppType = typeToString(it->second, var_lengths_[node.like_var]);
+            std::string cppType = typeToString(it->second, var_lengths_[node.like_var], var_digits_[node.like_var]);
             if (node.is_static) out_ << "static ";
             out_ << cppType << " " << node.name;
             switch (it->second) {
@@ -2041,8 +2043,8 @@ void CodeGen::visit(DclS& node) {
     // Handle BASED(pointer) — reference via pointer
     if (!node.based_ptr.empty()) {
         emitIndent();
-        out_ << typeToString(node.type, node.length) << "& " << node.name
-             << " = *reinterpret_cast<" << typeToString(node.type, node.length)
+        out_ << typeToString(node.type, node.length, node.digits) << "& " << node.name
+             << " = *reinterpret_cast<" << typeToString(node.type, node.length, node.digits)
              << "*>(" << node.based_ptr << ");\n";
         return;
     }
@@ -2054,7 +2056,7 @@ void CodeGen::visit(DclS& node) {
     if (node.dim > 0) {
         if (node.dim_type == 1 || node.dim_type == 2) {
             // DIM(*VAR:max) or DIM(*AUTO:max) — use std::vector
-            out_ << "std::vector<" << typeToString(node.type, node.length) << "> " << node.name << ";\n";
+            out_ << "std::vector<" << typeToString(node.type, node.length, node.digits) << "> " << node.name << ";\n";
             varying_arrays_.insert(node.name);
             if (node.dim_type == 2) auto_arrays_[node.name] = node.dim;
             std::string init = arrayElementInit(node);
@@ -2074,7 +2076,7 @@ void CodeGen::visit(DclS& node) {
             // left CHAR elements as empty strings, and inside a procedure
             // (automatic storage) left numeric elements uninitialized —
             // whatever was on the stack.
-            std::string elemType = typeToString(node.type, node.length);
+            std::string elemType = typeToString(node.type, node.length, node.digits);
             out_ << "std::array<" << elemType << ", " << node.dim << "> " << node.name;
             // INZ on an array initializes every element; it used to be
             // dropped here, and INZ with DIM was a syntax error besides.
@@ -2131,15 +2133,17 @@ void CodeGen::visit(DclS& node) {
                 out_ << "std::string " << node.name << ";\n";
             }
             break;
-        case RPGType::INT10:
+        case RPGType::INT10: {
+            std::string t = typeToString(node.type, node.length, node.digits);
             if (node.is_const) {
-                out_ << "const int " << node.name << " = " << emitInzValue(node) << ";\n";
+                out_ << "const " << t << " " << node.name << " = " << emitInzValue(node) << ";\n";
             } else if (node.inz_value) {
-                out_ << "int " << node.name << " = " << emitInzValue(node) << ";\n";
+                out_ << t << " " << node.name << " = " << emitInzValue(node) << ";\n";
             } else {
-                out_ << "int " << node.name << " = 0;\n";
+                out_ << t << " " << node.name << " = 0;\n";
             }
             break;
+        }
         case RPGType::PACKED:
         case RPGType::ZONED:
             if (node.is_const) {
@@ -2173,13 +2177,15 @@ void CodeGen::visit(DclS& node) {
         case RPGType::POINTER:
             out_ << "void* " << node.name << " = nullptr;\n";
             break;
-        case RPGType::UNS:
+        case RPGType::UNS: {
+            std::string t = typeToString(node.type, node.length, node.digits);
             if (node.inz_value) {
-                out_ << "unsigned int " << node.name << " = " << emitInzValue(node) << ";\n";
+                out_ << t << " " << node.name << " = " << emitInzValue(node) << ";\n";
             } else {
-                out_ << "unsigned int " << node.name << " = 0;\n";
+                out_ << t << " " << node.name << " = 0;\n";
             }
             break;
+        }
         case RPGType::FLOAT4:
             if (node.inz_value) {
                 out_ << "float " << node.name << " = " << emitInzValue(node) << ";\n";
@@ -2368,10 +2374,12 @@ std::string CodeGen::fitValue(const FieldAttrs& a, const std::string& rhs, FitMo
         return std::string(fn) + "(static_cast<double>(" + rhs + "), " + std::to_string(digits) +
                ", " + std::to_string(a.decimals) + ")";
     }
+    // An integer holds what its size does: INT(5) -32768 to 32767, INT(20)
+    // eight bytes. The value is checked as it is, an integer exactly.
     if (mode == FitMode::Overflow && a.type == RPGType::INT10)
-        return "rpg_fit_int(static_cast<double>(" + rhs + "))";
+        return "rpg_fit_intn(" + rhs + ", " + std::to_string(digits) + ")";
     if (mode == FitMode::Overflow && a.type == RPGType::UNS)
-        return "rpg_fit_uns(static_cast<double>(" + rhs + "))";
+        return "rpg_fit_unsn(" + rhs + ", " + std::to_string(digits) + ")";
     return rhs;
 }
 
@@ -3164,7 +3172,7 @@ void CodeGen::visit(DclDS& node) {
             ds_local_types[f.name] = {rtype, rlen};
         } else if (f.dim > 0) {
             // Per-subfield DIM(n): the subfield itself is an array within the DS.
-            out_ << "    std::array<" << typeToString(f.type, f.length) << ", " << f.dim
+            out_ << "    std::array<" << typeToString(f.type, f.length, f.digits) << ", " << f.dim
                  << "> " << f.name;
             std::string blank = initFor(f.type, f.length, f.digits);
             if (f.type == RPGType::CHAR && f.length > 0)
@@ -3172,7 +3180,7 @@ void CodeGen::visit(DclDS& node) {
                      << f.length << ", ' '))";
             else if (!blank.empty() && blank != " = 0" && blank != " = 0.0" &&
                      blank != " = false" && blank != " = nullptr")
-                out_ << " = rpg_filled_array<" << typeToString(f.type, f.length) << ", " << f.dim
+                out_ << " = rpg_filled_array<" << typeToString(f.type, f.length, f.digits) << ", " << f.dim
                      << ">(" << blank.substr(3) << ")";
             else
                 out_ << "{}"; // numeric elements zero, not indeterminate
@@ -3180,11 +3188,11 @@ void CodeGen::visit(DclDS& node) {
             ds_local_types[f.name] = {f.type, f.length};
         } else if (f.pos > 0) {
             // POS field: emit with comment showing position
-            out_ << "    " << typeToString(f.type, f.length) << " " << f.name
+            out_ << "    " << typeToString(f.type, f.length, f.digits) << " " << f.name
                  << initFor(f.type, f.length, f.digits) << "; // POS(" << f.pos << ")\n";
             ds_local_types[f.name] = {f.type, f.length};
         } else {
-            out_ << "    " << typeToString(f.type, f.length) << " " << f.name
+            out_ << "    " << typeToString(f.type, f.length, f.digits) << " " << f.name
                  << initFor(f.type, f.length, f.digits) << ";\n";
             ds_local_types[f.name] = {f.type, f.length};
         }
@@ -4695,7 +4703,7 @@ void CodeGen::emitProgramExport(const Program& node) {
             a.type = var_types_.count(n) ? var_types_[n] : RPGType::CHAR;
             a.length = var_lengths_[n]; a.digits = var_digits_[n]; a.decimals = var_decimals_[n];
             std::string local = "__a" + std::to_string(i);
-            locals += "        " + typeToString(a.type, a.length) + " " + local + "{};\n";
+            locals += "        " + typeToString(a.type, a.length, a.digits) + " " + local + "{};\n";
             parms.push_back({local, a, ""});
             call += (i ? ", " : "") + local;
         }

@@ -4,6 +4,8 @@
 #include "free_bridge.h"
 #include "keyword_list.h"
 #include <cctype>
+#include <cerrno>
+#include <climits>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -605,7 +607,15 @@ static Expression* parseInzValue(const std::string& text, int lineNo,
         return nullptr;
     }
     if (seenDot) return new FloatLiteral(atof(v.c_str()));
-    return new IntLiteral(atoi(v.c_str()));
+    // Past int's range -- an INT(20) or UNS(20) initial value -- the literal
+    // is a FloatLiteral, as the free-form lexer makes it, rather than
+    // wrapping in an int.
+    long long n = strtoll(v.c_str(), nullptr, 10);
+    if (n < INT_MIN || n > INT_MAX || errno == ERANGE) {
+        errno = 0;
+        return new FloatLiteral(strtod(v.c_str(), nullptr));
+    }
+    return new IntLiteral(static_cast<int>(n));
 }
 
 // Name continuation (trailing "...") needs one line of carry-over state;
