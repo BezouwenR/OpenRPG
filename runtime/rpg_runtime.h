@@ -1932,16 +1932,80 @@ inline RpgTime operator+(const RpgTime& t, const RpgDuration& dur) {
         case 'I': total_secs += dur.amount * 60; break;
         case 'S': total_secs += dur.amount; break;
     }
-    if (total_secs < 0) total_secs += 86400;
-    total_secs %= 86400;
+    total_secs = (total_secs % 86400 + 86400) % 86400;
     std::string buf;
     buf = rpg_sprintf("%02d:%02d:%02d", total_secs / 3600, (total_secs % 3600) / 60, total_secs % 60);
     return RpgTime(buf);
 }
 
-inline RpgTimestamp operator+(const RpgTimestamp& ts, const RpgDuration& /*dur*/) {
-    // Simplified: delegate date part to RpgDate arithmetic
-    return RpgTimestamp(ts.value); // stub for complex timestamp math
+// Timestamp + duration. Years and months move the month and keep the day,
+// cut back to the last day of a shorter month (Jan 31 + 1 month is Feb 28 or
+// 29), as on IBM i. Days through microseconds are exact: the timestamp is
+// counted in microseconds from a fixed day, so no time zone or daylight
+// saving change can shift it, as mktime could.
+inline long long rpg_civil_to_days(long long y, int m, int d) {
+    y -= m <= 2;
+    long long era = (y >= 0 ? y : y - 399) / 400;
+    long long yoe = y - era * 400;
+    long long doy = (153 * (m + (m > 2 ? -3 : 9)) + 2) / 5 + d - 1;
+    long long doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    return era * 146097 + doe;
+}
+inline void rpg_days_to_civil(long long z, long long& y, int& m, int& d) {
+    long long era = (z >= 0 ? z : z - 146096) / 146097;
+    long long doe = z - era * 146097;
+    long long yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    long long doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    long long mp = (5 * doy + 2) / 153;
+    d = static_cast<int>(doy - (153 * mp + 2) / 5 + 1);
+    m = static_cast<int>(mp < 10 ? mp + 3 : mp - 9);
+    y = yoe + era * 400 + (m <= 2);
+}
+inline RpgTimestamp operator+(const RpgTimestamp& ts, const RpgDuration& dur) {
+    const std::string& v = ts.value;
+    long long y = std::stoll(v.substr(0, 4));
+    int mo = std::stoi(v.substr(5, 2));
+    int d = std::stoi(v.substr(8, 2));
+    long long us = std::stoll(v.substr(11, 2)) * 3600000000LL +
+                   std::stoll(v.substr(14, 2)) * 60000000LL +
+                   std::stoll(v.substr(17, 2)) * 1000000LL +
+                   (v.size() > 20 ? std::stoll(v.substr(20)) : 0);
+    long long n = dur.amount;
+    if (dur.unit == 'Y' || dur.unit == 'M') {
+        long long months = y * 12 + (mo - 1) + (dur.unit == 'Y' ? n * 12 : n);
+        y = (months >= 0 ? months : months - 11) / 12;
+        mo = static_cast<int>(months - y * 12) + 1;
+        static const int mdays[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+        bool leap = (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
+        int last = mo == 2 && leap ? 29 : mdays[mo - 1];
+        if (d > last) d = last;
+    } else {
+        const long long day_us = 86400000000LL;
+        switch (dur.unit) {
+            case 'D': us += n * day_us; break;
+            case 'H': us += n * 3600000000LL; break;
+            case 'I': us += n * 60000000LL; break;
+            case 'S': us += n * 1000000LL; break;
+            case 'U': us += n; break;
+        }
+        long long days = rpg_civil_to_days(y, mo, d) + (us >= 0 ? us / day_us : (us - day_us + 1) / day_us);
+        us -= (us >= 0 ? us / day_us : (us - day_us + 1) / day_us) * day_us;
+        rpg_days_to_civil(days, y, mo, d);
+    }
+    return RpgTimestamp(rpg_sprintf("%04lld-%02d-%02d-%02lld.%02lld.%02lld.%06lld",
+                                    y, mo, d, us / 3600000000LL, us / 60000000LL % 60,
+                                    us / 1000000LL % 60, us % 1000000LL));
+}
+
+// Subtracting a duration adds its negative.
+inline RpgDate operator-(const RpgDate& d, const RpgDuration& dur) {
+    return d + RpgDuration{-dur.amount, dur.unit};
+}
+inline RpgTime operator-(const RpgTime& t, const RpgDuration& dur) {
+    return t + RpgDuration{-dur.amount, dur.unit};
+}
+inline RpgTimestamp operator-(const RpgTimestamp& ts, const RpgDuration& dur) {
+    return ts + RpgDuration{-dur.amount, dur.unit};
 }
 
 // %DIFF for time types

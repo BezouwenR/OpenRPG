@@ -947,6 +947,7 @@ run_test "342" "INT(20) host variables as BIGINT" "$TESTDIR/test342_sql_bigint.s
 run_test "343" "Fixed-form 20I and 20U fields" "$TESTDIR/test343_fixed_int20.rpgle" "run"
 run_test "344" "INZ on an indicator" "$TESTDIR/test344_ind_inz.rpgle" "run"
 run_test "345" "INZ(*ON) on a fixed-form indicator" "$TESTDIR/test345_fixed_ind_inz.rpgle" "run"
+run_test "346" "Timestamp plus or minus a duration" "$TESTDIR/test346_timestamp_duration.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be
