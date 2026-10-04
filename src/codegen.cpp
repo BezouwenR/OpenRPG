@@ -2154,9 +2154,21 @@ void CodeGen::visit(DclS& node) {
                 out_ << "double " << node.name << " = 0.0;\n";
             }
             break;
-        case RPGType::IND:
-            out_ << "bool " << node.name << " = false;\n";
+        // INZ(*ON) or INZ('1') starts an indicator on; it used to be
+        // ignored (#27). An indicator is the character '1' or '0'.
+        case RPGType::IND: {
+            std::string init = "false";
+            if (auto* sl = dynamic_cast<StringLiteral*>(node.inz_value.get())) {
+                if (sl->value != "1" && sl->value != "0")
+                    report_semantic_error(node.line, "INZ('" + sl->value + "') on indicator " + node.name +
+                        ": an indicator's value is '1' or '0' (*ON or *OFF)");
+                init = sl->value == "1" ? "true" : "false";
+            } else if (node.inz_value) {
+                init = "static_cast<bool>(" + emitInzValue(node) + ")";
+            }
+            out_ << (node.is_const ? "const bool " : "bool ") << node.name << " = " << init << ";\n";
             break;
+        }
         // INZ on a date, time or timestamp: a typed literal (INZ(D'...')), or
         // INZ(*SYS) for the moment the program starts. It was ignored.
         case RPGType::DATE:

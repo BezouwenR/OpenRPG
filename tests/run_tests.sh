@@ -945,6 +945,8 @@ run_test "340" "Calling a C program" "$TESTDIR/test340_call_c_program.rpgle" "ru
 run_test "341" "Integer sizes: INT(20), ranges of INT(3) to UNS(20)" "$TESTDIR/test341_int_sizes.rpgle" "run"
 run_test "342" "INT(20) host variables as BIGINT" "$TESTDIR/test342_sql_bigint.sqlrpgle" "run-sql"
 run_test "343" "Fixed-form 20I and 20U fields" "$TESTDIR/test343_fixed_int20.rpgle" "run"
+run_test "344" "INZ on an indicator" "$TESTDIR/test344_ind_inz.rpgle" "run"
+run_test "345" "INZ(*ON) on a fixed-form indicator" "$TESTDIR/test345_fixed_ind_inz.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be
