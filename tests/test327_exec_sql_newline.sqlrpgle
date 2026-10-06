@@ -1,5 +1,6 @@
 **FREE
-// The statement after EXEC SQL can start on the next line.
+// The statement after EXEC SQL can start on the next line, or after a
+// blank one. EXEC and SQL themselves share a line (test349).
 DCL-S connStr VARCHAR(200);
 DCL-S n INT(10);
 
@@ -12,8 +13,9 @@ EXEC SQL
   CREATE TABLE nl327 (id INTEGER);
 EXEC SQL
   INSERT INTO nl327 VALUES(1);
-EXEC
-  SQL INSERT INTO nl327 VALUES(2);
+EXEC SQL
+
+  INSERT INTO nl327 VALUES(2);
 EXEC SQL
   SELECT COUNT(*)
     INTO :n

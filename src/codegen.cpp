@@ -4381,7 +4381,7 @@ void CodeGen::visit(Identifier& node) {
             expr_ << "__sql_env.sqlerrmc()";
             return;
         }
-        if (node.name == "SQLERRML" || node.name == "SQLERML" || node.name == "SQLERL") {
+        if (node.name == "SQLERRML" || node.name == "SQLERL") {
             expr_ << "__sql_env.sqlerml()";
             return;
         }

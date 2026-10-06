@@ -53,7 +53,7 @@ public:
     // GET DIAGNOSTICS ... MESSAGE_TEXT, and SQLERRMC in the SQLCA.
     std::string message;
 
-    // SQLERRMC is CHAR(70) and SQLERML its length, as in the SQLCA.
+    // SQLERRMC is CHAR(70) and SQLERRML its length, as in the SQLCA.
     std::string sqlerrmc() const {
         std::string m = message.substr(0, 70);
         m.resize(70, ' ');

@@ -238,8 +238,18 @@ static void parse_ctlopt(const char* text) {
 
  /* EXEC SQL: switch to SQL mode and capture text until semicolon. The
     statement often starts on the next line, so a line break may follow
-    EXEC SQL as blanks do. */
-[Ee][Xx][Ee][Cc][ \t\r\n]+[Ss][Qq][Ll][ \t\r\n]+ {
+    EXEC SQL as blanks do -- but EXEC and SQL themselves share a line, as
+    IBM i requires (EXEC alone on a line is RNF7030 there). */
+[Ee][Xx][Ee][Cc][ \t]+[Ss][Qq][Ll][ \t\r\n]+ {
+    sql_buffer.clear();
+    BEGIN(SQL);
+}
+
+[Ee][Xx][Ee][Cc][ \t]*\r?\n[ \t\r\n]*[Ss][Qq][Ll][ \t\r\n]+ {
+    int exec_line = yylineno;
+    for (const char* c = yytext; *c; c++) if (*c == '\n') exec_line--;
+    report_semantic_error(exec_line, "EXEC and SQL must be on the same line: EXEC alone "
+        "is read as a name, which is not defined (IBM: RNF7030)");
     sql_buffer.clear();
     BEGIN(SQL);
 }

@@ -1,6 +1,6 @@
 **FREE
 // The error's message: GET DIAGNOSTICS CONDITION 1 ... = MESSAGE_TEXT,
-// and the SQLCA's SQLERRMC and SQLERML.
+// and the SQLCA's SQLERRMC and SQLERRML.
 DCL-S connStr VARCHAR(200);
 DCL-S msg VARCHAR(200);
 DCL-S msgLen INT(10);
@@ -29,7 +29,7 @@ EXEC SQL GET DIAGNOSTICS CONDITION 1 :diag.text = MESSAGE_TEXT;
 IF %SCAN('no_such_table' : diag.text) > 0;
   DSPLY 'into a subfield';
 ENDIF;
-IF %SCAN('no_such_table' : SQLERRMC) > 0 AND SQLERML = %LEN(%TRIMR(SQLERRMC));
+IF %SCAN('no_such_table' : SQLERRMC) > 0 AND SQLERRML = %LEN(%TRIMR(SQLERRMC));
   DSPLY 'SQLERRMC';
 ENDIF;
 
