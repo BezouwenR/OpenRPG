@@ -613,6 +613,20 @@ ORD
 
 ---
 
+### IN and NOT IN
+
+`x IN` tests whether a value is in a list, a range, an array or an enum:
+
+```rpgle
+IF code IN %LIST('A' : 'B' : 'C');
+IF qty IN %RANGE(1 : 99);
+IF code IN validCodes;          // an array, fixed or varying
+IF c IN color;                  // a DCL-ENUM's constants
+```
+
+`x NOT IN ...` is its negation, `NOT (x IN ...)`. `NOT IN` is an OpenRPG
+extension; IBM i has only `IN`.
+
 ## Control Flow
 
 ### IF / ELSEIF / ELSE

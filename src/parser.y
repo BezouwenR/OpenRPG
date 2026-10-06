@@ -2461,6 +2461,12 @@ comparison_expr:
             std::unique_ptr<rpg::Expression>($1),
             std::unique_ptr<rpg::Expression>($3));
     }
+    /* x NOT IN list, an OpenRPG extension: NOT (x IN list). */
+    | additive_expr KW_NOT KW_IN additive_expr {
+        $$ = new rpg::NotExpr(std::unique_ptr<rpg::Expression>(new rpg::InExpr(
+            std::unique_ptr<rpg::Expression>($1),
+            std::unique_ptr<rpg::Expression>($4))));
+    }
     ;
 
 additive_expr:

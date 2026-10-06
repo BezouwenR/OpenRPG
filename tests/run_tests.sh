@@ -961,6 +961,8 @@ run_test "356" "Reject an unclosed { in an interpolated string" "$TESTDIR/test35
 run_test "357" "Reject an empty {} in an interpolated string" "$TESTDIR/test357_err_fstring_empty.rpgle" "error"
 run_test "358" "A procedure inside a procedure" "$TESTDIR/test358_nested_proc.rpgle" "run"
 run_test "359" "Reject calling a nested procedure from outside" "$TESTDIR/test359_err_nested_proc_scope.rpgle" "error"
+run_test "360" "NOT IN" "$TESTDIR/test360_not_in.rpgle" "run"
+run_test "361" "IN an array" "$TESTDIR/test361_in_array.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

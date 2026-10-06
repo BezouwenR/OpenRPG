@@ -2737,8 +2737,10 @@ inline std::string rpg_all(const std::string& pattern, int len = 50) {
 #include <vector>
 
 // --- IN operator helpers ---
-template<typename T, typename... Args>
-inline bool rpg_in_list(const T& val, const std::vector<T>& list) {
+// x IN %LIST(...), an enum's constants, or an array: any collection, so an
+// array (a std::array, or a varying one) works as the list does.
+template<typename T, typename C>
+inline bool rpg_in_list(const T& val, const C& list) {
     for (const auto& item : list) {
         if (rpg_eq(val, item)) return true;
     }

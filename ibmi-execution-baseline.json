@@ -2002,6 +2002,19 @@
    "test": "35",
    "verified": "2026-09-26"
   },
+  "test361_in_array.rpgle": {
+   "error": "",
+   "output": [
+    "B in codes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+    "Z not in codes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ",
+    "20 in nums                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+    "30 not in nums                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           "
+   ],
+   "sha256": "d11c4b069f70566c6daa90a81b9a20185dbc29a9704354b2d067ac81e9dadd10",
+   "status": "same",
+   "test": "361",
+   "verified": "2026-10-06"
+  },
   "test36_ds_params.rpgle": {
    "error": "",
    "output": [
