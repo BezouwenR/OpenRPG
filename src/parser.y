@@ -497,7 +497,7 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %token BIF_PADDR BIF_PROC
 %token BIF_PASSED BIF_OMITTED
 %token BIF_BITAND BIF_BITNOT BIF_BITOR BIF_BITXOR
-%token BIF_SCANR BIF_EDITFLT BIF_UNSH BIF_PARMNUM BIF_GETENV BIF_XML
+%token BIF_SCANR BIF_EDITFLT BIF_UNSH BIF_PARMNUM BIF_GETENV BIF_FKEY BIF_XML
 %token BIF_DATA BIF_PARSER BIF_GEN
 %token KW_ALL
 %token KW_UNS KW_FLOAT_TYPE KW_BINDEC KW_UCS2 KW_GRAPH KW_OBJECT KW_JAVA
@@ -2854,6 +2854,8 @@ primary_expr:
     | BIF_FOUND  { $$ = make_bif("FOUND",  new std::vector<rpg::Expression*>()); }
     | BIF_EOF    { $$ = make_bif("EOF",    new std::vector<rpg::Expression*>()); }
     | BIF_PARMS  { $$ = make_bif("PARMS",  new std::vector<rpg::Expression*>()); }
+    | BIF_FKEY   { $$ = make_bif("FKEY",   new std::vector<rpg::Expression*>()); }
+    | BIF_FKEY LPAREN RPAREN { $$ = make_bif("FKEY", new std::vector<rpg::Expression*>()); }
     | BIF_STATUS LPAREN RPAREN {
         auto* empty = new std::vector<rpg::Expression*>();
         $$ = make_bif("STATUS", empty);

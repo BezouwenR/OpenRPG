@@ -3716,6 +3716,31 @@
    "verdict": "reject",
    "verified": "2026-10-06"
   },
+  "test353_err_fkey_no_workstn.rpgle": {
+   "codes": [
+    "RNF0604",
+    "RNF5358"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 5,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF5358",
+     "line": 5,
+     "severity": 30,
+     "text": "The EVAL operation is missing an expression."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 5: The token is not valid; token is ignored. \u2014 `k = %FKEY;`",
+   "sha256": "7a4c694e2bd9de5911eb028683638e8c90aa67e57033afeccd2a72e33fd20541",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
   "test35_evalcorr.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -4297,5 +4322,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T17:38:51+00:00"
+ "generated": "2026-10-06T17:45:51+00:00"
 }

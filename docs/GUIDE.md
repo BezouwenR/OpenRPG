@@ -2652,6 +2652,24 @@ Function keys defined in the display file set their indicators, so the program
 tests `*IN03`, `*IN12` and so on after the `EXFMT` returns. Only input, both and
 hidden fields are copied back — the program already knows what it sent out.
 
+`%FKEY` tells which function key ended the last `EXFMT` or `READ`: 1 to 24 for
+F1-F24, or 0 for Enter. It counts keys the display file does not declare as
+well, so a program can tell keys apart without an indicator for each:
+
+```rpgle
+EXFMT MAINMENU;
+SELECT;
+  WHEN %FKEY = 3;
+    *INLR = *ON;
+  WHEN %FKEY = 0;
+    // Enter
+ENDSL;
+```
+
+`%FKEY` is an OpenRPG extension — on IBM i the key comes from the file
+information data structure — and a program using it must declare a
+`WORKSTN` file.
+
 ### WRITE and READ
 
 `WRITE` renders a record format without waiting, and `READ` sends the current

@@ -4639,7 +4639,7 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
             "LOWER", "XLATE", "SCANRPL", "REPLACE", "EDITC", "EDITW", "STR", "EDITFLT", "__DSCHARS", "__INDCHARS"};
         static const std::set<std::string> num = {"INT", "INTH", "DEC", "DECH", "FLOAT", "UNS", "UNSH",
             "LEN", "SCAN", "SCANR", "CHECK", "CHECKR", "ELEM", "ABS", "DIV", "REM", "SIZE", "DIFF",
-            "SUBDT", "LOOKUP", "LOOKUPLT", "LOOKUPLE", "LOOKUPGT", "LOOKUPGE", "STATUS", "PARMS",
+            "SUBDT", "FKEY", "LOOKUP", "LOOKUPLT", "LOOKUPLE", "LOOKUPGT", "LOOKUPGE", "STATUS", "PARMS",
             "SQRT"};
         if (chr.count(bif->name)) return ArgCat::Char;
         if (num.count(bif->name)) return ArgCat::Numeric;
@@ -5765,6 +5765,13 @@ void CodeGen::visit(BIFCall& node) {
         } else {
             expr_ << "0 /* %PARMNUM: not in procedure */";
         }
+    } else if (node.name == "FKEY") {
+        // The function key that ended the last EXFMT or READ of a display
+        // file: 1-24 for F1-F24, 0 for Enter. An OpenRPG extension.
+        if (!uses_dspf_)
+            report_semantic_error(cur_stmt_line_, "%FKEY tells which function key ended the last "
+                "EXFMT or READ of a display file; this program declares no WORKSTN file");
+        expr_ << "dspf_fkey()";
     } else if (node.name == "GETENV") {
         expr_ << "rpg_getenv(";
         node.args[0]->accept(*this);

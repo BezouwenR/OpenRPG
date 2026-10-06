@@ -608,6 +608,7 @@ static void parse_ctlopt(const char* text) {
 "%MONTHS"           { return BIF_MONTHS; }
 "%YEARS"            { return BIF_YEARS; }
 "%GETENV"           { return BIF_GETENV; }
+"%FKEY"             { return BIF_FKEY; }
 "%XML"              { return BIF_XML; }
 "%DATA"             { return BIF_DATA; }
 "%PARSER"           { return BIF_PARSER; }
