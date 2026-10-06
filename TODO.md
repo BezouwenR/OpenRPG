@@ -1898,7 +1898,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 40 | ✅ `%FKEY` built-in function — done 2026-10-06 (test353, OpenDSPF test31) | `rpg_dspf_runtime.h` already decodes `KEY_F(1)`–`KEY_F(24)` into a function-key number; this is a BIF over state already tracked. |
 | 39 | ✅ Multiple definitions in one `DCL-S` — done 2026-10-06 (test354) | Grammar-only change. |
 | 37 | ✅ String interpolation, `f'...{expr}...'` — done 2026-10-06 (test355-357) | Lexer change + desugar to concatenation in codegen. No runtime work. |
-| 30 | Procedure inside a procedure | Subroutines already codegen as C++ lambdas — the mechanism exists. |
+| 30 | ✅ Procedure inside a procedure — done 2026-10-06 (test358-359) | Subroutines already codegen as C++ lambdas — the mechanism exists. |
 | 30 | A `NOT IN` operator | `IN` already ships (Test 58). |
 | 28 | Regular-expression BIFs | `std::regex` — the compiler already uses it (`sql_utils.cpp`); generated code would too. |
 | 27 | Relax the `%SUBST` "length exceeds data" error | Diagnostic policy, not new machinery. |

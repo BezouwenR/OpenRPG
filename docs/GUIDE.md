@@ -721,6 +721,38 @@ END-PROC;
 
 ---
 
+### Procedures Inside Procedures
+
+A `DCL-PROC` may sit inside another, after the outer one's code, as its
+subroutines do. The inner procedure sees the outer one's local variables and
+parameters, and can be called from anywhere in the outer one — its code, its
+subroutines, its other inner procedures — and by itself:
+
+```rpgle
+DCL-PROC report;
+  DCL-PI *N;
+    rate PACKED(5:2) VALUE;
+  END-PI;
+  DCL-S total PACKED(9:2);
+
+  add(100);
+  add(250);
+  DSPLY %CHAR(total);       // 350 plus tax at rate
+
+  DCL-PROC add;
+    DCL-PI *N;
+      amount PACKED(9:2) VALUE;
+    END-PI;
+    total += amount * (1 + rate / 100);
+  END-PROC;
+END-PROC;
+```
+
+It has its own `DCL-PI` and locals, and a local of the same name hides the outer
+one's. It can be called only from inside the procedure it is in; it cannot be
+`EXPORT`ed or take `*NOPASS` parameters. This is an OpenRPG extension: IBM i
+has no procedures inside procedures.
+
 ## Built-In Functions
 
 ### Interpolated Strings

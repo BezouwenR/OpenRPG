@@ -141,6 +141,8 @@ private:
     std::ostringstream expr_;
     int indent_ = 1;
     bool in_procedure_ = false;
+    int proc_depth_ = 0;   // > 1 inside a procedure nested in another
+    std::set<std::string> nested_proc_names_;   // every procedure inside another
     bool uses_indicators_ = false;
     int current_proc_parm_count_ = 0;
     bool has_nopass_params_ = false;

@@ -1,0 +1,6 @@
+outer 14
+inner local: inner
+outer
+sr sees 6
+140
+1000

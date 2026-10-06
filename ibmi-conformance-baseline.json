@@ -3879,6 +3879,76 @@
    "verdict": "reject",
    "verified": "2026-10-06"
   },
+  "test358_nested_proc.rpgle": {
+   "codes": [
+    "RNF1502",
+    "RNF1509",
+    "RNF7030",
+    "RNF7503"
+   ],
+   "messages": [
+    {
+     "code": "RNF1502",
+     "line": 11,
+     "severity": 20,
+     "text": "The Procedure specification ending the previous procedure is missing."
+    },
+    {
+     "code": "RNF1502",
+     "line": 51,
+     "severity": 20,
+     "text": "The Procedure specification ending the previous procedure is missing."
+    },
+    {
+     "code": "RNF7030",
+     "line": 55,
+     "severity": 30,
+     "text": "The name or indicator N is not defined."
+    },
+    {
+     "code": "RNF7503",
+     "line": 55,
+     "severity": 30,
+     "text": "Expression contains an operand that is not defined."
+    },
+    {
+     "code": "RNF1509",
+     "line": 63,
+     "severity": 30,
+     "text": "Procedure-End specification has no associated Procedure-Begin specification."
+    }
+   ],
+   "reason": "RNF1502: The Procedure specification ending the previous procedure is missing.",
+   "reason_detail": "line 11: The Procedure specification ending the previous procedure is missing. \u2014 `DCL-PROC outer;`",
+   "sha256": "09a9f7c7869eb0722d4d7d019c5807af622a6a865a5c51a9f50b923435dc2659",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test359_err_nested_proc_scope.rpgle": {
+   "codes": [
+    "RNF1502",
+    "RNF1509"
+   ],
+   "messages": [
+    {
+     "code": "RNF1502",
+     "line": 6,
+     "severity": 20,
+     "text": "The Procedure specification ending the previous procedure is missing."
+    },
+    {
+     "code": "RNF1509",
+     "line": 13,
+     "severity": 30,
+     "text": "Procedure-End specification has no associated Procedure-Begin specification."
+    }
+   ],
+   "reason": "RNF1502: The Procedure specification ending the previous procedure is missing.",
+   "reason_detail": "line 6: The Procedure specification ending the previous procedure is missing. \u2014 `DCL-PROC outer;`",
+   "sha256": "08d033d48f3ea35b7dc05ba69cebf57a83c9b08facab81bbc762f9cd8fe0fdc4",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
   "test35_evalcorr.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -4460,5 +4530,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T17:53:44+00:00"
+ "generated": "2026-10-06T18:00:43+00:00"
 }

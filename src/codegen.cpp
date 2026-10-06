@@ -921,9 +921,8 @@ void CodeGen::visit(Program& node) {
             flat_output_formats_[orf->fileName].push_back(orf);
             uses_flatfile_ = true;
         }
-        // Also check inside procedures
-        auto* proc = dynamic_cast<DclProc*>(stmt.get());
-        if (proc) {
+        // Also check inside procedures, and procedures inside those
+        std::function<void(DclProc*)> scanProc = [&](DclProc* proc) {
             for (auto& s : proc->body) {
                 if (dynamic_cast<ExecSqlStmt*>(s.get())) uses_sql_ = true;
                 if (dynamic_cast<XmlIntoStmt*>(s.get())) uses_xml_ = true;
@@ -933,8 +932,10 @@ void CodeGen::visit(Program& node) {
                 if (auto* dg = dynamic_cast<DataGenStmt*>(s.get())) {
                     if (isCsvParser(dg->parser.get())) uses_csv_ = true; else uses_json_ = true;
                 }
+                if (auto* inner = dynamic_cast<DclProc*>(s.get())) scanProc(inner);
             }
-        }
+        };
+        if (auto* proc = dynamic_cast<DclProc*>(stmt.get())) scanProc(proc);
     }
     if (uses_rla_) {
         // Only activate RLA if at least one file has a schema in ext_file_descs_
@@ -1039,6 +1040,14 @@ void CodeGen::visit(Program& node) {
             if (!pr->overload_impls.empty()) overloads_[pr->name] = pr->overload_impls;
         } else if (auto* proc = dynamic_cast<DclProc*>(s)) {
             proc_sigs_[proc->name] = proc->interface;
+            std::function<void(DclProc*)> collect = [&](DclProc* outer) {
+                for (auto& st : outer->body)
+                    if (auto* inner = dynamic_cast<DclProc*>(st.get())) {
+                        nested_proc_names_.insert(inner->name);
+                        collect(inner);
+                    }
+            };
+            collect(proc);
         }
     }
 
@@ -1493,8 +1502,44 @@ void CodeGen::visit(DclProc& node) {
 
     std::string ret = node.interface.has_return
         ? typeToString(node.interface.return_type, 0, node.interface.return_digits) : "void";
+
+    // A procedure inside a procedure (an OpenRPG extension) is a lambda in
+    // its parent, assigned to a std::function the parent declared with its
+    // subroutines, so it sees the parent's locals and parameters, can be
+    // called anywhere in the parent, and can call itself. Everything this
+    // visit sets for the procedure it emits is the parent's again after.
+    bool nested = proc_depth_ > 0;
+    struct Saved {
+        bool in_procedure, void_return, has_nopass;
+        int parm_count, indent;
+        std::string proc_name;
+        FieldAttrs ret_attrs;
+        std::set<std::string> const_params;
+    } parent{in_procedure_, void_return_, has_nopass_params_, current_proc_parm_count_, indent_,
+             current_proc_name_, current_return_attrs_, const_params_};
+    int base = nested ? indent_ : 0;
+    if (nested) {
+        if (has_nopass)
+            report_semantic_error(node.line, "Procedure " + node.name + " is inside procedure " +
+                current_proc_name_ + ", so it cannot have *NOPASS parameters");
+        if (node.is_export)
+            report_semantic_error(node.line, "Procedure " + node.name + " is inside procedure " +
+                current_proc_name_ + ", so it cannot be EXPORTed");
+        has_nopass = false;
+    }
+    proc_depth_++;
+    // The parent's own nested procedures are callable throughout it.
+    auto saved_sigs = proc_sigs_;
+    for (auto& s : node.body)
+        if (auto* inner = dynamic_cast<DclProc*>(s.get())) proc_sigs_[inner->name] = inner->interface;
+
     void_return_ = !node.interface.has_return;
-    out_ << ret << " " << node.name << "(";
+    if (nested) {
+        emitIndent();
+        out_ << node.name << " = [&](";
+    } else {
+        out_ << ret << " " << node.name << "(";
+    }
     for (size_t i = 0; i < node.interface.params.size(); i++) {
         if (i > 0) out_ << ", ";
         out_ << paramTypeToString(node.interface.params[i])
@@ -1504,9 +1549,10 @@ void CodeGen::visit(DclProc& node) {
     if (has_nopass) {
         out_ << ", int _rpg_parms";
     }
-    out_ << ") {\n";
-    indent_ = 1;
+    out_ << (nested ? ") -> " + ret + " {\n" : ") {\n");
+    indent_ = base + 1;
     in_procedure_ = true;
+    const_params_.clear();
     // A procedure's own declarations are local to it. The attribute tables
     // are flat maps keyed by name, so without this a local that shares a
     // global's name replaced the global's entry for the rest of the
@@ -1561,8 +1607,8 @@ void CodeGen::visit(DclProc& node) {
     // "called program or procedure failed" (IBM i; test239, test310). Fitting
     // the arguments above is part of the call, so an error there keeps its
     // own status (103 for a VALUE parameter too small: test239).
-    out_ << "    try {\n";
-    indent_ = 2;
+    emitIndent(); out_ << "try {\n";
+    indent_ = base + 2;
     if (std::any_of(node.body.begin(), node.body.end(),
                     [](const std::unique_ptr<Statement>& s) { return dynamic_cast<BegSR*>(s.get()); })) {
         emitIndent(); out_ << "bool __sr_ret = false;\n";
@@ -1599,15 +1645,36 @@ void CodeGen::visit(DclProc& node) {
     std::vector<Statement*> proc_srs;
     for (auto& s : node.body)
         if (dynamic_cast<BegSR*>(s.get()) && s.get() != proc_pssr_stmt) proc_srs.push_back(s.get());
+    // Its nested procedures go the same way, declared before either is
+    // defined so each can call the other.
+    std::vector<DclProc*> inner_procs;
+    for (auto& s : node.body)
+        if (auto* inner = dynamic_cast<DclProc*>(s.get())) inner_procs.push_back(inner);
     auto emitProcSubroutines = [&]() {
-        if (proc_srs.empty()) return;
-        emitIndent(); out_ << "std::function<void()> ";
-        for (size_t i = 0; i < proc_srs.size(); i++)
-            out_ << (i ? ", " : "") << "sr_" << sanitizeSRName(static_cast<BegSR*>(proc_srs[i])->name);
-        out_ << ";\n";
-        sr_predeclared_ = true;
-        for (auto* s : proc_srs) { emitLineDirective(s->line); s->accept(*this); }
-        sr_predeclared_ = false;
+        for (auto* ip : inner_procs) {
+            std::string iret = ip->interface.has_return
+                ? typeToString(ip->interface.return_type, 0, ip->interface.return_digits) : "void";
+            emitIndent(); out_ << "std::function<" << iret << "(";
+            for (size_t i = 0; i < ip->interface.params.size(); i++)
+                out_ << (i ? ", " : "") << paramTypeToString(ip->interface.params[i]);
+            out_ << ")> " << ip->name << ";\n";
+        }
+        if (!proc_srs.empty()) {
+            emitIndent(); out_ << "std::function<void()> ";
+            for (size_t i = 0; i < proc_srs.size(); i++)
+                out_ << (i ? ", " : "") << "sr_" << sanitizeSRName(static_cast<BegSR*>(proc_srs[i])->name);
+            out_ << ";\n";
+            sr_predeclared_ = true;
+            for (auto* s : proc_srs) { emitLineDirective(s->line); s->accept(*this); }
+            sr_predeclared_ = false;
+        }
+        for (auto* ip : inner_procs) { emitLineDirective(ip->line); ip->accept(*this); }
+    };
+    // Statements emitted in order: not declarations, subroutines, or nested
+    // procedures, which all go first.
+    auto isBodyStmt = [](Statement* s) {
+        return !dynamic_cast<DclS*>(s) && !dynamic_cast<DclC*>(s) && !dynamic_cast<DclDS*>(s) &&
+               !dynamic_cast<BegSR*>(s) && !dynamic_cast<DclProc*>(s);
     };
 
     if (!node.on_exit_body.empty()) {
@@ -1633,7 +1700,7 @@ void CodeGen::visit(DclProc& node) {
             emitIndent(); out_ << "try {\n"; indent_++;
         }
         for (auto& s : node.body) {
-            if (!dynamic_cast<DclS*>(s.get()) && !dynamic_cast<DclC*>(s.get()) && !dynamic_cast<DclDS*>(s.get()) && !dynamic_cast<BegSR*>(s.get())) {
+            if (isBodyStmt(s.get())) {
                 s->accept(*this);
             }
         }
@@ -1660,7 +1727,7 @@ void CodeGen::visit(DclProc& node) {
             proc_pssr_stmt->accept(*this);
             emitIndent(); out_ << "try {\n"; indent_++;
             for (auto& s : node.body) {
-                if (!dynamic_cast<DclS*>(s.get()) && !dynamic_cast<DclC*>(s.get()) && !dynamic_cast<DclDS*>(s.get()) && !dynamic_cast<BegSR*>(s.get())) {
+                if (isBodyStmt(s.get())) {
                     s->accept(*this);
                 }
             }
@@ -1672,7 +1739,7 @@ void CodeGen::visit(DclProc& node) {
             emitIndent(); out_ << (void_return_ ? "if (__sr_ret) return;\n" : "if (__sr_ret) return __sr_val;\n");
             emitIndent(); out_ << "throw;\n";
             indent_--; emitIndent(); out_ << "}\n";
-        } else if (proc_srs.empty()) {
+        } else if (proc_srs.empty() && inner_procs.empty()) {
             emitStatements(node.body);
         } else {
             for (auto& s : node.body)
@@ -1682,8 +1749,7 @@ void CodeGen::visit(DclProc& node) {
                 }
             emitProcSubroutines();
             for (auto& s : node.body)
-                if (!dynamic_cast<DclS*>(s.get()) && !dynamic_cast<DclC*>(s.get()) &&
-                    !dynamic_cast<DclDS*>(s.get()) && !dynamic_cast<BegSR*>(s.get())) {
+                if (isBodyStmt(s.get())) {
                     emitLineDirective(s->line);
                     s->accept(*this);
                 }
@@ -1700,13 +1766,21 @@ void CodeGen::visit(DclProc& node) {
     unqualified_subfields_ = std::move(saved_unqual);
     likeds_params_ = std::move(saved_likeds_params);
     proc_params_ = std::move(saved_proc_params);
-    current_proc_parm_count_ = 0;
-    has_nopass_params_ = false;
-    current_proc_name_.clear();
-    void_return_ = false;
-    out_ << "    } catch (const RpgCallerEscape& __e) { rpg_escape_arrives(__e); }\n";
-    out_ << "      catch (const RpgError& __e) { rpg_procedure_failed(__e); }\n";
-    out_ << "}\n";
+    indent_ = base + 1;
+    emitIndent(); out_ << "} catch (const RpgCallerEscape& __e) { rpg_escape_arrives(__e); }\n";
+    emitIndent(); out_ << "  catch (const RpgError& __e) { rpg_procedure_failed(__e); }\n";
+    indent_ = base;
+    emitIndent(); out_ << (nested ? "};\n" : "}\n");
+    proc_depth_--;
+    proc_sigs_ = std::move(saved_sigs);
+    in_procedure_ = parent.in_procedure;
+    void_return_ = parent.void_return;
+    has_nopass_params_ = parent.has_nopass;
+    current_proc_parm_count_ = parent.parm_count;
+    current_proc_name_ = parent.proc_name;
+    current_return_attrs_ = parent.ret_attrs;
+    const_params_ = parent.const_params;
+    indent_ = parent.indent;
 }
 
 void CodeGen::visit(ExprStmt& node) {
@@ -4960,6 +5034,9 @@ void CodeGen::visit(FuncCall& node) {
     }
     // An overloaded name calls the one candidate the arguments fit.
     const std::string target = overloads_.count(node.name) ? resolveOverload(node) : node.name;
+    if (nested_proc_names_.count(node.name) && !proc_sigs_.count(node.name))
+        report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_, "Procedure " + node.name +
+            " is inside another procedure, and can be called only from inside that one");
     if (!overloads_.count(node.name)) {
         auto sig = proc_sigs_.find(target);
         if (sig != proc_sigs_.end())
