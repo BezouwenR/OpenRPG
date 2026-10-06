@@ -1,5 +1,11 @@
 {
  "files": {
+  "ADDONE.rpgle": {
+   "codes": [],
+   "sha256": "fed3842fbbae69922b16fb50b09ecd4d4da297ffb2705aaabc08383bc3e5424d",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
   "ADDTWO.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -13,6 +19,18 @@
    "sha256": "4055a6e736b924d355f47397847c9ede7090d7085a68a968e78801e22c9c0ec5",
    "verdict": "accept",
    "verified": "2026-09-25"
+  },
+  "PGMFAIL.rpgle": {
+   "codes": [],
+   "sha256": "28c91ffac468eecc306eb40994b76201803347e1becbe3c9c737aacd5946fc49",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "PGMTYPES.rpgle": {
+   "codes": [],
+   "sha256": "9cfc2ffabae909ee717b17b76faaac13f585d1529fa0160e7cdb2a1c7c1b6323",
+   "verdict": "accept",
+   "verified": "2026-10-06"
   },
   "test01_hello.rpgle": {
    "codes": [],
@@ -1085,13 +1103,6 @@
    "verdict": "reject",
    "verified": "2026-09-25"
   },
-  "test174_call_callee_module.rpgle": {
-   "codes": [],
-   "rpgc": "accept",
-   "sha256": "6d7d65a572a02d0ac93a46756d92d6ceef738941d080ebf1611296b33af097b2",
-   "verdict": "accept",
-   "verified": "2026-09-25"
-  },
   "test175_fixed_cspec_call_parm.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -1118,12 +1129,11 @@
    "verdict": "reject",
    "verified": "2026-09-25"
   },
-  "test177_fixed_cspec_err_call_dynamic.rpgle": {
+  "test177_fixed_cspec_call_var.rpgle": {
    "codes": [],
-   "rpgc": "reject",
-   "sha256": "088d02fc47f0d59c513743f65fc81b76291c574d61bd098e02f38f380f3edeef",
+   "sha256": "7b2d89f51efe4848c66510ab15fec8b748fc089b3b9a02143e12df7a8c02b284",
    "verdict": "accept",
-   "verified": "2026-09-25"
+   "verified": "2026-10-06"
   },
   "test178_fixed_cspec_err_parm_orphan.rpgle": {
    "codes": [
@@ -3260,12 +3270,163 @@
    "verdict": "accept",
    "verified": "2026-09-29"
   },
+  "test315_ds_position_overlap.rpgle": {
+   "codes": [],
+   "sha256": "b80d0fdcaff53addd3bcf9973de0477d309989abfb455ca411d33b87f580bbb4",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test316_test_subfield.rpgle": {
+   "codes": [],
+   "sha256": "2d260aad79b62ad12fec6989a7cd9c497b7bfa64a9f57faa8cabadd61d6df1fb",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test317_numeric_bif_char.rpgle": {
+   "codes": [],
+   "sha256": "f69287dc5f9c985aeb93d1b2385a68f3d6c29ae68ee8a0940372f64f3a974680",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test318_fixed_inz_sys.rpgle": {
+   "codes": [],
+   "sha256": "ed7c2388bb469016675c328e806784ea46cb48c1cfd61072339700f7207c7936",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test319_begsr_in_proc.rpgle": {
+   "codes": [],
+   "sha256": "9ca563d85522c154fd07fda96205365c4c3d2819ebcd784816a238844eeea557",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
   "test31_lookup_sorta.rpgle": {
    "codes": [],
    "rpgc": "accept",
    "sha256": "31f06f993dbc233f2761378f3d6694c65b34086f517bf9bcbb3879b0222cfa29",
    "verdict": "accept",
    "verified": "2026-09-25"
+  },
+  "test320_ds_as_char.rpgle": {
+   "codes": [],
+   "sha256": "b98a9b036193a7920d05be41c56251ed3f45b68c2d0bd3e017a2c9bfa3004244",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test321_ds_unnamed.rpgle": {
+   "codes": [],
+   "sha256": "f0f744d263f0cd8c1b89c1d29d52f965c614bbdbe7f0914c3c30aec87e7aa438",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test322_fixed_ds_unnamed.rpgle": {
+   "codes": [],
+   "sha256": "1c00cbee008f0bf5fe84b9e3fbdfc3ad0715c2cae46effb8324e1a9d7c7cdc4b",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test323_likeds_overlay.rpgle": {
+   "codes": [],
+   "sha256": "504ccc16385c20387021096d4860f253aa4ce53e7b56061f95cc4a140060d2cd",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test324_err_proto_mismatch.rpgle": {
+   "codes": [
+    "RNF7535"
+   ],
+   "messages": [
+    {
+     "code": "RNF7535",
+     "line": 8,
+     "severity": 30,
+     "text": "The type and attributes of parameter 1 do not match those of the prototype."
+    }
+   ],
+   "reason": "RNF7535: The type and attributes of parameter n do not match those of the prototype.",
+   "reason_detail": "line 8: The type and attributes of parameter 1 do not match those of the prototype. \u2014 `p(s);`",
+   "sha256": "f07f071f3427ced4d2e8c64680ad1c1201bdc5b22fac8b8c7038eefe56ab0ff0",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test325_err_const_likeds.rpgle": {
+   "codes": [
+    "RNF5346"
+   ],
+   "messages": [
+    {
+     "code": "RNF5346",
+     "line": 18,
+     "severity": 30,
+     "text": "The operation modifies the field, but the field cannot be modified."
+    }
+   ],
+   "reason": "RNF5346: The operation modifies the field, but the field cannot be modified.",
+   "reason_detail": "line 18: The operation modifies the field, but the field cannot be modified. \u2014 `parm.n = 5;`",
+   "sha256": "19d8e4b03be9fdb86ec74ec4b1fa9394707db2daac6cd02ff5c61ad3123162d0",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test326_err_byref_size.rpgle": {
+   "codes": [
+    "RNF7535"
+   ],
+   "messages": [
+    {
+     "code": "RNF7535",
+     "line": 8,
+     "severity": 30,
+     "text": "The type and attributes of parameter 1 do not match those of the prototype."
+    }
+   ],
+   "reason": "RNF7535: The type and attributes of parameter n do not match those of the prototype.",
+   "reason_detail": "line 8: The type and attributes of parameter 1 do not match those of the prototype. \u2014 `p(small);`",
+   "sha256": "ced426e72f4c885a52301896b2cbf9d97741e988066e7708e6ee8bc4fe6e6f77",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test327_exec_sql_newline.sqlrpgle": {
+   "codes": [
+    "RNF5347",
+    "RNF7030"
+   ],
+   "messages": [
+    {
+     "code": "RNF7030",
+     "line": 100,
+     "severity": 30,
+     "text": "The name or indicator EXEC is not defined."
+    },
+    {
+     "code": "RNF5347",
+     "line": 101,
+     "severity": 30,
+     "text": "An assignment operator is expected with the EVAL operation."
+    },
+    {
+     "code": "RNF7030",
+     "line": 101,
+     "severity": 30,
+     "text": "The name or indicator SQL is not defined."
+    }
+   ],
+   "reason": "RNF5347: An assignment operator is expected with the EVAL operation.",
+   "reason_detail": "line 101: An assignment operator is expected with the EVAL operation. \u2014 ``",
+   "sha256": "b81b0552b60f66a61fd39f44dfcef39d49ba317d4a92b2b7c7e5bb42e1f0dfa0",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test328_sql_subfield_hostvar.sqlrpgle": {
+   "codes": [],
+   "sha256": "0862756892446450c18cbcd57e5ffd8ce9cd65d83adfee7efdfe01a8093b33b4",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test329_sql_commit_rollback.sqlrpgle": {
+   "codes": [],
+   "sha256": "59a632edc560213216cd174364b86629b2ad1dd5bb9501d353202d41bee1cf5d",
+   "verdict": "accept",
+   "verified": "2026-10-06"
   },
   "test32_editc_editw.rpgle": {
    "codes": [],
@@ -3274,12 +3435,175 @@
    "verdict": "accept",
    "verified": "2026-09-25"
   },
+  "test330_sql_commit_none.sqlrpgle": {
+   "codes": [],
+   "sha256": "686cd78c96881edbb5394dca967f55c94f6e083b79df61dce068480c98073dba",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test331_sql_null_no_indicator.sqlrpgle": {
+   "codes": [],
+   "sha256": "e7e4b47d4784ed47ae114e2456274ec5eb9ea9cee33fd6b3e4e07ee9def3bc03",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test332_extfile_usropn.rpgle": {
+   "codes": [
+    "RNF0652"
+   ],
+   "messages": [
+    {
+     "code": "RNF0652",
+     "line": 5,
+     "severity": 20,
+     "text": "Library or file name exceeds 10 characters."
+    }
+   ],
+   "reason": "RNF0652: Library or file name exceeds n characters.",
+   "reason_detail": "line 5: Library or file name exceeds 10 characters. \u2014 `FOUTF      O    F   20        DISK    EXTFILE('testfl332.txt') USROPN`",
+   "sha256": "33062229a2b8f48ccfb867fdadb59b0a6faaed64879da73a337c08649a7c9754",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test333_rla_usropn.rpgle": {
+   "codes": [],
+   "sha256": "1c5170477d909b4d95b1583e787b15e2d38156a61bc6c7b689d9aba6dfc1e90e",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test334_free_dclf_disk_len.rpgle": {
+   "codes": [
+    "RNF0652"
+   ],
+   "messages": [
+    {
+     "code": "RNF0652",
+     "line": 5,
+     "severity": 20,
+     "text": "Library or file name exceeds 10 characters."
+    },
+    {
+     "code": "RNF0652",
+     "line": 6,
+     "severity": 20,
+     "text": "Library or file name exceeds 10 characters."
+    }
+   ],
+   "reason": "RNF0652: Library or file name exceeds n characters.",
+   "reason_detail": "line 5: Library or file name exceeds 10 characters. \u2014 `DCL-F OUTF DISK(20) USAGE(*OUTPUT) EXTFILE('testfl334.txt') USROPN;`",
+   "sha256": "d0a207151ce869597664dd1c149ce1553c7896841d456ac45291bf0ef1a5f4f3",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test335_sql_message_text.sqlrpgle": {
+   "codes": [
+    "RNF7030",
+    "RNF7503"
+   ],
+   "messages": [
+    {
+     "code": "RNF7030",
+     "line": 158,
+     "severity": 30,
+     "text": "The name or indicator SQLERML is not defined."
+    },
+    {
+     "code": "RNF7503",
+     "line": 158,
+     "severity": 30,
+     "text": "Expression contains an operand that is not defined."
+    }
+   ],
+   "reason": "Undefined name, cause not reported by IBM (RNF7030)",
+   "reason_detail": "line 158: The name or indicator SQLERML is not defined.",
+   "sha256": "95a48303aea33445fdfdff3db818ba9bbd0253275f6238abb543498ee8c206f2",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test336_exit_status.rpgle": {
+   "codes": [],
+   "sha256": "d745382526aa461461ac78ad7fb72ebfc0e85a78f0164658bce42a3455001ac0",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test337_exit_status_set.rpgle": {
+   "codes": [],
+   "sha256": "b36b27f83f97f96bf1930ee3a02acf27b80583198e3db7c8d87e0c32adb6bf03",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test338_extpgm_types.rpgle": {
+   "codes": [],
+   "sha256": "af20de42042f048cf1becb50f88b060180686a6c1d63b55e310ee8dfa3dd908e",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test339_call_errors.rpgle": {
+   "codes": [],
+   "sha256": "49a616d31e19331f21915e0809b9f11b4b491b992714a0bc6708f668ae2ee981",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
   "test33_replace.rpgle": {
    "codes": [],
    "rpgc": "accept",
    "sha256": "f877fa3930a5dfc560847ce49c59e27b8c69c37bcb6c55155707f1bc25bf2ae6",
    "verdict": "accept",
    "verified": "2026-09-29"
+  },
+  "test340_call_c_program.rpgle": {
+   "codes": [],
+   "sha256": "56732642c092a41e1bff65d95c636b00a5f3a80334f255fade66bce47a6a9bb1",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test341_int_sizes.rpgle": {
+   "codes": [],
+   "sha256": "4a235b7d9869e14a867129982bd84c9187f9e553b4e4d3c8a02463273ac5b043",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test342_sql_bigint.sqlrpgle": {
+   "codes": [],
+   "sha256": "a35093cb32fe0ac47ade62db6cf811aadbbdf225cd78e2d64c9bf291caee00a4",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test343_fixed_int20.rpgle": {
+   "codes": [],
+   "sha256": "e2d2b640a5b98982b7ae06dfdf30472ba64c8dd794496aaa8a9d0d5f30eff00c",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test344_ind_inz.rpgle": {
+   "codes": [],
+   "sha256": "e93de3f1fabd45a258cd94f8869cd28d9cd99808c5041a2befb9f6f629888c01",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test345_fixed_ind_inz.rpgle": {
+   "codes": [],
+   "sha256": "28b343bc8fcb455af49af4b3355d2fcbfd930ecdafe50d1ff9117541d316a53f",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test346_timestamp_duration.rpgle": {
+   "codes": [],
+   "sha256": "5829a2bbf64bfe9ada75bd7519e7a172d9137c42b519167b955fe6be6232b9b1",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test347_ind_as_char.rpgle": {
+   "codes": [],
+   "sha256": "4641b3e41d42e00a19a7e7fe87ebc555259928ef9577f79e75313d58a85d068e",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test348_date_month_end.rpgle": {
+   "codes": [],
+   "sha256": "35297941f0d376088de45b02a42bcc5814eca87052e12de08b306ea9e1ff955e",
+   "verdict": "accept",
+   "verified": "2026-10-06"
   },
   "test34_check.rpgle": {
    "codes": [],
@@ -3869,5 +4193,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-09-29T15:40:47+00:00"
+ "generated": "2026-10-06T16:18:24+00:00"
 }
