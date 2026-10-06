@@ -2048,6 +2048,19 @@
    "test": "374",
    "verified": "2026-10-06"
   },
+  "test378_local_hides_global.rpgle": {
+   "error": "",
+   "output": [
+    "99                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ",
+    "local                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ",
+    "Ada                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      "
+   ],
+   "sha256": "9f670fe7d24f31b8ee7d640904ed710d6a8933aa314f9cd3b53f721907db8252",
+   "status": "same",
+   "test": "378",
+   "verified": "2026-10-06"
+  },
   "test37_inzsr.rpgle": {
    "error": "",
    "output": [

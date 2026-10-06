@@ -4458,6 +4458,73 @@
    "verdict": "accept",
    "verified": "2026-10-06"
   },
+  "test375_err_dup_dcl_s.rpgle": {
+   "codes": [
+    "RNF3316"
+   ],
+   "messages": [
+    {
+     "code": "RNF3316",
+     "line": 4,
+     "severity": 30,
+     "text": "The item has already been defined on a Definition Specification; specification is ignored."
+    }
+   ],
+   "reason": "RNF3316: The item has already been defined on a Definition Specification; specification is ignored.",
+   "reason_detail": "line 4: The item has already been defined on a Definition Specification; specification is ignored. \u2014 `DCL-S b CHAR(1);`",
+   "sha256": "67e14e7831f684e65c8f99c8d393053d9d3956243d04a2425be404a4979710f7",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test376_err_dup_param_local.rpgle": {
+   "codes": [
+    "RNF3316"
+   ],
+   "messages": [
+    {
+     "code": "RNF3316",
+     "line": 11,
+     "severity": 30,
+     "text": "The item has already been defined on a Definition Specification; specification is ignored."
+    }
+   ],
+   "reason": "RNF3316: The item has already been defined on a Definition Specification; specification is ignored.",
+   "reason_detail": "line 11: The item has already been defined on a Definition Specification; specification is ignored. \u2014 `DCL-S n CHAR(5);`",
+   "sha256": "7657ac694bb3efdb821fe7def1244c6b6991af984a5b423e51ca97f8b4d6c425",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test377_err_undefined_proc.rpgle": {
+   "codes": [
+    "RNF7030",
+    "RNF7503"
+   ],
+   "messages": [
+    {
+     "code": "RNF7030",
+     "line": 4,
+     "severity": 30,
+     "text": "The name or indicator NOSUCH is not defined."
+    },
+    {
+     "code": "RNF7503",
+     "line": 4,
+     "severity": 30,
+     "text": "Expression contains an operand that is not defined."
+    }
+   ],
+   "reason": "Undefined name, cause not reported by IBM (RNF7030)",
+   "reason_detail": "line 4: The name or indicator NOSUCH is not defined.",
+   "sha256": "7bde45b099241073094ae7693c4baa4df420779a11c91a8a62f8bb81955292d3",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test378_local_hides_global.rpgle": {
+   "codes": [],
+   "sha256": "9f670fe7d24f31b8ee7d640904ed710d6a8933aa314f9cd3b53f721907db8252",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
   "test37_inzsr.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -5025,5 +5092,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T18:30:00+00:00"
+ "generated": "2026-10-06T19:10:44+00:00"
 }

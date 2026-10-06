@@ -845,6 +845,36 @@ static bool isDeclaration(const Statement* s) {
            dynamic_cast<const DclF*>(s) || dynamic_cast<const DclEnum*>(s);
 }
 
+// A name declared twice in one scope -- two DCL-S, a DCL-S and a DCL-C, a
+// field and an unqualified data structure's subfield, or a procedure's
+// local and one of its parameters. The C++ compiler used to be the one to
+// object. A procedure's local may share a global's name: it hides it.
+static void checkDuplicateNames(const std::vector<std::unique_ptr<Statement>>& stmts,
+                                const std::vector<ParamDecl>* params, const std::string& scope) {
+    std::map<std::string, int> seen;   // name -> line first declared (0: a parameter)
+    auto declare = [&](const std::string& name, int line) {
+        if (name.empty() || name == "*N") return;
+        auto it = seen.find(name);
+        if (it == seen.end()) { seen[name] = line; return; }
+        report_semantic_error(line, "The name " + name + " is already defined in " + scope +
+            (it->second > 0 ? " (line " + std::to_string(it->second) + ")"
+                            : std::string(" as a parameter")) +
+            "; a name is declared once (IBM: RNF3316)");
+    };
+    if (params)
+        for (const auto& p : *params) declare(p.name, 0);
+    for (const auto& up : stmts) {
+        const Statement* s = up.get();
+        if (auto* d = dynamic_cast<const DclS*>(s)) declare(d->name, d->line);
+        else if (auto* c = dynamic_cast<const DclC*>(s)) declare(c->name, c->line);
+        else if (auto* ds = dynamic_cast<const DclDS*>(s)) {
+            declare(ds->name, ds->line);
+            if (!ds->qualified)
+                for (const auto& f : ds->fields) declare(f.name, f.line > 0 ? f.line : ds->line);
+        }
+    }
+}
+
 static void checkDeclarationOrder(const std::vector<std::unique_ptr<Statement>>& stmts,
                                   const std::string& scope) {
     int firstCalc = 0;
@@ -894,6 +924,7 @@ void CodeGen::visit(Program& node) {
     debug_dump_ = node.debug_dump;
     nolenchk_ = node.nolenchk;
     checkDeclarationOrder(node.statements, "the main procedure");
+    checkDuplicateNames(node.statements, nullptr, "the main source section");
     checkSubroutinesLast(node.statements, "the main procedure");
     // Store date/time format settings
     datfmt_ = node.datfmt;
@@ -1504,6 +1535,7 @@ void CodeGen::visit(DclPR& node) {
 void CodeGen::visit(DclProc& node) {
     checkParamOptions(node.interface.params, node.name);
     checkDeclarationOrder(node.body, "procedure " + node.name);
+    checkDuplicateNames(node.body, &node.interface.params, "procedure " + node.name);
     checkSubroutinesLast(node.body, "procedure " + node.name);
     bool has_nopass = std::any_of(node.interface.params.begin(), node.interface.params.end(),
                                   [](const ParamDecl& p) { return p.nopass; });
@@ -5045,6 +5077,13 @@ void CodeGen::visit(FuncCall& node) {
     if (nested_proc_names_.count(node.name) && !proc_sigs_.count(node.name))
         report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_, "Procedure " + node.name +
             " is inside another procedure, and can be called only from inside that one");
+    else if (!overloads_.count(node.name) && !proc_sigs_.count(target) &&
+             !pgm_protos_.count(node.name) && !extproc_map_.count(target) &&
+             !ds_defs_.count(node.name) && !var_types_.count(node.name))
+        // Neither a procedure (DCL-PROC or DCL-PR) nor an array: the C++
+        // compiler used to be the one to say so.
+        report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_, "The name " + node.name +
+            " is not defined: no procedure or prototype of that name, and no array (IBM: RNF7030)");
     if (!overloads_.count(node.name)) {
         auto sig = proc_sigs_.find(target);
         if (sig != proc_sigs_.end())

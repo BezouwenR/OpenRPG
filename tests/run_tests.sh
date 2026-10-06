@@ -976,6 +976,10 @@ run_test "371" "Reject an incomplete /IF condition" "$TESTDIR/test371_err_if_dir
 run_test "372" "*TRUE and *FALSE" "$TESTDIR/test372_true_false.rpgle" "run"
 run_test "373" "*TRUE and *FALSE, fixed-format" "$TESTDIR/test373_fixed_true_false.rpgle" "run"
 run_test "374" "A procedure returning an indicator" "$TESTDIR/test374_proc_return_ind.rpgle" "run"
+run_test "375" "Reject a name declared twice" "$TESTDIR/test375_err_dup_dcl_s.rpgle" "error"
+run_test "376" "Reject a local named as a parameter" "$TESTDIR/test376_err_dup_param_local.rpgle" "error"
+run_test "377" "Reject a call to an undefined procedure" "$TESTDIR/test377_err_undefined_proc.rpgle" "error"
+run_test "378" "A local hides a global of the same name" "$TESTDIR/test378_local_hides_global.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be
