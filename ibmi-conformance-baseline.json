@@ -4472,6 +4472,7 @@
    ],
    "reason": "RNF3316: The item has already been defined on a Definition Specification; specification is ignored.",
    "reason_detail": "line 4: The item has already been defined on a Definition Specification; specification is ignored. \u2014 `DCL-S b CHAR(1);`",
+   "rpgc": "reject",
    "sha256": "67e14e7831f684e65c8f99c8d393053d9d3956243d04a2425be404a4979710f7",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4490,6 +4491,7 @@
    ],
    "reason": "RNF3316: The item has already been defined on a Definition Specification; specification is ignored.",
    "reason_detail": "line 11: The item has already been defined on a Definition Specification; specification is ignored. \u2014 `DCL-S n CHAR(5);`",
+   "rpgc": "reject",
    "sha256": "7657ac694bb3efdb821fe7def1244c6b6991af984a5b423e51ca97f8b4d6c425",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4515,18 +4517,21 @@
    ],
    "reason": "Undefined name, cause not reported by IBM (RNF7030)",
    "reason_detail": "line 4: The name or indicator NOSUCH is not defined.",
+   "rpgc": "reject",
    "sha256": "7bde45b099241073094ae7693c4baa4df420779a11c91a8a62f8bb81955292d3",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test378_local_hides_global.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "9f670fe7d24f31b8ee7d640904ed710d6a8933aa314f9cd3b53f721907db8252",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test379_subst_target.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "11796b2d90f281d3e8f8b5c6ae62615d182855874e83f00c74375dbb1d39f3ae",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -4540,6 +4545,7 @@
   },
   "test380_fixed_subst_target.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "780d20bfc04b6e6b903caa5f6c0c6d68b5a734aa80bd7689b256d36566be7979",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -4558,6 +4564,7 @@
    ],
    "reason": "RNF0361: The first parameter N for %SUBST is not valid; built-in function is ignored.",
    "reason_detail": "line 4: The first parameter N for %SUBST is not valid; built-in function is ignored. \u2014 `%SUBST(n : 1 : 1) = '5';`",
+   "rpgc": "reject",
    "sha256": "4d0e40811893b5ad07093c1d227e54586e03beddacac6a3d738921a2f7dc05a2",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4576,6 +4583,7 @@
    ],
    "reason": "RNF0365: The third parameter n for %SUBST is too big; parameter is ignored.",
    "reason_detail": "line 5: The third parameter 5 for %SUBST is too big; parameter is ignored. \u2014 `t = %SUBST(s : 9 : 5);`",
+   "rpgc": "reject",
    "sha256": "e0915d5a2436344418e693e202fe70c43ef3097469bc0d788e6cbb43f5403250",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4594,18 +4602,21 @@
    ],
    "reason": "RNF0364: The start position n for %SUBST is greater than string length n; %SUBST is ignored.",
    "reason_detail": "line 5: The start position 11 for %SUBST is greater than string length 10; %SUBST is ignored. \u2014 `t = %SUBST(s : 11 : 1);`",
+   "rpgc": "reject",
    "sha256": "c77ac17d6d40389bcd49e6f2ccc3ec1d2df58166daf99330778106d252e58ed9",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test384_fixed_starts_with_directive.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "f38b8db96d49b5baa515611ef46428986ddbaee4fa852657c5762b57dd94d6aa",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test385_fixed_starts_with_free.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "f5eb8399bc2d6ac8cfeb56838395a318286b8f7758f5772a601afbfe54d7b51a",
    "verdict": "accept",
    "verified": "2026-10-06"
