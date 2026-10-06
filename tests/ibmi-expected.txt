@@ -27,6 +27,8 @@ test11e_unmatched_paren.rpgle  reject  syntax-error test
 # OpenRPG extensions: accepted by rpgc on purpose, rejected by IBM i.
 test61_no_free.rpgle                 reject  OpenRPG extension: free-form without **FREE; IBM i requires the directive
 test85_getenv.rpgle                  reject  OpenRPG extension: %GETENV has no IBM i equivalent (IBM: RNF0604, not a built-in)
+test350_block_comments.rpgle         reject  OpenRPG extension: block comments; IBM i has only //
+test351_fixed_block_comments.rpgle   reject  OpenRPG extension: block comments; IBM i has only //
 test332_extfile_usropn.rpgle         reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 test334_free_dclf_disk_len.rpgle     reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 

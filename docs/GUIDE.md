@@ -318,7 +318,17 @@ assignment keeps the first 52 characters.
 
 ```rpgle
 // Single-line comment
+
+/* Block comment: on one line,
+   or across several */
+total = price /* before tax */ * qty;
 ```
+
+Block comments are an OpenRPG extension: IBM i has only `//`, so source using
+them compiles only here. One runs from `/*` to the next `*/` and they do not
+nest. They work in `**FREE` source and in the free-form parts of fixed-format
+source (a `/free` block, positions 8-80). A `/*` with no `*/` after it is an
+error.
 
 ### Statement Terminator
 

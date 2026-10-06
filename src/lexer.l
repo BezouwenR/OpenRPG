@@ -22,12 +22,14 @@ static void check_one_statement_per_line() {
     if (g_semi_line != yylineno || g_allow_fixed_only_stmts) return;
     char c = yytext[0];
     if (c == ' ' || c == '\t' || c == '\n' || c == '\r') return;
-    if (c == '/' && yytext[1] == '/') return;
+    if (c == '/' && (yytext[1] == '/' || yytext[1] == '*')) return;
     g_semi_line = -1;
     report_semantic_error(yylineno, "Only one statement is allowed on a line: nothing but a "
         "comment may follow the semicolon ending a statement (IBM: RNF5508)");
 }
-#define YY_USER_ACTION check_one_statement_per_line();
+// Text inside a block comment is not checked: it is all comment.
+#define YY_USER_ACTION if (YY_START != BLOCKCMT) check_one_statement_per_line();
+static int block_comment_line = 0;
 
 static char* process_rpg_string(const char* text) {
     size_t len = strlen(text);
@@ -216,6 +218,7 @@ static void parse_ctlopt(const char* text) {
 %x SKIPPING
 %x SQL
 %x PI_NAME
+%x BLOCKCMT
 
 %%
 
@@ -874,6 +877,19 @@ static void parse_ctlopt(const char* text) {
     }
 }
 
+ /* An unclosed block comment. Before the <<EOF>> rule below, which would
+    otherwise apply to this start condition too. */
+<BLOCKCMT><<EOF>>   {
+    report_semantic_error(block_comment_line, "The comment begun here with /* has no */ to end it");
+    BEGIN(INITIAL);
+    if (include_stack_ptr > 0) {
+        yy_delete_buffer(YY_CURRENT_BUFFER);
+        yy_switch_to_buffer(include_stack[--include_stack_ptr]);
+    } else {
+        yyterminate();
+    }
+}
+
 <<EOF>> {
     if (include_stack_ptr > 0) {
         yy_delete_buffer(YY_CURRENT_BUFFER);
@@ -911,6 +927,15 @@ static void parse_ctlopt(const char* text) {
 }
 
 "//".*              { /* single-line comment, ignore */ }
+
+ /* A block comment, an OpenRPG extension (IBM i has only //): from a
+    slash-star to the next star-slash, on one line or across several,
+    as in C. They do not nest. */
+"/*"                { block_comment_line = yylineno; BEGIN(BLOCKCMT); }
+<BLOCKCMT>"*/"      { BEGIN(INITIAL); }
+<BLOCKCMT>[^*\n]+   { }
+<BLOCKCMT>"*"       { }
+<BLOCKCMT>\n        { }
 [ \t\r\n]+          { /* whitespace, ignore */ }
 
 .                   { fprintf(stderr, "Unexpected character: '%c' at line %d\n", *yytext, yylineno); }

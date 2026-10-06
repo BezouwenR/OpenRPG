@@ -3599,6 +3599,123 @@
    "verdict": "accept",
    "verified": "2026-09-25"
   },
+  "test350_block_comments.rpgle": {
+   "codes": [
+    "RNF0274",
+    "RNF0622",
+    "RNF0623",
+    "RNF0724",
+    "RNF0955",
+    "RNF5347",
+    "RNF5377",
+    "RNF5508",
+    "RNF7030",
+    "RNF7503"
+   ],
+   "messages": [
+    {
+     "code": "RNF0274",
+     "line": 4,
+     "severity": 30,
+     "text": "Compiler directive not recognized; directive ignored."
+    },
+    {
+     "code": "RNF5347",
+     "line": 5,
+     "severity": 30,
+     "text": "An assignment operator is expected with the EVAL operation."
+    },
+    {
+     "code": "RNF5508",
+     "line": 5,
+     "severity": 30,
+     "text": "End of free-format statement is not blank."
+    },
+    {
+     "code": "RNF7030",
+     "line": 5,
+     "severity": 30,
+     "text": "The name or indicator ACROSS is not defined."
+    },
+    {
+     "code": "RNF7030",
+     "line": 5,
+     "severity": 30,
+     "text": "The name or indicator SEVERAL is not defined."
+    }
+   ],
+   "reason": "Declaration after calculations",
+   "reason_detail": "line 7: `DCL-S x INT(10) INZ(5);   /* after a declaration */`",
+   "sha256": "eae3d75deb61dd9159ad3a2ef41bd29abfc60e91bd86769b7d5cd77df1ac3440",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test351_fixed_block_comments.rpgle": {
+   "codes": [
+    "RNF0274",
+    "RNF5347",
+    "RNF5507",
+    "RNF5508",
+    "RNF7030",
+    "RNF7064",
+    "RNF7259"
+   ],
+   "messages": [
+    {
+     "code": "RNF0274",
+     "line": 5,
+     "severity": 30,
+     "text": "Compiler directive not recognized; directive ignored."
+    },
+    {
+     "code": "RNF5507",
+     "line": 6,
+     "severity": 30,
+     "text": "A semi-colon is not specified at the end of a free-format statement."
+    },
+    {
+     "code": "RNF7030",
+     "line": 6,
+     "severity": 30,
+     "text": "The name or indicator A is not defined."
+    },
+    {
+     "code": "RNF7030",
+     "line": 6,
+     "severity": 30,
+     "text": "The name or indicator BLOCK is not defined."
+    },
+    {
+     "code": "RNF7030",
+     "line": 6,
+     "severity": 30,
+     "text": "The name or indicator FREE is not defined."
+    }
+   ],
+   "reason": "RNF0274: Compiler directive not recognized; directive ignored.",
+   "reason_detail": "line 5: Compiler directive not recognized; directive ignored. \u2014 `/* a block comment`",
+   "sha256": "686064fca7384e89b823ccb85de5030f3028a1d7de898b916ea171a22c8dc6a4",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test352_err_block_comment_open.rpgle": {
+   "codes": [
+    "RNF0274"
+   ],
+   "messages": [
+    {
+     "code": "RNF0274",
+     "line": 4,
+     "severity": 30,
+     "text": "Compiler directive not recognized; directive ignored."
+    }
+   ],
+   "reason": "RNF0274: Compiler directive not recognized; directive ignored.",
+   "reason_detail": "line 4: Compiler directive not recognized; directive ignored. \u2014 `/* never closed`",
+   "sha256": "3c269419f8cdc1ee59711f7ef07aa6f59b2962583b8ca44d61c9f10e76ff8a65",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
   "test35_evalcorr.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -4180,5 +4297,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T16:23:55+00:00"
+ "generated": "2026-10-06T17:38:51+00:00"
 }
