@@ -969,6 +969,10 @@ run_test "364" "OPTION(*NOLENCHK): a lenient %SUBST" "$TESTDIR/test364_subst_nol
 run_test "365" "OPTION(*NOLENCHK) on an H-spec" "$TESTDIR/test365_fixed_subst_nolenchk.rpgle" "run"
 run_test "366" "%CHAR(number : *NOZEROSUPPRESS)" "$TESTDIR/test366_char_nozero.rpgle" "run"
 run_test "367" "Reject *NOZEROSUPPRESS on an expression" "$TESTDIR/test367_err_char_nozero_expr.rpgle" "error"
+run_test "368" "/ELSEIF after an /IF not taken" "$TESTDIR/test368_elseif_directive.rpgle" "run"
+run_test "369" "AND, OR, NOT in /IF" "$TESTDIR/test369_if_directive_and_or.rpgle" "run"
+run_test "370" "AND, OR, NOT in /IF, fixed-format" "$TESTDIR/test370_fixed_if_and_or.rpgle" "run"
+run_test "371" "Reject an incomplete /IF condition" "$TESTDIR/test371_err_if_directive.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

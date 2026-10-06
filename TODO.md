@@ -1903,7 +1903,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 28 | ✅ Regular-expression BIFs: `%MATCHES`, `%FIND`, `%COUNTMATCHES` — done 2026-10-06 (test362-363) | `std::regex` — the compiler already uses it (`sql_utils.cpp`); generated code would too. |
 | 27 | ✅ Relax the `%SUBST` "length exceeds data" error: `CTL-OPT OPTION(*NOLENCHK)` — done 2026-10-06 (test364-365) | Diagnostic policy, not new machinery. |
 | 25 | ✅ `%CHAR` with `%EDITC` formatting: `%CHAR(n : *NOZEROSUPPRESS)` — done 2026-10-06 (test366-367) | Both BIFs already ship; this merges them. |
-| 15 | Multiple conditions in one `/IF` directive | Directive handling already lives in the lexer. |
+| 15 | ✅ Multiple conditions in one `/IF` directive: AND, OR, NOT, parentheses — done 2026-10-06 (test369-371; free-form `/ELSEIF` after an untaken `/IF` fixed too, test368) | Directive handling already lives in the lexer. |
 | 13 | `*TRUE` / `*FALSE` figurative constants | Aliases of `*ON` / `*OFF` for `IND`. |
 
 ### Tier 2 — "Future consideration" at IBM, small-to-medium here

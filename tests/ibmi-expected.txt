@@ -37,6 +37,8 @@ test362_regex.rpgle                  reject  OpenRPG extension: regular-expressi
 test364_subst_nolenchk.rpgle         reject  OpenRPG extension: OPTION(*NOLENCHK)
 test365_fixed_subst_nolenchk.rpgle   reject  OpenRPG extension: OPTION(*NOLENCHK)
 test366_char_nozero.rpgle            reject  OpenRPG extension: %CHAR(n : *NOZEROSUPPRESS)
+test369_if_directive_and_or.rpgle    reject  OpenRPG extension: AND/OR/NOT in /IF
+test370_fixed_if_and_or.rpgle        reject  OpenRPG extension: AND/OR/NOT in /IF
 test332_extfile_usropn.rpgle         reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 test334_free_dclf_disk_len.rpgle     reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 

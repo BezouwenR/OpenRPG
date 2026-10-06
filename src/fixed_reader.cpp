@@ -2,6 +2,7 @@
 #include "fixed_columns.h"
 #include "fixed_cspec.h"
 #include "free_bridge.h"
+#include "cond_expr.h"
 #include "keyword_list.h"
 #include <cctype>
 #include <cerrno>
@@ -128,18 +129,6 @@ bool startsWord(const std::string& d, const char* kw) {
     return d.compare(0, n, kw) == 0 && (d.size() == n || d[n] == ' ' || d[n] == '\t' || d[n] == '(');
 }
 
-// "DEFINED(SYM)" / "NOT DEFINED(SYM)" after the keyword -> (negated, SYM).
-bool parseDefinedTest(const std::string& rest, bool& negated, std::string& sym) {
-    std::string r = trim(rest);
-    negated = false;
-    if (startsWord(r, "NOT")) { negated = true; r = trim(r.substr(3)); }
-    if (!startsWord(r, "DEFINED")) return false;
-    size_t lp = r.find('('), rp = r.find(')');
-    if (lp == std::string::npos || rp == std::string::npos || rp < lp) return false;
-    sym = trim(r.substr(lp + 1, rp - lp - 1));
-    return !sym.empty();
-}
-
 std::string firstWord(const std::string& rest) {
     std::string r = trim(rest);
     size_t e = r.find_first_of(" \t");
@@ -169,13 +158,13 @@ void expandMember(const std::vector<std::string>& lines, int depth, bool inFreeA
         // --- Conditional directives: evaluated even in inactive branches,
         // so nesting is tracked correctly.
         if (startsWord(d, "/IF")) {
-            bool neg; std::string sym;
-            if (!parseDefinedTest(d.substr(3), neg, sym)) {
-                err(lineNo, "/IF: expected DEFINED(name) or NOT DEFINED(name)");
+            bool cond = false;
+            std::string why;
+            if (!rpgc_cond::evaluate(d.substr(3), st.defines, cond, why)) {
+                err(lineNo, "/IF: " + why);
                 ok = false;
-                sym.clear(); neg = false;
+                cond = false;
             }
-            bool cond = !sym.empty() && (st.defines.count(sym) > 0) != neg;
             bool on = st.compiling() && cond;
             st.levels.push_back({on, cond});
             out.emplace_back();
@@ -186,13 +175,14 @@ void expandMember(const std::vector<std::string>& lines, int depth, bool inFreeA
                 err(lineNo, "/ELSEIF without a matching /IF in this member");
                 ok = false; out.emplace_back(); continue;
             }
-            bool neg; std::string sym;
-            if (!parseDefinedTest(d.substr(7), neg, sym)) {
-                err(lineNo, "/ELSEIF: expected DEFINED(name) or NOT DEFINED(name)");
+            bool cond = false;
+            std::string why;
+            if (!rpgc_cond::evaluate(d.substr(7), st.defines, cond, why)) {
+                err(lineNo, "/ELSEIF: " + why);
                 ok = false;
+                cond = false;
             }
             CondLevel& top = st.levels.back();
-            bool cond = !sym.empty() && (st.defines.count(sym) > 0) != neg;
             top.active = !top.taken && cond && st.parentCompiling();
             if (cond) top.taken = true;
             out.emplace_back();

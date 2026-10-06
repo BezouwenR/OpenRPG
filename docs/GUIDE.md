@@ -341,6 +341,31 @@ total = 0;          // fine: a comment after the semicolon
 count = 0;  i = 1;  // rejected: two statements on one line
 ```
 
+### Conditional Compilation
+
+`/DEFINE name` and `/UNDEFINE name` set and clear a condition name, and
+`/IF`, `/ELSEIF`, `/ELSE` and `/ENDIF` compile a group of lines or skip it.
+`*OPENRPG` is always defined, so `/IF DEFINED(*OPENRPG)` holds lines only rpgc
+should see:
+
+```rpgle
+/DEFINE TRACE
+/IF DEFINED(TRACE)
+DSPLY 'tracing';
+/ENDIF
+```
+
+IBM i takes one test, `DEFINED(name)` or `NOT DEFINED(name)`. OpenRPG also
+takes several, joined with `AND` and `OR` and grouped with parentheses — `NOT`
+binds tightest, then `AND`, then `OR`:
+
+```rpgle
+/IF DEFINED(LINUX) AND NOT DEFINED(NOGUI)
+/ELSEIF (DEFINED(WINDOWS) OR DEFINED(MACOS)) AND DEFINED(FAST)
+```
+
+A condition with more than one test is an OpenRPG extension.
+
 ---
 
 ## Data Types

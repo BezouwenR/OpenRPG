@@ -99,7 +99,7 @@ $(BUILDDIR)/parser.cpp $(BUILDDIR)/parser.h: $(SRCDIR)/parser.y | $(BUILDDIR)
 $(BUILDDIR)/lexer.cpp: $(SRCDIR)/lexer.l $(BUILDDIR)/parser.h | $(BUILDDIR)
 	$(FLEX) -o $@ $<
 
-$(BUILDDIR)/lexer.o: $(BUILDDIR)/lexer.cpp $(SRCDIR)/keyword_list.h
+$(BUILDDIR)/lexer.o: $(BUILDDIR)/lexer.cpp $(SRCDIR)/keyword_list.h $(SRCDIR)/cond_expr.h
 	$(CXX) $(CXXFLAGS) -I$(SRCDIR) -I$(BUILDDIR) -c -o $@ $<
 
 $(BUILDDIR)/keyword_list.o: $(SRCDIR)/keyword_list.cpp $(SRCDIR)/keyword_list.h
@@ -128,7 +128,7 @@ $(BUILDDIR)/main.o: $(SRCDIR)/main.cpp $(SRCDIR)/ast.h $(SRCDIR)/codegen.h $(SRC
 $(BUILDDIR)/parser.o: $(BUILDDIR)/parser.cpp $(SRCDIR)/ast.h $(SRCDIR)/free_bridge.h
 	$(CXX) $(CXXFLAGS) -I$(SRCDIR) -I$(BUILDDIR) -c -o $@ $<
 
-$(BUILDDIR)/fixed_reader.o: $(SRCDIR)/fixed_reader.cpp $(SRCDIR)/fixed_reader.h $(SRCDIR)/fixed_columns.h $(SRCDIR)/fixed_cspec.h $(SRCDIR)/free_bridge.h $(SRCDIR)/keyword_list.h $(SRCDIR)/ast.h
+$(BUILDDIR)/fixed_reader.o: $(SRCDIR)/fixed_reader.cpp $(SRCDIR)/fixed_reader.h $(SRCDIR)/fixed_columns.h $(SRCDIR)/fixed_cspec.h $(SRCDIR)/free_bridge.h $(SRCDIR)/keyword_list.h $(SRCDIR)/ast.h $(SRCDIR)/cond_expr.h
 	$(CXX) $(CXXFLAGS) -I$(SRCDIR) -I$(BUILDDIR) -c -o $@ $<
 
 $(BUILDDIR)/fixed_cspec.o: $(SRCDIR)/fixed_cspec.cpp $(SRCDIR)/fixed_cspec.h $(SRCDIR)/fixed_columns.h $(SRCDIR)/free_bridge.h

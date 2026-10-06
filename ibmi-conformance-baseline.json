@@ -4195,12 +4195,103 @@
    "verdict": "reject",
    "verified": "2026-10-06"
   },
+  "test368_elseif_directive.rpgle": {
+   "codes": [],
+   "sha256": "30f70f9e4d1df1513553959d2f326bd44d88251b90c3f712013c78b3e2a0e995",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test369_if_directive_and_or.rpgle": {
+   "codes": [
+    "RNF0275",
+    "RNF0701"
+   ],
+   "messages": [
+    {
+     "code": "RNF0275",
+     "line": 6,
+     "severity": 20,
+     "text": "Field required to be blank is not blank; defaults to blank."
+    },
+    {
+     "code": "RNF0275",
+     "line": 9,
+     "severity": 20,
+     "text": "Field required to be blank is not blank; defaults to blank."
+    },
+    {
+     "code": "RNF0701",
+     "line": 11,
+     "severity": 30,
+     "text": "The conditional expression is not valid."
+    },
+    {
+     "code": "RNF0701",
+     "line": 16,
+     "severity": 30,
+     "text": "The conditional expression is not valid."
+    },
+    {
+     "code": "RNF0275",
+     "line": 19,
+     "severity": 20,
+     "text": "Field required to be blank is not blank; defaults to blank."
+    }
+   ],
+   "reason": "RNF0275: Field required to be blank is not blank; defaults to blank.",
+   "reason_detail": "line 6: Field required to be blank is not blank; defaults to blank. \u2014 `/IF DEFINED(LINUX) AND NOT DEFINED(NOGUI)`",
+   "sha256": "91069b812588c87d459b077c1ea5bd0d5e9f6a6d68c3011506c414a34c56be64",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
   "test36_ds_params.rpgle": {
    "codes": [],
    "rpgc": "accept",
    "sha256": "69bb27ee43ad6fe00f229eb385a63512f048b83dff5ec3ed21d7fad9d0bd324f",
    "verdict": "accept",
    "verified": "2026-09-25"
+  },
+  "test370_fixed_if_and_or.rpgle": {
+   "codes": [
+    "RNF0275"
+   ],
+   "messages": [
+    {
+     "code": "RNF0275",
+     "line": 3,
+     "severity": 20,
+     "text": "Field required to be blank is not blank; defaults to blank."
+    },
+    {
+     "code": "RNF0275",
+     "line": 9,
+     "severity": 20,
+     "text": "Field required to be blank is not blank; defaults to blank."
+    }
+   ],
+   "reason": "RNF0275: Field required to be blank is not blank; defaults to blank.",
+   "reason_detail": "line 3: Field required to be blank is not blank; defaults to blank. \u2014 `/IF DEFINED(LINUX) AND NOT DEFINED(NOGUI)`",
+   "sha256": "9d9ada7e2e5e4bc28a71c0c422fc52b17cea4023df24021dba9c0f97026dc720",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test371_err_if_directive.rpgle": {
+   "codes": [
+    "RNF0275"
+   ],
+   "messages": [
+    {
+     "code": "RNF0275",
+     "line": 3,
+     "severity": 20,
+     "text": "Field required to be blank is not blank; defaults to blank."
+    }
+   ],
+   "reason": "RNF0275: Field required to be blank is not blank; defaults to blank.",
+   "reason_detail": "line 3: Field required to be blank is not blank; defaults to blank. \u2014 `/IF DEFINED(X) AND`",
+   "sha256": "9250f747e44bebae478ff4a421cb848ef2cf153ff95ab5e8acb406806cc5b50a",
+   "verdict": "reject",
+   "verified": "2026-10-06"
   },
   "test37_inzsr.rpgle": {
    "codes": [],
@@ -4769,5 +4860,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T18:17:55+00:00"
+ "generated": "2026-10-06T18:25:09+00:00"
 }

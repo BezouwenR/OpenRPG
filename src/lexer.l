@@ -8,6 +8,7 @@
 #include "keyword_list.h"
 #include "parser.h"
 #include "free_bridge.h"
+#include "cond_expr.h"
 
 // One statement per line: IBM i rejects anything but a comment after a
 // statement's semicolon on the same line (RNF5508), in **FREE source as in
@@ -793,50 +794,35 @@ static void parse_ctlopt(const char* text) {
     }
 }
 
-<INITIAL,SKIPPING>^[ \t]*"/"[Ii][Ff][ \t]+[Dd][Ee][Ff][Ii][Nn][Ee][Dd][ \t]*"("[^)]*")" {
+<INITIAL,SKIPPING>^[ \t]*"/"[Ii][Ff][ \t]+[^\n]*$ {
+    /* /IF condition: DEFINED(name), NOT, AND, OR and parentheses
+       (cond_expr.h). Evaluated in a skipped branch too, to track nesting. */
     cond_depth++;
-    std::string sym = cond_extract_symbol(yytext);
-    bool defined = cond_defines.count(sym) > 0;
-    cond_active[cond_depth] = defined;
-    cond_done[cond_depth] = defined;
+    bool v = false;
+    std::string err;
+    const char* c = yytext;
+    while (*c == ' ' || *c == '\t') c++;
+    if (!rpgc_cond::evaluate(std::string(c + 3), cond_defines, v, err))
+        report_semantic_error(yylineno, "/IF: " + err);
+    cond_active[cond_depth] = v;
+    cond_done[cond_depth] = v;
     if (!cond_is_active()) BEGIN(SKIPPING);
     else BEGIN(INITIAL);
 }
 
-<INITIAL,SKIPPING>^[ \t]*"/"[Ii][Ff][ \t]+[Nn][Oo][Tt][ \t]+[Dd][Ee][Ff][Ii][Nn][Ee][Dd][ \t]*"("[^)]*")" {
-    cond_depth++;
-    std::string sym = cond_extract_symbol(yytext);
-    bool defined = cond_defines.count(sym) > 0;
-    cond_active[cond_depth] = !defined;
-    cond_done[cond_depth] = !defined;
-    if (!cond_is_active()) BEGIN(SKIPPING);
-    else BEGIN(INITIAL);
-}
-
-<INITIAL,SKIPPING>^[ \t]*"/"[Ee][Ll][Ss][Ee][Ii][Ff][ \t]+[Dd][Ee][Ff][Ii][Nn][Ee][Dd][ \t]*"("[^)]*")" {
+<INITIAL,SKIPPING>^[ \t]*"/"[Ee][Ll][Ss][Ee][Ii][Ff][ \t]+[^\n]*$ {
     if (cond_depth > 0) {
+        bool v = false;
+        std::string err;
+        const char* c = yytext;
+        while (*c == ' ' || *c == '\t') c++;
+        if (!rpgc_cond::evaluate(std::string(c + 7), cond_defines, v, err))
+            report_semantic_error(yylineno, "/ELSEIF: " + err);
         if (cond_done[cond_depth]) {
             cond_active[cond_depth] = false;
         } else {
-            std::string sym = cond_extract_symbol(yytext);
-            bool defined = cond_defines.count(sym) > 0;
-            cond_active[cond_depth] = defined;
-            cond_done[cond_depth] = defined;
-        }
-    }
-    if (!cond_is_active()) BEGIN(SKIPPING);
-    else BEGIN(INITIAL);
-}
-
-<INITIAL,SKIPPING>^[ \t]*"/"[Ee][Ll][Ss][Ee][Ii][Ff][ \t]+[Nn][Oo][Tt][ \t]+[Dd][Ee][Ff][Ii][Nn][Ee][Dd][ \t]*"("[^)]*")" {
-    if (cond_depth > 0) {
-        if (cond_done[cond_depth]) {
-            cond_active[cond_depth] = false;
-        } else {
-            std::string sym = cond_extract_symbol(yytext);
-            bool defined = cond_defines.count(sym) > 0;
-            cond_active[cond_depth] = !defined;
-            cond_done[cond_depth] = !defined;
+            cond_active[cond_depth] = v;
+            cond_done[cond_depth] = v;
         }
     }
     if (!cond_is_active()) BEGIN(SKIPPING);
