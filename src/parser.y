@@ -444,6 +444,22 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
     delete k;
     return n;
 }
+
+// DCL-S a b c INT(10): every name after the first is declared the same way,
+// an OpenRPG extension. The first is the statement; the others wait here
+// until statement_list takes them, right after it, so each is an ordinary
+// DCL-S of its own.
+static std::vector<rpg::Statement*> g_more_dcl_s;
+static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* more,
+                                  rpg::ParamDecl* t, DclSKws* k) {
+    for (const auto& name : *more) {
+        auto* kc = new DclSKws(*k);
+        if (k->inz) kc->inz = rpg::cloneExpr(*k->inz).release();
+        g_more_dcl_s.push_back(make_dcl_s(name.c_str(), new rpg::ParamDecl(*t), kc));
+    }
+    delete more;
+    return make_dcl_s(first, t, k);
+}
 }
 
 %token KW_FREE
@@ -560,6 +576,7 @@ static rpg::DclS* make_dcl_s(const char* name, rpg::ParamDecl* t, DclSKws* k) {
 %type <sval> pi_name
 %type <param_decl> dcl_type
 %type <dcl_kws> dcl_kws
+%type <str_list> dcl_s_more_names
 %type <ds_hdr> ds_hdr_kws
 %type <expr> eval_any_target
 %type <ival> da_lock_opt
@@ -589,6 +606,11 @@ statements_opt:
         if ($2) {
             g_program->statements.emplace_back($2);
         }
+        for (auto* d : g_more_dcl_s) {
+            if ($2) d->line = $2->line;
+            g_program->statements.emplace_back(d);
+        }
+        g_more_dcl_s.clear();
     }
     /* DCL-PI *N among the main source statements: the program's own
        parameters. A program returns no value. */
@@ -630,6 +652,11 @@ statement_list:
         if ($2) {
             $$->stmts.push_back($2);
         }
+        for (auto* d : g_more_dcl_s) {
+            if ($2) d->line = $2->line;
+            $$->stmts.push_back(d);
+        }
+        g_more_dcl_s.clear();
     }
     ;
 
@@ -975,17 +1002,42 @@ dcl_s_stmt:
     KW_DCL_S ident dcl_type dcl_kws SEMICOLON {
         $$ = make_dcl_s($2, $3, $4); free($2);
     }
+    | KW_DCL_S ident dcl_s_more_names dcl_type dcl_kws SEMICOLON {
+        $$ = make_dcl_s_list($2, $3, $4, $5); free($2);
+    }
     | KW_DCL_S ident KW_LIKE LPAREN like_name RPAREN dcl_kws SEMICOLON {
         auto* t = new rpg::ParamDecl{"", rpg::RPGType::INT10, 0, 0, 0, false};
         auto* n = make_dcl_s($2, t, $7);
         n->like_var = $5;
         $$ = n; free($2); free($5);
     }
+    | KW_DCL_S ident dcl_s_more_names KW_LIKE LPAREN like_name RPAREN dcl_kws SEMICOLON {
+        for (const auto& name : *$3) {
+            auto* kc = new DclSKws(*$8);
+            if ($8->inz) kc->inz = rpg::cloneExpr(*$8->inz).release();
+            auto* m = make_dcl_s(name.c_str(),
+                new rpg::ParamDecl{"", rpg::RPGType::INT10, 0, 0, 0, false}, kc);
+            m->like_var = $6;
+            g_more_dcl_s.push_back(m);
+        }
+        delete $3;
+        auto* t = new rpg::ParamDecl{"", rpg::RPGType::INT10, 0, 0, 0, false};
+        auto* n = make_dcl_s($2, t, $8);
+        n->like_var = $6;
+        $$ = n; free($2); free($6);
+    }
     | KW_DCL_S ident KW_OBJECT LPAREN KW_JAVA COLON STRING_LITERAL RPAREN SEMICOLON {
         auto* n = new rpg::DclS($2, rpg::RPGType::OBJECT, 0);
         n->java_class = $7;
         $$ = n; free($2); free($7);
     }
+    ;
+
+/* The further names of DCL-S a b c INT(10). Plain names only: a name that
+   is also a type keyword (DATE, IND, ...) would be read as the type. */
+dcl_s_more_names:
+    IDENTIFIER { $$ = new std::vector<std::string>{$1}; free($1); }
+    | dcl_s_more_names IDENTIFIER { $$ = $1; $$->push_back($2); free($2); }
     ;
 
 /* A DCL-S type, with the length conventions DclS has always used: INT

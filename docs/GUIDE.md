@@ -375,6 +375,20 @@ DCL-S rate PACKED(7:2) INZ(15.50);
 DCL-S isActive IND INZ(*ON);
 ```
 
+Several variables of the same type can share one `DCL-S`, their names separated
+by blanks. Each is declared exactly as if it had its own, keywords and `INZ`
+included:
+
+```rpgle
+DCL-S i j k INT(10);
+DCL-S first last VARCHAR(30) INZ('?');
+DCL-S total subtotal LIKE(rate);
+```
+
+This is an OpenRPG extension: IBM i takes one name per `DCL-S`. Every name
+after the first must be a plain name — one that is also a type keyword, such
+as `DATE` or `IND`, would be read as the type.
+
 ### Named Constants
 
 ```rpgle

@@ -1896,7 +1896,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | **93** | ✅ RPG block comments (`/* … */`) — done 2026-10-06 (test350-352) | Highest-voted RPG idea in the whole portal. One flex rule in `lexer.l` (alongside the existing `"//".*`). Caveat: fixed-format needs separate handling in `fixed_reader.cpp`, where `*` in column 7 is already the comment marker. |
 | **90** | ✅ DSPF definitions from an open format (JSON) — done 2026-10-06 (OpenDSPF test30); PRTF is not built | OpenDSPF *already* compiles DDS → a JSON descriptor. Accepting that JSON as `dspfc` **input** is mostly plumbing — shipping the exact thing IBM declined. |
 | 40 | ✅ `%FKEY` built-in function — done 2026-10-06 (test353, OpenDSPF test31) | `rpg_dspf_runtime.h` already decodes `KEY_F(1)`–`KEY_F(24)` into a function-key number; this is a BIF over state already tracked. |
-| 39 | Multiple definitions in one `DCL-S` | Grammar-only change. |
+| 39 | ✅ Multiple definitions in one `DCL-S` — done 2026-10-06 (test354) | Grammar-only change. |
 | 37 | String interpolation | Lexer change + desugar to concatenation in codegen. No runtime work. |
 | 30 | Procedure inside a procedure | Subroutines already codegen as C++ lambdas — the mechanism exists. |
 | 30 | A `NOT IN` operator | `IN` already ships (Test 58). |

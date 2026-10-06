@@ -3741,6 +3741,50 @@
    "verdict": "reject",
    "verified": "2026-10-06"
   },
+  "test354_dcl_s_names.rpgle": {
+   "codes": [
+    "RNF3308",
+    "RNF7030",
+    "RNF7503"
+   ],
+   "messages": [
+    {
+     "code": "RNF3308",
+     "line": 5,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF3308",
+     "line": 6,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF3308",
+     "line": 7,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF3308",
+     "line": 8,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF3308",
+     "line": 9,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    }
+   ],
+   "reason": "RNF3308: Keyword name is not valid; the keyword is ignored.",
+   "reason_detail": "line 5: Keyword name is not valid; the keyword is ignored. \u2014 `DCL-S a b c INT(10) INZ(7);`",
+   "sha256": "e715b613ced0eabe8f5c3cee7c1325018efd488d486570c99ef4335523c35ef2",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
   "test35_evalcorr.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -4322,5 +4366,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T17:45:51+00:00"
+ "generated": "2026-10-06T17:49:54+00:00"
 }
