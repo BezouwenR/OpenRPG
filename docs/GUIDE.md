@@ -2593,6 +2593,10 @@ described in a separate `.dspf` source file and compiled by **dspfc** (the
 OpenDSPF compiler); OpenRPG then reads the compiled descriptor and gives the
 RPG program a variable for every field on the screen.
 
+The source can be DDS, OpenDSPF's free-format syntax, or JSON in the shape of
+the compiled descriptor — the last an OpenDSPF extension, for screens another
+tool generates (`dspfc mainmenu.json`; see OpenDSPF's guide, "JSON Source").
+
 ### The Two-Step Compile
 
 ```bash
