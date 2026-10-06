@@ -1603,18 +1603,6 @@ inline int rpg_diff_years(const RpgDate& d1, const RpgDate& d2) {
     return t1.tm_year - t2.tm_year;
 }
 
-// Date + duration arithmetic
-inline RpgDate operator+(const RpgDate& d, const RpgDuration& dur) {
-    std::tm t = rpg_parse_date_tm(d.value);
-    switch (dur.unit) {
-        case 'D': t.tm_mday += dur.amount; break;
-        case 'M': t.tm_mon += dur.amount; break;
-        case 'Y': t.tm_year += dur.amount; break;
-    }
-    mktime(&t); // normalize
-    return RpgDate(rpg_format_date_tm(t));
-}
-
 // --- Figurative constants ---
 // Resolved at codegen time based on target type; these are fallback defaults
 inline const std::string RPG_BLANKS_STR = "";
@@ -2006,6 +1994,14 @@ inline RpgTimestamp operator+(const RpgTimestamp& ts, const RpgDuration& dur) {
     return RpgTimestamp(rpg_sprintf("%04lld-%02d-%02d-%02lld.%02lld.%02lld.%06lld",
                                     y, mo, d, us / 3600000000LL, us / 60000000LL % 60,
                                     us / 1000000LL % 60, us % 1000000LL));
+}
+
+// Date + duration: the date part of a timestamp moved the same way, so
+// Jan 31 + 1 month is the last day of February here too, not March 2 or 3
+// as normalizing with mktime made it.
+inline RpgDate operator+(const RpgDate& d, const RpgDuration& dur) {
+    RpgTimestamp ts = RpgTimestamp(d.value + "-00.00.00.000000") + dur;
+    return RpgDate(ts.value.substr(0, 10));
 }
 
 // Subtracting a duration adds its negative.

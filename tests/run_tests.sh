@@ -949,6 +949,7 @@ run_test "344" "INZ on an indicator" "$TESTDIR/test344_ind_inz.rpgle" "run"
 run_test "345" "INZ(*ON) on a fixed-form indicator" "$TESTDIR/test345_fixed_ind_inz.rpgle" "run"
 run_test "346" "Timestamp plus or minus a duration" "$TESTDIR/test346_timestamp_duration.rpgle" "run"
 run_test "347" "An indicator as character data" "$TESTDIR/test347_ind_as_char.rpgle" "run"
+run_test "348" "Date plus months at a month end" "$TESTDIR/test348_date_month_end.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be
