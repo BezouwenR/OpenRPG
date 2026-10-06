@@ -41,6 +41,7 @@ test369_if_directive_and_or.rpgle    reject  OpenRPG extension: AND/OR/NOT in /I
 test370_fixed_if_and_or.rpgle        reject  OpenRPG extension: AND/OR/NOT in /IF
 test372_true_false.rpgle             reject  OpenRPG extension: *TRUE and *FALSE
 test373_fixed_true_false.rpgle       reject  OpenRPG extension: *TRUE and *FALSE
+test386_if_bif.rpgle                 reject  OpenRPG extension: %IF
 test332_extfile_usropn.rpgle         reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 test334_free_dclf_disk_len.rpgle     reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 

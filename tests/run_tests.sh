@@ -987,6 +987,9 @@ run_test "382" "Reject a literal %SUBST length past the field" "$TESTDIR/test382
 run_test "383" "Reject a literal %SUBST start outside the field" "$TESTDIR/test383_err_subst_start_literal.rpgle" "error"
 run_test "384" "Fixed-format source opening with directives" "$TESTDIR/test384_fixed_starts_with_directive.rpgle" "run"
 run_test "385" "Fixed-format source opening with /free" "$TESTDIR/test385_fixed_starts_with_free.rpgle" "run"
+run_test "386" "%IF: a conditional value" "$TESTDIR/test386_if_bif.rpgle" "run"
+run_test "387" "Reject %IF values of different types" "$TESTDIR/test387_err_if_bif_types.rpgle" "error"
+run_test "388" "Reject a %IF condition that is not one" "$TESTDIR/test388_err_if_bif_cond.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

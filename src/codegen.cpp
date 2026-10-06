@@ -4819,6 +4819,11 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
         // %MAX and %MIN return their operands' type
         if ((bif->name == "MAX" || bif->name == "MIN") && !bif->args.empty())
             return argCategory(*bif->args[0]);
+        // %IF returns its values' type
+        if (bif->name == "IF" && bif->args.size() == 3) {
+            ArgCat a = argCategory(*bif->args[1]);
+            return a != ArgCat::Unknown ? a : argCategory(*bif->args[2]);
+        }
         if (bif->name == "DATE") return ArgCat::Date;
         if (bif->name == "TIME") return ArgCat::Time;
         if (bif->name == "TIMESTAMP") return ArgCat::Timestamp;
@@ -5981,6 +5986,36 @@ void CodeGen::visit(BIFCall& node) {
             report_semantic_error(cur_stmt_line_, "%FKEY tells which function key ended the last "
                 "EXFMT or READ of a display file; this program declares no WORKSTN file");
         expr_ << "dspf_fkey()";
+    } else if (node.name == "IF") {
+        // %IF(condition : value if true : value if false), an OpenRPG
+        // extension in the form IBM suggested for the conditional operator
+        // request. Only the value chosen is evaluated, as with C's ?:.
+        int line = node.line > 0 ? node.line : cur_stmt_line_;
+        if (node.args.size() != 3) {
+            report_semantic_error(line, "%IF takes three operands: a condition, the value if it "
+                "is true, and the value if it is false");
+            expr_ << "0";
+            return;
+        }
+        ArgCat c = argCategory(*node.args[0]);
+        if (c != ArgCat::Ind && c != ArgCat::Unknown)
+            report_semantic_error(line, "The first operand of %IF must be a condition: an "
+                "indicator, a comparison, or AND, OR or NOT of them");
+        auto family = [](ArgCat k) { return (k == ArgCat::Ind || k == ArgCat::DS) ? ArgCat::Char : k; };
+        ArgCat a = family(argCategory(*node.args[1])), b = family(argCategory(*node.args[2]));
+        if (a != ArgCat::Unknown && b != ArgCat::Unknown && a != b)
+            report_semantic_error(line, "The two values of %IF must be of the same type: both "
+                "character, both numeric, both dates, ...");
+        for (int i : {1, 2}) { dsAsChars(node.args[i]); indAsChars(node.args[i]); }
+        bool chars = a == ArgCat::Char || b == ArgCat::Char;
+        expr_ << "((";
+        node.args[0]->accept(*this);
+        expr_ << ") ? ";
+        if (chars) expr_ << "std::string(";
+        node.args[1]->accept(*this);
+        expr_ << (chars ? ") : std::string(" : " : ");
+        node.args[2]->accept(*this);
+        expr_ << (chars ? "))" : ")");
     } else if (node.name == "MATCHES" || node.name == "FIND" || node.name == "COUNTMATCHES") {
         // Regular expressions, an OpenRPG extension. %MATCHES takes the
         // string first, %FIND and %COUNTMATCHES the pattern first, as %SCAN

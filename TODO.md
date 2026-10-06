@@ -39,7 +39,7 @@
 - **Bitwise:** %BITAND, %BITNOT, %BITOR, %BITXOR (Test 68)
 - **Date/Time:** %DATE, %TIME, %TIMESTAMP, %DIFF, %DAYS, %MONTHS, %YEARS, %HOURS, %MINUTES, %SECONDS, %MSECONDS, %SUBDT
 - **Memory/Pointer:** %ALLOC, %REALLOC, %ADDR, %PADDR, %PROC, %STR
-- **Other:** %PARMS, %STATUS, %ERROR, %FOUND, %EOF, %PASSED, %OMITTED, %MAX, %MIN, %GETENV (Test 85), %FKEY (Test 353), %MATCHES/%FIND/%COUNTMATCHES (Test 362)
+- **Other:** %PARMS, %STATUS, %ERROR, %FOUND, %EOF, %PASSED, %OMITTED, %MAX, %MIN, %GETENV (Test 85), %FKEY (Test 353), %MATCHES/%FIND/%COUNTMATCHES (Test 362), %IF (Test 386)
 
 ### %STATUS Code Values
 | Code | Description | Applicable |
@@ -1910,7 +1910,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 
 | Votes | Idea | Note |
 |-------|------|------|
-| **93** | Conditional (ternary) operator `?:` in EVAL | Ties for #1 overall. C++ has it natively, so codegen is a passthrough; grammar is the work. |
+| **93** | ✅ Conditional (ternary) operator, as `%IF(cond : a : b)` — done 2026-10-06 (test386-388); `?:` itself would clash with `:` between BIF operands | Ties for #1 overall. C++ has it natively, so codegen is a passthrough; grammar is the work. |
 | 49 | Keyword parameters in prototyped calls | |
 | 49 | `%SCANRPL` limited to `*FIRST` / `*LAST` occurrence | `SCANRPL` already in `codegen.cpp`. |
 | 48 | `OPTION(*UPPER)` / `OPTION(*LOWER)` on parameters | |

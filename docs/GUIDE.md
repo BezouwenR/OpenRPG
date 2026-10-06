@@ -831,6 +831,22 @@ DSPLY %LOWER('HELLO');  // 'hello'
 DSPLY %UPPER('hello');  // 'HELLO'
 ```
 
+### %IF: A Conditional Value
+
+`%IF(condition : value if true : value if false)` chooses between two values,
+as C's `?:` does:
+
+```rpgle
+pay = salary + %IF(rating > 3 : bonus : 0);
+addr = %IF(nullInd = -1 : 'n/a' : address);
+level = %IF(score > 90 : 'A' : %IF(score > 75 : 'B' : 'C'));
+```
+
+The condition is anything an `IF` takes; the two values must be of the same
+type. Only the value chosen is evaluated, so `%IF(n = 0 : 0 : total / n)` never
+divides by zero. `%IF` is an OpenRPG extension, in the form IBM proposed for its
+most-requested RPG idea; IBM i does not have it yet.
+
 ### A Lenient %SUBST: OPTION(*NOLENCHK)
 
 `%SUBST` is status 100 when its length runs past the end of the data, as on

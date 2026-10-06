@@ -4621,6 +4621,115 @@
    "verdict": "accept",
    "verified": "2026-10-06"
   },
+  "test386_if_bif.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0604",
+    "RNF0637",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 15,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 15,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF5377",
+     "line": 15,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF0604",
+     "line": 17,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 17,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 15: The token is not valid; token is ignored. \u2014 `pay = salary + %IF(rating > 3 : bonus : 0);`",
+   "sha256": "b3c29def88e0ba4e1d457dff50ec1a01ea1f15ee532b18755e1baa15fffd3711",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test387_err_if_bif_types.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0604",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 5,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 5,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF5377",
+     "line": 5,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 5: The token is not valid; token is ignored. \u2014 `c = %IF(n > 0 : 'yes' : 0);`",
+   "sha256": "82d815e9a1c1ab17f557b05563346b73d51163f0c7429eb68a39bf445a516ea8",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test388_err_if_bif_cond.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0604",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 4,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 4,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF5377",
+     "line": 4,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 4: The token is not valid; token is ignored. \u2014 `n = %IF(n : 1 : 2);`",
+   "sha256": "b86ef7d2d0eba48982ade7b9def17916a01d53b6c1293581cd9e732b0fb84420",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
   "test38_ctlopt.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -5181,5 +5290,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T19:31:01+00:00"
+ "generated": "2026-10-06T20:03:29+00:00"
 }
