@@ -290,7 +290,11 @@ std::unique_ptr<Expression> cloneExpr(const Expression& e) {
         c = std::make_unique<BinaryExpr>(x->op, cloneExpr(*x->left), cloneExpr(*x->right));
     else if (auto* x = dynamic_cast<const NotExpr*>(&e))   c = std::make_unique<NotExpr>(cloneExpr(*x->operand));
     else if (auto* x = dynamic_cast<const BIFCall*>(&e))   c = std::make_unique<BIFCall>(x->name, list(x->args));
-    else if (auto* x = dynamic_cast<const FuncCall*>(&e))  c = std::make_unique<FuncCall>(x->name, list(x->args));
+    else if (auto* x = dynamic_cast<const FuncCall*>(&e)) {
+        auto f = std::make_unique<FuncCall>(x->name, list(x->args));
+        f->arg_names = x->arg_names;
+        c = std::move(f);
+    }
     else if (auto* x = dynamic_cast<const DotExpr*>(&e))   c = std::make_unique<DotExpr>(cloneExpr(*x->object), x->field);
     else if (auto* x = dynamic_cast<const ArrayAccess*>(&e))
         c = std::make_unique<ArrayAccess>(x->name, x->index ? cloneExpr(*x->index) : nullptr);

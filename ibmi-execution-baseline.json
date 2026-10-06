@@ -2122,6 +2122,20 @@
    "test": "385",
    "verified": "2026-10-06"
   },
+  "test389_omit_args.rpgle": {
+   "error": "",
+   "output": [
+    "lit 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "var 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "chr                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ",
+    "- 9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ",
+    "11                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       "
+   ],
+   "sha256": "9ff9a76e7b2993806c69561740dc46b803b8b3e19f7ad47589bfb858e020acea",
+   "status": "same",
+   "test": "389",
+   "verified": "2026-10-06"
+  },
   "test38_ctlopt.rpgle": {
    "error": "",
    "output": [

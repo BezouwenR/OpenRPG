@@ -990,6 +990,13 @@ run_test "385" "Fixed-format source opening with /free" "$TESTDIR/test385_fixed_
 run_test "386" "%IF: a conditional value" "$TESTDIR/test386_if_bif.rpgle" "run"
 run_test "387" "Reject %IF values of different types" "$TESTDIR/test387_err_if_bif_types.rpgle" "error"
 run_test "388" "Reject a %IF condition that is not one" "$TESTDIR/test388_err_if_bif_cond.rpgle" "error"
+run_test "389" "Arguments for *OMIT parameters" "$TESTDIR/test389_omit_args.rpgle" "run"
+run_test "390" "Keyword arguments" "$TESTDIR/test390_keyword_args.rpgle" "run"
+run_test "391" "Reject a keyword argument naming no parameter" "$TESTDIR/test391_err_kwarg_unknown.rpgle" "error"
+run_test "392" "Reject a parameter given twice" "$TESTDIR/test392_err_kwarg_twice.rpgle" "error"
+run_test "393" "Reject a required parameter left out" "$TESTDIR/test393_err_kwarg_missing.rpgle" "error"
+run_test "394" "Reject a positional argument after a keyword one" "$TESTDIR/test394_err_kwarg_order.rpgle" "error"
+run_test "395" "Reject *OMIT on a VALUE parameter" "$TESTDIR/test395_err_omit_value.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

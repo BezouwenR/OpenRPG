@@ -193,9 +193,24 @@ static rpg::Statement* make_move(rpg::Expression* src, char* dst, bool left, boo
     return s;
 }
 
+// name => value in an argument list. Only make_func takes one: it records
+// the name on the call and keeps the value, so no later stage sees this.
+struct NamedArgExpr : rpg::Expression {
+    std::string name;
+    rpg::Expression* value;
+    NamedArgExpr(std::string n, rpg::Expression* v) : name(std::move(n)), value(v) {}
+    void accept(rpg::ASTVisitor&) override {}
+};
+
 static rpg::BIFCall* make_bif(const char* name, std::vector<rpg::Expression*>* raw_args) {
     std::vector<std::unique_ptr<rpg::Expression>> args;
     for (auto* e : *raw_args) {
+        if (auto* na = dynamic_cast<NamedArgExpr*>(e)) {
+            yyerror("A built-in function takes its operands by position, not name => value");
+            e = na->value;
+            na->value = nullptr;
+            delete na;
+        }
         args.emplace_back(e);
     }
     delete raw_args;
@@ -204,13 +219,27 @@ static rpg::BIFCall* make_bif(const char* name, std::vector<rpg::Expression*>* r
 
 static rpg::FuncCall* make_func(const char* name, std::vector<rpg::Expression*>* raw_args) {
     std::vector<std::unique_ptr<rpg::Expression>> args;
+    std::vector<std::string> names;
+    bool named = false;
     if (raw_args) {
         for (auto* e : *raw_args) {
-            args.emplace_back(e);
+            if (auto* na = dynamic_cast<NamedArgExpr*>(e)) {
+                named = true;
+                names.push_back(na->name);
+                args.emplace_back(na->value);
+                na->value = nullptr;
+                delete na;
+            } else {
+                if (named) yyerror("An argument given by position cannot follow one given by name (name => value)");
+                names.push_back("");
+                args.emplace_back(e);
+            }
         }
         delete raw_args;
     }
-    return new rpg::FuncCall(name, std::move(args));
+    auto* f = new rpg::FuncCall(name, std::move(args));
+    if (named) f->arg_names = std::move(names);
+    return f;
 }
 // DATA-INTO / DATA-GEN from their %DATA(source [: options]) and
 // %PARSER / %GEN(name [: options]) argument lists. The handler's own options
@@ -491,7 +520,7 @@ static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* m
 %token KW_GOTO KW_TAG KW_MOVE KW_MOVEL KW_MOVE_PAD KW_MOVEL_PAD KW_CALL
 %token KW_OFF KW_RESET KW_CLEAR KW_SORTA KW_DUMP KW_DUMP_A
 %token <ival> INDICATOR
-%token KW_AND KW_OR KW_NOT
+%token KW_AND KW_OR KW_NOT ARROW
 %token KW_DCL_PROC KW_END_PROC
 %token KW_DCL_PI KW_END_PI
 %token KW_DCL_PR KW_END_PR
@@ -3285,6 +3314,18 @@ call_arg_list:
     | call_arg_list COLON expression {
         $$ = $1;
         $$->push_back($3);
+    }
+    /* name => value: an argument for the parameter of that name, an
+       OpenRPG extension (make_func). */
+    | IDENTIFIER ARROW expression {
+        $$ = new std::vector<rpg::Expression*>();
+        $$->push_back(new NamedArgExpr($1, $3));
+        free($1);
+    }
+    | call_arg_list COLON IDENTIFIER ARROW expression {
+        $$ = $1;
+        $$->push_back(new NamedArgExpr($3, $5));
+        free($3);
     }
     ;
 

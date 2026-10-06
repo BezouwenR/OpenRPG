@@ -1411,6 +1411,10 @@ static void checkParamOptions(const std::vector<ParamDecl>& params, const std::s
             report_semantic_error(0, "parameter " + p.name + " of " + proc +
                 ": OPTIONS(*NOPASS) on a parameter passed by reference is not supported "
                 "yet; declare it VALUE or CONST (see TODO.md)");
+        // *OMIT passes a null address; a VALUE parameter has none to pass.
+        if (p.omit && p.by_value)
+            report_semantic_error(0, "parameter " + p.name + " of " + proc + ": OPTIONS(*OMIT) "
+                "is not valid for a parameter passed by value; make it CONST (IBM: RNF3753)");
     }
 }
 
@@ -5129,7 +5133,82 @@ std::string CodeGen::resolveOverload(const FuncCall& call) {
     return call.name;
 }
 
+// name => value arguments (an OpenRPG extension): each goes to the place of
+// the parameter it names, as if the call had been written by position. A
+// parameter left out takes *OMIT if it allows that, and *NOPASS ones after
+// the last given are not passed; any other left out is an error, as is a
+// name the procedure has no parameter of, or one given twice.
+void CodeGen::placeNamedArgs(FuncCall& call) {
+    if (call.arg_names.empty()) return;
+    int line = call.line > 0 ? call.line : cur_stmt_line_;
+    std::vector<std::string> names = std::move(call.arg_names);
+    call.arg_names.clear();
+    const ProcInterface* sig = nullptr;
+    auto pit = proc_sigs_.find(call.name);
+    if (overloads_.count(call.name)) {
+        report_semantic_error(line, "Procedure " + call.name + " is overloaded; call it with its "
+            "arguments by position, so that they say which procedure is meant");
+        return;
+    }
+    if (pit != proc_sigs_.end()) sig = &pit->second;
+    else if (auto pg = pgm_protos_.find(call.name); pg != pgm_protos_.end()) sig = &pg->second->interface;
+    if (!sig) return;   // reported as not defined
+    const auto& params = sig->params;
+    std::vector<std::unique_ptr<Expression>> placed(params.size());
+    int last = -1;
+    for (size_t i = 0; i < call.args.size(); i++) {
+        size_t slot = i;
+        if (!names[i].empty()) {
+            slot = params.size();
+            for (size_t k = 0; k < params.size(); k++)
+                if (params[k].name == names[i]) { slot = k; break; }
+            if (slot == params.size()) {
+                report_semantic_error(line, "Procedure " + call.name + " has no parameter named " +
+                    names[i]);
+                return;
+            }
+        }
+        if (slot >= params.size()) {
+            report_semantic_error(line, "Procedure " + call.name + " takes " +
+                std::to_string(params.size()) + " parameters; this call gives more");
+            return;
+        }
+        if (placed[slot]) {
+            report_semantic_error(line, "Parameter " + params[slot].name + " of " + call.name +
+                " is given twice");
+            return;
+        }
+        placed[slot] = std::move(call.args[i]);
+        last = std::max(last, static_cast<int>(slot));
+    }
+    std::vector<std::unique_ptr<Expression>> out;
+    for (int k = 0; k <= last; k++) {
+        if (!placed[k]) {
+            if (!params[k].omit) {
+                report_semantic_error(line, "Parameter " + params[k].name + " of " + call.name +
+                    " has no value: before a parameter that is given, it can be left out only "
+                    "with OPTIONS(*OMIT)");
+                return;
+            }
+            placed[k] = std::make_unique<Identifier>("nullptr");   // *OMIT
+        }
+        out.push_back(std::move(placed[k]));
+    }
+    // After the last one given: a *NOPASS parameter, and so every one after
+    // it, is not passed; one before that must be, as *OMIT if it allows it.
+    for (size_t k = last + 1; k < params.size() && !params[k].nopass; k++) {
+        if (!params[k].omit) {
+            report_semantic_error(line, "Parameter " + params[k].name + " of " + call.name +
+                " has no value: it can be left out only with OPTIONS(*OMIT) or OPTIONS(*NOPASS)");
+            return;
+        }
+        out.push_back(std::make_unique<Identifier>("nullptr"));   // *OMIT
+    }
+    call.args = std::move(out);
+}
+
 void CodeGen::visit(FuncCall& node) {
+    placeNamedArgs(node);
     // Check if this is actually an array access
     if (array_vars_.count(node.name) && node.args.size() == 1) {
         expr_ << elemRef(node.name, subExpr(*node.args[0]));
@@ -5186,8 +5265,39 @@ void CodeGen::visit(FuncCall& node) {
     auto eit = extproc_map_.find(target);
     if (eit != extproc_map_.end()) callName = eit->second;
     expr_ << callName << "(";
+    const ProcInterface* csig = nullptr;
+    if (auto cs = proc_sigs_.find(target); cs != proc_sigs_.end()) csig = &cs->second;
     for (size_t i = 0; i < node.args.size(); i++) {
         if (i > 0) expr_ << ", ";
+        // An OPTIONS(*OMIT) parameter is a pointer, null for *OMIT. A field
+        // passed for it goes by its address; a literal or calculation, for a
+        // CONST or VALUE one, by a temporary's, which lasts for the call.
+        const ParamDecl* p = csig && i < csig->params.size() ? &csig->params[i] : nullptr;
+        if (p && p->omit && argCategory(*node.args[i]) != ArgCat::Omit) {
+            Expression* a = node.args[i].get();
+            bool lvalue = dynamic_cast<Identifier*>(a) || dynamic_cast<DotExpr*>(a) ||
+                          dynamic_cast<ArrayAccess*>(a) ||
+                          (dynamic_cast<FuncCall*>(a) && array_vars_.count(static_cast<FuncCall*>(a)->name));
+            std::string base = p->likeds.empty() ? typeToString(p->type, p->length, p->digits)
+                                                 : p->likeds + "_t";
+            FieldAttrs aa = attrsOf(*a);
+            bool sameType = aa.known && aa.type == p->type && p->likeds.empty();
+            if (lvalue && (sameType || !p->likeds.empty())) {
+                expr_ << "&(";
+                a->accept(*this);
+                expr_ << ")";
+            } else if (p->is_const || p->by_value) {
+                expr_ << "rpg_omit_tmp<" << base << ">(" << base << "(";
+                a->accept(*this);
+                expr_ << "))";
+            } else {
+                report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_,
+                    "Parameter " + p->name + " of " + target + " is passed by reference, so its "
+                    "argument must be a field of its type, or *OMIT (IBM: RNF7535)");
+                a->accept(*this);
+            }
+            continue;
+        }
         node.args[i]->accept(*this);
     }
     // If this function has NOPASS params, fill defaults for skipped params and append parm count

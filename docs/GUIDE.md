@@ -761,6 +761,28 @@ END-PROC;
 
 ---
 
+### Keyword Arguments
+
+An argument may name its parameter, `name => value`, in any order:
+
+```rpgle
+DCL-PR greet VARCHAR(40);
+  name VARCHAR(20) CONST;
+  title VARCHAR(10) CONST OPTIONS(*OMIT);
+  suffix VARCHAR(10) CONST OPTIONS(*NOPASS);
+END-PR;
+
+greet(name => 'Ada');                      // title *OMIT, suffix not passed
+greet(title => 'Dr.' : name => 'Grace');
+greet('Alan' : suffix => 'PhD');           // positional first, then by name
+```
+
+Arguments by position come first; once one is named, the rest are. A
+parameter left out is passed as `*OMIT` if it has `OPTIONS(*OMIT)`, and
+`OPTIONS(*NOPASS)` parameters after the last one given are not passed; leaving
+out any other is an error, as is naming a parameter twice or one the
+procedure does not have. Keyword arguments are an OpenRPG extension.
+
 ### Procedures Inside Procedures
 
 A `DCL-PROC` may sit inside another, after the outer one's code, as its

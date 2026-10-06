@@ -2784,6 +2784,12 @@ inline std::string rpg_all(const std::string& pattern, int len = 50) {
 
 #include <vector>
 
+// A literal or calculation passed for a CONST or VALUE parameter with
+// OPTIONS(*OMIT), which the procedure receives as a pointer: the address of
+// a temporary of the parameter's type, which lasts until the call returns.
+template<typename T>
+inline T* rpg_omit_tmp(T&& v) { return &v; }
+
 // --- IN operator helpers ---
 // x IN %LIST(...), an enum's constants, or an array: any collection, so an
 // array (a std::array, or a varying one) works as the list does.

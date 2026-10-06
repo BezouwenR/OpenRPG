@@ -109,6 +109,10 @@ class FuncCall : public Expression {
 public:
     std::string name;
     std::vector<std::unique_ptr<Expression>> args;
+    // name => value arguments (an OpenRPG extension): each argument's
+    // parameter name, or "" for one given by position. Empty when the call
+    // names none; codegen puts named arguments in their parameters' places.
+    std::vector<std::string> arg_names;
     FuncCall(std::string name, std::vector<std::unique_ptr<Expression>> args);
     void accept(ASTVisitor& visitor) override;
 };

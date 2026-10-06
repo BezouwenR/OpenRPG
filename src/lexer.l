@@ -763,6 +763,7 @@ static void parse_ctlopt(const char* text) {
 "<>"                { return NE; }
 "<="                { return LE; }
 ">="                { return GE; }
+"=>"                { return ARROW; }
 "<"                 { return LT; }
 ">"                 { return GT; }
 "."                 { return DOT; }
