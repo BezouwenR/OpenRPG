@@ -5446,13 +5446,33 @@ void CodeGen::visit(BIFCall& node) {
         }
         expr_ << ")";
     } else if (node.name == "SCANRPL") {
-        // %SCANRPL(find : replace : string)
+        // %SCANRPL(scan : replacement : source {: start {: length}}
+        //          {: *FIRST | *LAST}) -- the last an OpenRPG extension.
+        int which = 0;
+        size_t n = node.args.size();
+        if (n > 3) {
+            if (auto* id = dynamic_cast<Identifier*>(node.args[n - 1].get());
+                id && (id->name == "*FIRST" || id->name == "*LAST")) {
+                which = id->name == "*FIRST" ? 1 : 2;
+                n--;
+            }
+        }
+        if (n < 3 || n > 5) {
+            report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_, "%SCANRPL takes a "
+                "scan string, a replacement, a source, and an optional start and length");
+            expr_ << "std::string()";
+            return;
+        }
         expr_ << "rpg_scanrpl(";
-        node.args[0]->accept(*this);
-        expr_ << ", ";
-        node.args[1]->accept(*this);
-        expr_ << ", ";
-        node.args[2]->accept(*this);
+        for (size_t i = 0; i < n; i++) {
+            if (i) expr_ << ", ";
+            node.args[i]->accept(*this);
+        }
+        if (which) {
+            if (n < 4) expr_ << ", 1";
+            if (n < 5) expr_ << ", RPG_SCANRPL_TO_END";
+            expr_ << ", " << which;
+        }
         expr_ << ")";
     } else if (node.name == "XLATE") {
         // %XLATE(from : to : string)

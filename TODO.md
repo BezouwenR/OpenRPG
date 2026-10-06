@@ -1912,7 +1912,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 |-------|------|------|
 | **93** | ✅ Conditional (ternary) operator, as `%IF(cond : a : b)` — done 2026-10-06 (test386-388); `?:` itself would clash with `:` between BIF operands | Ties for #1 overall. C++ has it natively, so codegen is a passthrough; grammar is the work. |
 | 49 | ✅ Keyword parameters in prototyped calls, `name => value` — done 2026-10-06 (test390-394; a real argument for an `*OMIT` parameter fixed too, test389) | |
-| 49 | `%SCANRPL` limited to `*FIRST` / `*LAST` occurrence | `SCANRPL` already in `codegen.cpp`. |
+| 49 | ✅ `%SCANRPL` limited to `*FIRST` / `*LAST` occurrence — done 2026-10-06 (test397; its start and length, ignored until now, test396; an empty scan string, test398) | `SCANRPL` already in `codegen.cpp`. |
 | 48 | `OPTION(*UPPER)` / `OPTION(*LOWER)` on parameters | |
 | 44 | Dynamic strings (declare CHAR without a length) | `CHAR` is already a `std::string`. |
 | 41 | Initialize arrays with `%LIST` | `%LIST` already ships. |
@@ -1927,7 +1927,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 22 | Named index of the current `FOR-EACH` iteration | |
 | 22 | Comparison procedure for `SORTA` / `%LOOKUPxx` | |
 | 22 | `WHEN-IS-NOT` on the newer `SELECT` | Needs `SELECT`/`WHEN-IS` first. |
-| 18 | `%SCANRPL` first/last (duplicate filing of the 49-vote entry) | |
+| 18 | ✅ `%SCANRPL` first/last (duplicate filing of the 49-vote entry) — done with it | |
 | 16 | `*EMPTY` figurative constant | |
 | 14 | `%HEX` / `%TOHEX` / `%FROMHEX` | |
 | 12 | `/MESSAGE` compiler directive | |

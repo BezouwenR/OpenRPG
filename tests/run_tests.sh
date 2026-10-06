@@ -997,6 +997,9 @@ run_test "392" "Reject a parameter given twice" "$TESTDIR/test392_err_kwarg_twic
 run_test "393" "Reject a required parameter left out" "$TESTDIR/test393_err_kwarg_missing.rpgle" "error"
 run_test "394" "Reject a positional argument after a keyword one" "$TESTDIR/test394_err_kwarg_order.rpgle" "error"
 run_test "395" "Reject *OMIT on a VALUE parameter" "$TESTDIR/test395_err_omit_value.rpgle" "error"
+run_test "396" "%SCANRPL with a start and length" "$TESTDIR/test396_scanrpl_portion.rpgle" "run"
+run_test "397" "%SCANRPL with *FIRST or *LAST" "$TESTDIR/test397_scanrpl_first_last.rpgle" "run"
+run_test "398" "%SCANRPL with an empty scan string" "$TESTDIR/test398_scanrpl_empty_scan.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

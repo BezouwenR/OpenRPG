@@ -2146,6 +2146,31 @@
    "test": "38",
    "verified": "2026-09-26"
   },
+  "test396_scanrpl_portion.rpgle": {
+   "error": "",
+   "output": [
+    "a+b+c+d+e                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ",
+    "a-b+c+d+e                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ",
+    "a-b+c+d-e                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ",
+    "ab-c-d-e                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
+    "a-b-c<->d<->e                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ",
+    "status 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+   ],
+   "sha256": "97050ca2318d9fde2500203726a59a471381080d723a18a1ffe6e8a59d728d50",
+   "status": "same",
+   "test": "396",
+   "verified": "2026-10-06"
+  },
+  "test398_scanrpl_empty_scan.rpgle": {
+   "error": "",
+   "output": [
+    "status 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+   ],
+   "sha256": "15adf400970aab81cd023106ad55b582514153b5ad15a199a800cf3f612c7bd0",
+   "status": "same",
+   "test": "398",
+   "verified": "2026-10-06"
+  },
   "test39_figconst.rpgle": {
    "error": "",
    "output": [

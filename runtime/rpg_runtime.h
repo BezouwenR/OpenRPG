@@ -117,15 +117,36 @@ inline int rpg_scan(const std::string& search, const std::string& source,
 }
 
 // %SCANRPL - scan and replace all occurrences
+// %SCANRPL(scan : replacement : source {: start {: length}} {: *FIRST |
+// *LAST}): every occurrence of scan in the portion of source from start, of
+// length characters, replaced -- the rest of source is kept as it is. A
+// portion outside the source, or an empty scan string, is status 100. *FIRST or *LAST, an OpenRPG
+// extension, replaces only the first or the last occurrence in the portion.
+constexpr long long RPG_SCANRPL_TO_END = LLONG_MIN;
 inline std::string rpg_scanrpl(const std::string& find, const std::string& replace,
-                                const std::string& source) {
-    std::string result = source;
-    size_t pos = 0;
-    while ((pos = result.find(find, pos)) != std::string::npos) {
-        result.replace(pos, find.length(), replace);
-        pos += replace.length();
+                               const std::string& source, long long start = 1,
+                               long long length = RPG_SCANRPL_TO_END, int which = 0) {
+    long long n = static_cast<long long>(source.size());
+    if (length == RPG_SCANRPL_TO_END) length = n - start + 1;
+    if (start < 1 || start > n + 1 || length < 0 || start - 1 + length > n)
+        rpg_raise(100, "RNX0100: Length or start position is out of range for the string operation.");
+    // An empty scan string is status 100 on IBM i (test398).
+    if (find.empty())
+        rpg_raise(100, "RNX0100: Length or start position is out of range for the string operation.");
+    size_t from = static_cast<size_t>(start - 1), end = from + static_cast<size_t>(length);
+    std::string portion = source.substr(from, end - from);
+    if (which == 2) {
+        size_t pos = portion.rfind(find);
+        if (pos != std::string::npos) portion.replace(pos, find.size(), replace);
+    } else {
+        size_t pos = 0;
+        while ((pos = portion.find(find, pos)) != std::string::npos) {
+            portion.replace(pos, find.size(), replace);
+            pos += replace.size();
+            if (which == 1) break;
+        }
     }
-    return result;
+    return source.substr(0, from) + portion + source.substr(end);
 }
 
 // %XLATE - translate characters

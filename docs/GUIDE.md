@@ -853,6 +853,21 @@ DSPLY %LOWER('HELLO');  // 'hello'
 DSPLY %UPPER('hello');  // 'HELLO'
 ```
 
+### %SCANRPL: Scan and Replace
+
+`%SCANRPL(scan : replacement : source {: start {: length}})` replaces every
+occurrence of `scan` in the part of `source` from `start`, for `length`
+characters; the rest is kept as it is. A part outside the source, or an empty
+scan string, is status 100.
+
+A last operand of `*FIRST` or `*LAST` replaces only the first or the last
+occurrence — an OpenRPG extension:
+
+```rpgle
+msg = %SCANRPL('{x}' : name : template : *FIRST);
+msg = %SCANRPL('{x}' : name : template : 1 : 40 : *LAST);
+```
+
 ### %IF: A Conditional Value
 
 `%IF(condition : value if true : value if false)` chooses between two values,

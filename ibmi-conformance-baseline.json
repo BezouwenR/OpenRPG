@@ -4923,6 +4923,61 @@
    "verdict": "reject",
    "verified": "2026-10-06"
   },
+  "test396_scanrpl_portion.rpgle": {
+   "codes": [],
+   "sha256": "97050ca2318d9fde2500203726a59a471381080d723a18a1ffe6e8a59d728d50",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test397_scanrpl_first_last.rpgle": {
+   "codes": [
+    "RNF0604",
+    "RNF0637"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 7,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0637",
+     "line": 7,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 9,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0637",
+     "line": 9,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 11,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 7: The token is not valid; token is ignored. \u2014 `r = %SCANRPL('{x}' : 'one' : s : *FIRST);`",
+   "sha256": "cc9e6e363a8a2cf56207fc8f8c05c2ded2c81df3f97471dfe510f7e4026a5693",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test398_scanrpl_empty_scan.rpgle": {
+   "codes": [],
+   "sha256": "15adf400970aab81cd023106ad55b582514153b5ad15a199a800cf3f612c7bd0",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
   "test39_figconst.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -5476,5 +5531,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T20:14:09+00:00"
+ "generated": "2026-10-06T20:23:12+00:00"
 }
