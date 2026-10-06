@@ -761,6 +761,23 @@ END-PROC;
 
 ---
 
+### Parameter Options: *TRIM, *UPPER, *LOWER
+
+A `CONST` or `VALUE` character parameter can say how its argument arrives:
+
+```rpgle
+DCL-PI *N;
+  code VARCHAR(10) CONST OPTIONS(*UPPER);          // 'abc-1' arrives as 'ABC-1'
+  email VARCHAR(60) VALUE OPTIONS(*LOWER : *TRIM);
+  name CHAR(20) CONST OPTIONS(*TRIM);              // blanks trimmed from both ends
+END-PI;
+```
+
+`*TRIM` trims leading and trailing blanks, as on IBM i; the value is then fitted
+to the parameter, so a `CHAR` one is padded again on the right. `*UPPER` and
+`*LOWER` upper- or lower-case it — an OpenRPG extension. The caller's own field
+is never changed.
+
 ### Keyword Arguments
 
 An argument may name its parameter, `name => value`, in any order:

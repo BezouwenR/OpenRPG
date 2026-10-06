@@ -2171,6 +2171,18 @@
    "test": "398",
    "verified": "2026-10-06"
   },
+  "test399_options_trim.rpgle": {
+   "error": "",
+   "output": [
+    "[x       ][y]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ",
+    "[keep    ][keep]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ",
+    "[  keep  ]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+   ],
+   "sha256": "2a020f941a0d349ac449ff3d81edc72f50f6aba3d275d3df6ea4bbc0ec0542d6",
+   "status": "same",
+   "test": "399",
+   "verified": "2026-10-06"
+  },
   "test39_figconst.rpgle": {
    "error": "",
    "output": [

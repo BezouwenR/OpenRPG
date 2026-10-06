@@ -546,6 +546,8 @@ static void parse_ctlopt(const char* text) {
 "*VARSIZE"          { return KW_VARSIZE; }
 "*STRING"           { return KW_STRING_OPT; }
 "*TRIM"             { return KW_TRIM_OPT; }
+"*UPPER"            { return KW_UPPER_OPT; }
+"*LOWER"            { return KW_LOWER_OPT; }
 "FOR-EACH"          { return KW_FOR_EACH; }
 "IN"                { return KW_IN; }
 

@@ -1913,7 +1913,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | **93** | ✅ Conditional (ternary) operator, as `%IF(cond : a : b)` — done 2026-10-06 (test386-388); `?:` itself would clash with `:` between BIF operands | Ties for #1 overall. C++ has it natively, so codegen is a passthrough; grammar is the work. |
 | 49 | ✅ Keyword parameters in prototyped calls, `name => value` — done 2026-10-06 (test390-394; a real argument for an `*OMIT` parameter fixed too, test389) | |
 | 49 | ✅ `%SCANRPL` limited to `*FIRST` / `*LAST` occurrence — done 2026-10-06 (test397; its start and length, ignored until now, test396; an empty scan string, test398) | `SCANRPL` already in `codegen.cpp`. |
-| 48 | `OPTION(*UPPER)` / `OPTION(*LOWER)` on parameters | |
+| 48 | ✅ `OPTION(*UPPER)` / `OPTION(*LOWER)` on parameters — done 2026-10-06 (test400-401; `OPTIONS(*TRIM)`, parsed but never applied, done too, test399) | |
 | 44 | Dynamic strings (declare CHAR without a length) | `CHAR` is already a `std::string`. |
 | 41 | Initialize arrays with `%LIST` | `%LIST` already ships. |
 | 39 | `%XFOOT` over subfields of a DS array | |

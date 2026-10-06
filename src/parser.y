@@ -169,7 +169,7 @@ static rpg::DSField* make_ds_field(const char* name, rpg::ParamDecl* type, rpg::
 
 // Parameter keyword bits collected by param_kws (see param_decl).
 enum { PK_VALUE = 1, PK_CONST = 2, PK_NOPASS = 4, PK_OMIT = 8,
-       PK_VARSIZE = 16, PK_STRING = 32, PK_TRIM = 64 };
+       PK_VARSIZE = 16, PK_STRING = 32, PK_TRIM = 64, PK_UPPER = 128, PK_LOWER = 256 };
 static void apply_param_kws(rpg::ParamDecl* p, int kws) {
     p->by_value   = (kws & PK_VALUE) != 0;
     p->is_const   = (kws & PK_CONST) != 0;
@@ -178,6 +178,8 @@ static void apply_param_kws(rpg::ParamDecl* p, int kws) {
     p->varsize    = (kws & PK_VARSIZE) != 0;
     p->string_opt = (kws & PK_STRING) != 0;
     p->trim_opt   = (kws & PK_TRIM) != 0;
+    p->upper_opt  = (kws & PK_UPPER) != 0;
+    p->lower_opt  = (kws & PK_LOWER) != 0;
 }
 
 static rpg::Statement* make_move(rpg::Expression* src, char* dst, bool left, bool pad,
@@ -550,7 +552,7 @@ static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* m
 %token KW_OVERLAY KW_POS KW_PREFIX KW_DATFMT KW_TIMFMT KW_EXTNAME KW_PSDS KW_SDS
 %token KW_DTAARA KW_OUT KW_UNLOCK
 %token KW_RTNPARM KW_OPDESC KW_ASCEND KW_DESCEND KW_NULLIND KW_CTDATA KW_PERRCD
-%token KW_VARSIZE KW_STRING_OPT KW_TRIM_OPT
+%token KW_VARSIZE KW_STRING_OPT KW_TRIM_OPT KW_UPPER_OPT KW_LOWER_OPT
 %token KW_DCL_ENUM KW_END_ENUM
 %token <sval> EXEC_SQL_TEXT
 %token POWER
@@ -1847,6 +1849,8 @@ param_opt:
     | KW_VARSIZE    { $$ = PK_VARSIZE; }
     | KW_STRING_OPT { $$ = PK_STRING; }
     | KW_TRIM_OPT   { $$ = PK_TRIM; }
+    | KW_UPPER_OPT  { $$ = PK_UPPER; }
+    | KW_LOWER_OPT  { $$ = PK_LOWER; }
     ;
 
 /* --- Monitor / Subroutines --- */

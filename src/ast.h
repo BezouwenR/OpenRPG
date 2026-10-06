@@ -487,6 +487,8 @@ struct ParamDecl {
     bool varsize = false; // OPTIONS(*VARSIZE)
     bool string_opt = false; // OPTIONS(*STRING)
     bool trim_opt = false;   // OPTIONS(*TRIM)
+    bool upper_opt = false;  // OPTIONS(*UPPER), an OpenRPG extension
+    bool lower_opt = false;  // OPTIONS(*LOWER), an OpenRPG extension
     bool is_const = false;   // CONST: read-only, passed as a value of the declared type
 };
 

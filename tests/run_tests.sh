@@ -1000,6 +1000,9 @@ run_test "395" "Reject *OMIT on a VALUE parameter" "$TESTDIR/test395_err_omit_va
 run_test "396" "%SCANRPL with a start and length" "$TESTDIR/test396_scanrpl_portion.rpgle" "run"
 run_test "397" "%SCANRPL with *FIRST or *LAST" "$TESTDIR/test397_scanrpl_first_last.rpgle" "run"
 run_test "398" "%SCANRPL with an empty scan string" "$TESTDIR/test398_scanrpl_empty_scan.rpgle" "run"
+run_test "399" "OPTIONS(*TRIM)" "$TESTDIR/test399_options_trim.rpgle" "run"
+run_test "400" "OPTIONS(*UPPER) and OPTIONS(*LOWER)" "$TESTDIR/test400_options_upper_lower.rpgle" "run"
+run_test "401" "Reject *UPPER on a by-reference parameter" "$TESTDIR/test401_err_options_upper_ref.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

@@ -4978,12 +4978,86 @@
    "verdict": "accept",
    "verified": "2026-10-06"
   },
+  "test399_options_trim.rpgle": {
+   "codes": [],
+   "sha256": "2a020f941a0d349ac449ff3d81edc72f50f6aba3d275d3df6ea4bbc0ec0542d6",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
   "test39_figconst.rpgle": {
    "codes": [],
    "rpgc": "accept",
    "sha256": "596f4c6905a7267bfbf88d229a6bb61c5c89097d91ca4c0416bb2e93cf3a9a52",
    "verdict": "accept",
    "verified": "2026-09-25"
+  },
+  "test400_options_upper_lower.rpgle": {
+   "codes": [
+    "RNF0633",
+    "RNF3308",
+    "RNF3744"
+   ],
+   "messages": [
+    {
+     "code": "RNF3744",
+     "line": 6,
+     "severity": 20,
+     "text": "The parameter for keyword OPTIONS is not valid; the parameter is ignored."
+    },
+    {
+     "code": "RNF3744",
+     "line": 9,
+     "severity": 20,
+     "text": "The parameter for keyword OPTIONS is not valid; the parameter is ignored."
+    },
+    {
+     "code": "RNF3308",
+     "line": 9,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF0633",
+     "line": 9,
+     "severity": 20,
+     "text": "An unexpected right parenthesis was encountered; right parenthesis is ignored."
+    },
+    {
+     "code": "RNF3744",
+     "line": 20,
+     "severity": 20,
+     "text": "The parameter for keyword OPTIONS is not valid; the parameter is ignored."
+    }
+   ],
+   "reason": "RNF3744: The parameter for keyword OPTIONS is not valid; the parameter is ignored.",
+   "reason_detail": "line 6: The parameter for keyword OPTIONS is not valid; the parameter is ignored. \u2014 `c VARCHAR(10) CONST OPTIONS(*UPPER);`",
+   "sha256": "e90b8b702191e4f9a865c57b0e00cbeada5f61d73433568b12b91cdef466e1ed",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test401_err_options_upper_ref.rpgle": {
+   "codes": [
+    "RNF3744"
+   ],
+   "messages": [
+    {
+     "code": "RNF3744",
+     "line": 4,
+     "severity": 20,
+     "text": "The parameter for keyword OPTIONS is not valid; the parameter is ignored."
+    },
+    {
+     "code": "RNF3744",
+     "line": 13,
+     "severity": 20,
+     "text": "The parameter for keyword OPTIONS is not valid; the parameter is ignored."
+    }
+   ],
+   "reason": "RNF3744: The parameter for keyword OPTIONS is not valid; the parameter is ignored.",
+   "reason_detail": "line 4: The parameter for keyword OPTIONS is not valid; the parameter is ignored. \u2014 `s VARCHAR(10) OPTIONS(*UPPER);`",
+   "sha256": "d705800756b3bb44cd81728a93e401512068781d73f6b1b314306346c7dd9b68",
+   "verdict": "reject",
+   "verified": "2026-10-06"
   },
   "test40_evalr_leavesr.rpgle": {
    "codes": [],
@@ -5531,5 +5605,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T20:23:12+00:00"
+ "generated": "2026-10-06T20:28:46+00:00"
 }

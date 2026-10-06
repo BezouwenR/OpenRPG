@@ -1,0 +1,15 @@
+**FREE
+// OPTIONS(*UPPER) is for a CONST or VALUE character parameter.
+DCL-PR p;
+  s VARCHAR(10) OPTIONS(*UPPER);
+END-PR;
+DCL-S x VARCHAR(10);
+p(x);
+*INLR = *ON;
+RETURN;
+
+DCL-PROC p;
+  DCL-PI *N;
+    s VARCHAR(10) OPTIONS(*UPPER);
+  END-PI;
+END-PROC;

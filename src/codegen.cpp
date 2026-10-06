@@ -1405,8 +1405,29 @@ void CodeGen::visit(Program& node) {
 // pointer, and its call sites only handle *OMIT itself). VALUE and CONST
 // parameters are copies and default cleanly. Say so rather than emit C++
 // that doesn't compile.
+// A character argument as OPTIONS(*TRIM), *UPPER and *LOWER have it on
+// entry: blanks trimmed from both ends, as on IBM i, and upper- or
+// lower-cased (OpenRPG extensions). The value is then fitted to the
+// parameter as usual, so a trimmed CHAR(n) is padded again on the right.
+static std::string convertedArg(const ParamDecl& p, std::string v) {
+    if (p.trim_opt) v = "rpg_trim(" + v + ")";
+    if (p.upper_opt) v = "rpg_upper(" + v + ")";
+    if (p.lower_opt) v = "rpg_lower(" + v + ")";
+    return v;
+}
+
 static void checkParamOptions(const std::vector<ParamDecl>& params, const std::string& proc) {
     for (auto& p : params) {
+        if (p.trim_opt || p.upper_opt || p.lower_opt) {
+            const char* opt = p.upper_opt ? "*UPPER" : p.lower_opt ? "*LOWER" : "*TRIM";
+            bool chars = p.likeds.empty() && (p.type == RPGType::CHAR || p.type == RPGType::VARCHAR);
+            if (!chars || !(p.is_const || p.by_value) || p.omit)
+                report_semantic_error(0, "parameter " + p.name + " of " + proc + ": OPTIONS(" +
+                    opt + ") is for a character parameter passed CONST or VALUE, without *OMIT");
+            if (p.upper_opt && p.lower_opt)
+                report_semantic_error(0, "parameter " + p.name + " of " + proc +
+                    ": OPTIONS(*UPPER) and OPTIONS(*LOWER) cannot both be given");
+        }
         if (p.nopass && !p.by_value && !p.is_const && !p.omit && p.likeds.empty())
             report_semantic_error(0, "parameter " + p.name + " of " + proc +
                 ": OPTIONS(*NOPASS) on a parameter passed by reference is not supported "
@@ -1639,12 +1660,12 @@ void CodeGen::visit(DclProc& node) {
             FieldAttrs pa = attrsOfName(p.name);
             emitIndent();
             out_ << "const " << typeToString(p.type, p.length, p.digits) << " " << p.name << " = "
-                 << fitValue(pa, cppParamName(p), FitMode::Overflow) << ";\n";
+                 << fitValue(pa, convertedArg(p, cppParamName(p)), FitMode::Overflow) << ";\n";
             continue;
         }
         if (!p.by_value) continue;
         FieldAttrs pa = attrsOfName(p.name);
-        std::string fitted = fitValue(pa, p.name, FitMode::Overflow);
+        std::string fitted = fitValue(pa, convertedArg(p, p.name), FitMode::Overflow);
         if (fitted != p.name) { emitIndent(); out_ << p.name << " = " << fitted << ";\n"; }
     }
     // An error that leaves a procedure reaches its caller as status 202,
