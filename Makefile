@@ -181,6 +181,7 @@ install: $(TARGET)
 	install -m 644 runtime/rpg_runtime.h $(DESTDIR)$(DATADIR)/
 	install -m 644 runtime/rpg_sql_runtime.h $(DESTDIR)$(DATADIR)/
 	install -m 644 runtime/rpg_call_runtime.h $(DESTDIR)$(DATADIR)/
+	install -m 644 runtime/rpg_regex_runtime.h $(DESTDIR)$(DATADIR)/
 	install -m 644 runtime/rpg_xml_runtime.h $(DESTDIR)$(DATADIR)/
 	install -m 644 runtime/rpg_json_runtime.h $(DESTDIR)$(DATADIR)/
 	install -m 644 runtime/rpg_csv_runtime.h $(DESTDIR)$(DATADIR)/

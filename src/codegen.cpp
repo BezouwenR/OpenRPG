@@ -34,6 +34,13 @@ std::string CodeGen::generate(Program& program) {
         if (at != std::string::npos)
             code.insert(at + inc.size(), "#include \"rpg_call_runtime.h\"\n");
     }
+    // Likewise <regex>, slow to compile, only for the regular-expression BIFs.
+    if (uses_regex_) {
+        const std::string inc = "#include \"rpg_runtime.h\"\n";
+        size_t at = code.find(inc);
+        if (at != std::string::npos)
+            code.insert(at + inc.size(), "#include \"rpg_regex_runtime.h\"\n");
+    }
     return code;
 }
 
@@ -4713,7 +4720,7 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
             "LOWER", "XLATE", "SCANRPL", "REPLACE", "EDITC", "EDITW", "STR", "EDITFLT", "__DSCHARS", "__INDCHARS"};
         static const std::set<std::string> num = {"INT", "INTH", "DEC", "DECH", "FLOAT", "UNS", "UNSH",
             "LEN", "SCAN", "SCANR", "CHECK", "CHECKR", "ELEM", "ABS", "DIV", "REM", "SIZE", "DIFF",
-            "SUBDT", "FKEY", "LOOKUP", "LOOKUPLT", "LOOKUPLE", "LOOKUPGT", "LOOKUPGE", "STATUS", "PARMS",
+            "SUBDT", "FKEY", "FIND", "COUNTMATCHES", "LOOKUP", "LOOKUPLT", "LOOKUPLE", "LOOKUPGT", "LOOKUPGE", "STATUS", "PARMS",
             "SQRT"};
         if (chr.count(bif->name)) return ArgCat::Char;
         if (num.count(bif->name)) return ArgCat::Numeric;
@@ -4726,7 +4733,7 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
         if (bif->name == "TIMESTAMP") return ArgCat::Timestamp;
         if (bif->name == "FOUND" || bif->name == "EOF" || bif->name == "EQUAL" ||
             bif->name == "ERROR" || bif->name == "OPEN" || bif->name == "PASSED" ||
-            bif->name == "OMITTED" || bif->name == "NULLIND") return ArgCat::Ind;
+            bif->name == "OMITTED" || bif->name == "NULLIND" || bif->name == "MATCHES") return ArgCat::Ind;
         if (bif->name == "ADDR" || bif->name == "ALLOC" || bif->name == "REALLOC" ||
             bif->name == "PADDR") return ArgCat::Pointer;
         return ArgCat::Unknown;
@@ -5849,6 +5856,35 @@ void CodeGen::visit(BIFCall& node) {
             report_semantic_error(cur_stmt_line_, "%FKEY tells which function key ended the last "
                 "EXFMT or READ of a display file; this program declares no WORKSTN file");
         expr_ << "dspf_fkey()";
+    } else if (node.name == "MATCHES" || node.name == "FIND" || node.name == "COUNTMATCHES") {
+        // Regular expressions, an OpenRPG extension. %MATCHES takes the
+        // string first, %FIND and %COUNTMATCHES the pattern first, as %SCAN
+        // takes what it looks for first -- the forms the IBM Ideas request
+        // proposed. A pattern written as a literal is checked here.
+        int line = node.line > 0 ? node.line : cur_stmt_line_;
+        if (node.args.size() != 2) {
+            report_semantic_error(line, "%" + node.name + " takes two operands, " +
+                std::string(node.name == "MATCHES" ? "the string and the pattern"
+                                                   : "the pattern and the string"));
+            expr_ << "0";
+            return;
+        }
+        size_t pat = node.name == "MATCHES" ? 1 : 0;
+        if (auto* sl = dynamic_cast<StringLiteral*>(node.args[pat].get())) {
+            try { std::regex check(sl->value, std::regex::ECMAScript); }
+            catch (const std::regex_error& e) {
+                report_semantic_error(line, "%" + node.name + ": '" + sl->value +
+                    "' is not a valid regular expression: " + e.what());
+            }
+        }
+        for (auto& a : node.args) dsAsChars(a);
+        uses_regex_ = true;
+        expr_ << (node.name == "MATCHES" ? "rpg_regex_matches(std::string(" :
+                  node.name == "FIND" ? "rpg_regex_find(std::string(" : "rpg_regex_count(std::string(");
+        node.args[0]->accept(*this);
+        expr_ << "), std::string(";
+        node.args[1]->accept(*this);
+        expr_ << "))";
     } else if (node.name == "GETENV") {
         expr_ << "rpg_getenv(";
         node.args[0]->accept(*this);

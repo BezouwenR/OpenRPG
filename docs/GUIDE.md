@@ -805,6 +805,29 @@ DSPLY %LOWER('HELLO');  // 'hello'
 DSPLY %UPPER('hello');  // 'HELLO'
 ```
 
+### Regular Expressions
+
+Three built-ins test and search strings with regular expressions (ECMAScript
+syntax, as in JavaScript):
+
+```rpgle
+IF %MATCHES(email : '^[^@ ]+@[^@ ]+\.[a-z]+$');   // *ON if the pattern matches
+  ...
+ENDIF;
+pos = %FIND('[0-9]+' : text);          // where the first match starts, or 0
+n   = %COUNTMATCHES('[0-9]+' : text);  // how many times it matches
+```
+
+`%MATCHES` takes the string first and the pattern second; `%FIND` and
+`%COUNTMATCHES` take the pattern first, as `%SCAN` takes what it looks for first.
+`%MATCHES` is `*ON` when the pattern matches anywhere in the string — anchor it
+with `^` and `$` to test the whole string, and allow for the trailing blanks of a
+fixed-length field (`' *$'`) or `%TRIMR` it. Matches do not overlap. A pattern
+written as a literal is checked when the program compiles; one built at run
+time that is not a valid regular expression is status 100.
+
+These are an OpenRPG extension: IBM i has no regular-expression built-ins.
+
 ### Numeric Functions
 
 ```rpgle

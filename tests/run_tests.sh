@@ -963,6 +963,8 @@ run_test "358" "A procedure inside a procedure" "$TESTDIR/test358_nested_proc.rp
 run_test "359" "Reject calling a nested procedure from outside" "$TESTDIR/test359_err_nested_proc_scope.rpgle" "error"
 run_test "360" "NOT IN" "$TESTDIR/test360_not_in.rpgle" "run"
 run_test "361" "IN an array" "$TESTDIR/test361_in_array.rpgle" "run"
+run_test "362" "Regular-expression BIFs" "$TESTDIR/test362_regex.rpgle" "run"
+run_test "363" "Reject an invalid literal regular expression" "$TESTDIR/test363_err_regex_literal.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

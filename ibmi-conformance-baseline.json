@@ -4005,6 +4005,84 @@
    "verdict": "accept",
    "verified": "2026-10-06"
   },
+  "test362_regex.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0313",
+    "RNF0604",
+    "RNF0637",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 10,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 10,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF5377",
+     "line": 10,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF0604",
+     "line": 13,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 13,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 10: The token is not valid; token is ignored. \u2014 `IF %MATCHES(email : '^[^@ ]+@[^@ ]+\\.[a-z]+$');`",
+   "sha256": "6124376ce3f2923049a20e0017ba2eb68a9d71149baa67af2fc3de9ebced27f7",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test363_err_regex_literal.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0604",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 4,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 4,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF5377",
+     "line": 4,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 4: The token is not valid; token is ignored. \u2014 `IF %MATCHES(s : '[a-');`",
+   "sha256": "0de3b67fb2570a7952633343c518ced2b5abef1e99f3deb79473234d0048a323",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
   "test36_ds_params.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -4579,5 +4657,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T18:03:56+00:00"
+ "generated": "2026-10-06T18:10:07+00:00"
 }

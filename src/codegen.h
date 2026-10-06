@@ -179,6 +179,7 @@ private:
     bool sr_predeclared_ = false;            // a procedure's subroutines: assign the std::function
     std::string shared_program_;             // rpgc -shared: the exported program name
     bool uses_pgm_calls_ = false;            // EXTPGM/CALL: include rpg_call_runtime.h
+    bool uses_regex_ = false;                // %MATCHES etc.: include rpg_regex_runtime.h
     std::map<std::string, const DclPR*> pgm_protos_; // EXTPGM prototypes by name
     // How the main procedure ends: the program's exit status, or, in a
     // called program, 0 (its wrapper decides success).

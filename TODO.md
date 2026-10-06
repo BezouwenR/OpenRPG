@@ -39,7 +39,7 @@
 - **Bitwise:** %BITAND, %BITNOT, %BITOR, %BITXOR (Test 68)
 - **Date/Time:** %DATE, %TIME, %TIMESTAMP, %DIFF, %DAYS, %MONTHS, %YEARS, %HOURS, %MINUTES, %SECONDS, %MSECONDS, %SUBDT
 - **Memory/Pointer:** %ALLOC, %REALLOC, %ADDR, %PADDR, %PROC, %STR
-- **Other:** %PARMS, %STATUS, %ERROR, %FOUND, %EOF, %PASSED, %OMITTED, %MAX, %MIN, %GETENV (Test 85), %FKEY (Test 353)
+- **Other:** %PARMS, %STATUS, %ERROR, %FOUND, %EOF, %PASSED, %OMITTED, %MAX, %MIN, %GETENV (Test 85), %FKEY (Test 353), %MATCHES/%FIND/%COUNTMATCHES (Test 362)
 
 ### %STATUS Code Values
 | Code | Description | Applicable |
@@ -1900,7 +1900,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 37 | ✅ String interpolation, `f'...{expr}...'` — done 2026-10-06 (test355-357) | Lexer change + desugar to concatenation in codegen. No runtime work. |
 | 30 | ✅ Procedure inside a procedure — done 2026-10-06 (test358-359) | Subroutines already codegen as C++ lambdas — the mechanism exists. |
 | 30 | ✅ A `NOT IN` operator — done 2026-10-06 (test360; `IN` an array fixed too, test361) | `IN` already ships (Test 58). |
-| 28 | Regular-expression BIFs | `std::regex` — the compiler already uses it (`sql_utils.cpp`); generated code would too. |
+| 28 | ✅ Regular-expression BIFs: `%MATCHES`, `%FIND`, `%COUNTMATCHES` — done 2026-10-06 (test362-363) | `std::regex` — the compiler already uses it (`sql_utils.cpp`); generated code would too. |
 | 27 | Relax the `%SUBST` "length exceeds data" error | Diagnostic policy, not new machinery. |
 | 25 | `%CHAR` with `%EDITC` formatting | Both BIFs already ship; this merges them. |
 | 15 | Multiple conditions in one `/IF` directive | Directive handling already lives in the lexer. |
