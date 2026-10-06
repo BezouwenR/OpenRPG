@@ -432,6 +432,7 @@ DCL-C PI 3.14159;
 | `*LOVAL` | Minimum value for the type |
 | `*ON` | Boolean true / '1' |
 | `*OFF` | Boolean false / '0' |
+| `*TRUE`, `*FALSE` | Other names for `*ON` and `*OFF` (OpenRPG extension) |
 | `*NULL` | Null pointer |
 | `*ALL'x'` | Repeated character pattern |
 

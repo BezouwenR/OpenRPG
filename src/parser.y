@@ -1711,6 +1711,7 @@ pi_return_type:
         $$ = ($3 <= 4) ? (int)rpg::RPGType::FLOAT4 : (int)rpg::RPGType::FLOAT8;
         g_ret_len = g_ret_digits = g_ret_dec = 0;
     }
+    | KW_IND { $$ = (int)rpg::RPGType::IND; g_ret_len = g_ret_digits = g_ret_dec = 0; }
     ;
 
 /* Parameters for DCL-PI */

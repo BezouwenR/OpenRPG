@@ -4293,6 +4293,107 @@
    "verdict": "reject",
    "verified": "2026-10-06"
   },
+  "test372_true_false.rpgle": {
+   "codes": [
+    "RNF0604",
+    "RNF0637",
+    "RNF3429",
+    "RNF5358",
+    "RNF5377",
+    "RNF5413",
+    "RNF5415",
+    "RNF7030"
+   ],
+   "messages": [
+    {
+     "code": "RNF3429",
+     "line": 4,
+     "severity": 20,
+     "text": "Initial value is not valid; parameter is ignored."
+    },
+    {
+     "code": "RNF3429",
+     "line": 5,
+     "severity": 20,
+     "text": "Initial value is not valid; parameter is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 6,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF5377",
+     "line": 6,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF7030",
+     "line": 6,
+     "severity": 30,
+     "text": "The name or indicator AND is not defined."
+    }
+   ],
+   "reason": "RNF3429: Initial value is not valid; parameter is ignored.",
+   "reason_detail": "line 4: Initial value is not valid; parameter is ignored. \u2014 `DCL-S done IND INZ(*TRUE);`",
+   "sha256": "c44a255885e9c154607b547862b1c2bde6cd00acf1976b1b2e3579b602b2d1a1",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test373_fixed_true_false.rpgle": {
+   "codes": [
+    "RNF0604",
+    "RNF3429",
+    "RNF5358",
+    "RNF5377",
+    "RNF7030"
+   ],
+   "messages": [
+    {
+     "code": "RNF3429",
+     "line": 3,
+     "severity": 20,
+     "text": "Initial value is not valid; parameter is ignored."
+    },
+    {
+     "code": "RNF3429",
+     "line": 4,
+     "severity": 20,
+     "text": "Initial value is not valid; parameter is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 5,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF5377",
+     "line": 5,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF7030",
+     "line": 5,
+     "severity": 30,
+     "text": "The name or indicator AND is not defined."
+    }
+   ],
+   "reason": "RNF3429: Initial value is not valid; parameter is ignored.",
+   "reason_detail": "line 3: Initial value is not valid; parameter is ignored. \u2014 `DFLAG             S               N   INZ(*TRUE)`",
+   "sha256": "1a10a39be2016089053fdbff9b34f762ec499d57f8e24d3e6f2edd123af124d1",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test374_proc_return_ind.rpgle": {
+   "codes": [],
+   "sha256": "5b1ba7f09fbcd921f2805451296e230551a39f88973447d8a83c2551713d4a54",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
   "test37_inzsr.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -4860,5 +4961,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T18:25:09+00:00"
+ "generated": "2026-10-06T18:30:00+00:00"
 }

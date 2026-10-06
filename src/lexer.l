@@ -714,6 +714,9 @@ static void parse_ctlopt(const char* text) {
 "*INLR"             { yylval.ival = 0; return INDICATOR; }  /* LR: slot 0, see IndicatorExpr::LR */
 "*ON"               { return KW_ON; }
 "*OFF"              { return KW_OFF; }
+ /* *TRUE and *FALSE, an OpenRPG extension: other names for *ON and *OFF. */
+"*TRUE"             { return KW_ON; }
+"*FALSE"            { return KW_OFF; }
 "*NULL"             { return KW_NULL; }
 "*USER"             { return KW_USER; }
 "*BLANKS"           { return KW_BLANKS; }

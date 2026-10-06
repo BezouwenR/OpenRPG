@@ -557,8 +557,8 @@ static Expression* parseInzValue(const std::string& text, int lineNo,
         if (fig == "*ZERO"  || fig == "*ZEROS")  return new Identifier("RPG_ZEROS");
         if (fig == "*HIVAL") return new Identifier("RPG_HIVAL");
         if (fig == "*LOVAL") return new Identifier("RPG_LOVAL");
-        if (fig == "*ON")    return new IntLiteral(1);
-        if (fig == "*OFF")   return new IntLiteral(0);
+        if (fig == "*ON" || fig == "*TRUE")    return new IntLiteral(1);   // *TRUE, *FALSE:
+        if (fig == "*OFF" || fig == "*FALSE")  return new IntLiteral(0);   // OpenRPG extension
         if (fig == "*NULL")  return new Identifier("nullptr");
         // INZ(*SYS): a date, time or timestamp starts as the current one,
         // as with free-form INZ(*SYS).

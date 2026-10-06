@@ -973,6 +973,9 @@ run_test "368" "/ELSEIF after an /IF not taken" "$TESTDIR/test368_elseif_directi
 run_test "369" "AND, OR, NOT in /IF" "$TESTDIR/test369_if_directive_and_or.rpgle" "run"
 run_test "370" "AND, OR, NOT in /IF, fixed-format" "$TESTDIR/test370_fixed_if_and_or.rpgle" "run"
 run_test "371" "Reject an incomplete /IF condition" "$TESTDIR/test371_err_if_directive.rpgle" "error"
+run_test "372" "*TRUE and *FALSE" "$TESTDIR/test372_true_false.rpgle" "run"
+run_test "373" "*TRUE and *FALSE, fixed-format" "$TESTDIR/test373_fixed_true_false.rpgle" "run"
+run_test "374" "A procedure returning an indicator" "$TESTDIR/test374_proc_return_ind.rpgle" "run"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

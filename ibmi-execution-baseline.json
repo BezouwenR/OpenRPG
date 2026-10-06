@@ -2037,6 +2037,17 @@
    "test": "36",
    "verified": "2026-09-26"
   },
+  "test374_proc_return_ind.rpgle": {
+   "error": "",
+   "output": [
+    "isEven works                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ",
+    "isOdd works                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              "
+   ],
+   "sha256": "5b1ba7f09fbcd921f2805451296e230551a39f88973447d8a83c2551713d4a54",
+   "status": "same",
+   "test": "374",
+   "verified": "2026-10-06"
+  },
   "test37_inzsr.rpgle": {
    "error": "",
    "output": [
