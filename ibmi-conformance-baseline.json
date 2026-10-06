@@ -2,6 +2,7 @@
  "files": {
   "ADDONE.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "fed3842fbbae69922b16fb50b09ecd4d4da297ffb2705aaabc08383bc3e5424d",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -22,12 +23,14 @@
   },
   "PGMFAIL.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "28c91ffac468eecc306eb40994b76201803347e1becbe3c9c737aacd5946fc49",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "PGMTYPES.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "9cfc2ffabae909ee717b17b76faaac13f585d1529fa0160e7cdb2a1c7c1b6323",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -1131,6 +1134,7 @@
   },
   "test177_fixed_cspec_call_var.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "7b2d89f51efe4848c66510ab15fec8b748fc089b3b9a02143e12df7a8c02b284",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -3272,30 +3276,35 @@
   },
   "test315_ds_position_overlap.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "b80d0fdcaff53addd3bcf9973de0477d309989abfb455ca411d33b87f580bbb4",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test316_test_subfield.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "2d260aad79b62ad12fec6989a7cd9c497b7bfa64a9f57faa8cabadd61d6df1fb",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test317_numeric_bif_char.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "f69287dc5f9c985aeb93d1b2385a68f3d6c29ae68ee8a0940372f64f3a974680",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test318_fixed_inz_sys.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "ed7c2388bb469016675c328e806784ea46cb48c1cfd61072339700f7207c7936",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test319_begsr_in_proc.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "9ca563d85522c154fd07fda96205365c4c3d2819ebcd784816a238844eeea557",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -3309,24 +3318,28 @@
   },
   "test320_ds_as_char.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "b98a9b036193a7920d05be41c56251ed3f45b68c2d0bd3e017a2c9bfa3004244",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test321_ds_unnamed.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "f0f744d263f0cd8c1b89c1d29d52f965c614bbdbe7f0914c3c30aec87e7aa438",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test322_fixed_ds_unnamed.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "1c00cbee008f0bf5fe84b9e3fbdfc3ad0715c2cae46effb8324e1a9d7c7cdc4b",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test323_likeds_overlay.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "504ccc16385c20387021096d4860f253aa4ce53e7b56061f95cc4a140060d2cd",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -3345,6 +3358,7 @@
    ],
    "reason": "RNF7535: The type and attributes of parameter n do not match those of the prototype.",
    "reason_detail": "line 8: The type and attributes of parameter 1 do not match those of the prototype. \u2014 `p(s);`",
+   "rpgc": "reject",
    "sha256": "f07f071f3427ced4d2e8c64680ad1c1201bdc5b22fac8b8c7038eefe56ab0ff0",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3363,6 +3377,7 @@
    ],
    "reason": "RNF5346: The operation modifies the field, but the field cannot be modified.",
    "reason_detail": "line 18: The operation modifies the field, but the field cannot be modified. \u2014 `parm.n = 5;`",
+   "rpgc": "reject",
    "sha256": "19d8e4b03be9fdb86ec74ec4b1fa9394707db2daac6cd02ff5c61ad3123162d0",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3381,24 +3396,28 @@
    ],
    "reason": "RNF7535: The type and attributes of parameter n do not match those of the prototype.",
    "reason_detail": "line 8: The type and attributes of parameter 1 do not match those of the prototype. \u2014 `p(small);`",
+   "rpgc": "reject",
    "sha256": "ced426e72f4c885a52301896b2cbf9d97741e988066e7708e6ee8bc4fe6e6f77",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test327_exec_sql_newline.sqlrpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "76304990b2543e175c27dda73efbb6b531e1c65496b983731b4d2eaa653150dd",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test328_sql_subfield_hostvar.sqlrpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "0862756892446450c18cbcd57e5ffd8ce9cd65d83adfee7efdfe01a8093b33b4",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test329_sql_commit_rollback.sqlrpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "59a632edc560213216cd174364b86629b2ad1dd5bb9501d353202d41bee1cf5d",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -3412,12 +3431,14 @@
   },
   "test330_sql_commit_none.sqlrpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "686cd78c96881edbb5394dca967f55c94f6e083b79df61dce068480c98073dba",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test331_sql_null_no_indicator.sqlrpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "e7e4b47d4784ed47ae114e2456274ec5eb9ea9cee33fd6b3e4e07ee9def3bc03",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -3436,12 +3457,14 @@
    ],
    "reason": "RNF0652: Library or file name exceeds n characters.",
    "reason_detail": "line 5: Library or file name exceeds 10 characters. \u2014 `FOUTF      O    F   20        DISK    EXTFILE('testfl332.txt') USROPN`",
+   "rpgc": "accept",
    "sha256": "33062229a2b8f48ccfb867fdadb59b0a6faaed64879da73a337c08649a7c9754",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test333_rla_usropn.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "1c5170477d909b4d95b1583e787b15e2d38156a61bc6c7b689d9aba6dfc1e90e",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -3466,36 +3489,42 @@
    ],
    "reason": "RNF0652: Library or file name exceeds n characters.",
    "reason_detail": "line 5: Library or file name exceeds 10 characters. \u2014 `DCL-F OUTF DISK(20) USAGE(*OUTPUT) EXTFILE('testfl334.txt') USROPN;`",
+   "rpgc": "accept",
    "sha256": "d0a207151ce869597664dd1c149ce1553c7896841d456ac45291bf0ef1a5f4f3",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test335_sql_message_text.sqlrpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "8baa1bda58f8c72b6a598d42ac744761cf50d74dd4b5fa9f51e318476567b86f",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test336_exit_status.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "d745382526aa461461ac78ad7fb72ebfc0e85a78f0164658bce42a3455001ac0",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test337_exit_status_set.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "b36b27f83f97f96bf1930ee3a02acf27b80583198e3db7c8d87e0c32adb6bf03",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test338_extpgm_types.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "af20de42042f048cf1becb50f88b060180686a6c1d63b55e310ee8dfa3dd908e",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test339_call_errors.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "49a616d31e19331f21915e0809b9f11b4b491b992714a0bc6708f668ae2ee981",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -3509,54 +3538,63 @@
   },
   "test340_call_c_program.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "56732642c092a41e1bff65d95c636b00a5f3a80334f255fade66bce47a6a9bb1",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test341_int_sizes.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "4a235b7d9869e14a867129982bd84c9187f9e553b4e4d3c8a02463273ac5b043",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test342_sql_bigint.sqlrpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "a35093cb32fe0ac47ade62db6cf811aadbbdf225cd78e2d64c9bf291caee00a4",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test343_fixed_int20.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "e2d2b640a5b98982b7ae06dfdf30472ba64c8dd794496aaa8a9d0d5f30eff00c",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test344_ind_inz.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "e93de3f1fabd45a258cd94f8869cd28d9cd99808c5041a2befb9f6f629888c01",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test345_fixed_ind_inz.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "28b343bc8fcb455af49af4b3355d2fcbfd930ecdafe50d1ff9117541d316a53f",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test346_timestamp_duration.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "5829a2bbf64bfe9ada75bd7519e7a172d9137c42b519167b955fe6be6232b9b1",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test347_ind_as_char.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "4641b3e41d42e00a19a7e7fe87ebc555259928ef9577f79e75313d58a85d068e",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test348_date_month_end.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "35297941f0d376088de45b02a42bcc5814eca87052e12de08b306ea9e1ff955e",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -3588,6 +3626,7 @@
    ],
    "reason": "RNF5347: An assignment operator is expected with the EVAL operation.",
    "reason_detail": "line 6: An assignment operator is expected with the EVAL operation. \u2014 `SQL INSERT INTO t349 VALUES(1);`",
+   "rpgc": "reject",
    "sha256": "b40fc6d3caddb73643c8b9ce878e976dbf13814bc5c9f4175c98d672de8d4153",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3646,6 +3685,7 @@
    ],
    "reason": "Declaration after calculations",
    "reason_detail": "line 7: `DCL-S x INT(10) INZ(5);   /* after a declaration */`",
+   "rpgc": "accept",
    "sha256": "eae3d75deb61dd9159ad3a2ef41bd29abfc60e91bd86769b7d5cd77df1ac3440",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3694,6 +3734,7 @@
    ],
    "reason": "RNF0274: Compiler directive not recognized; directive ignored.",
    "reason_detail": "line 5: Compiler directive not recognized; directive ignored. \u2014 `/* a block comment`",
+   "rpgc": "accept",
    "sha256": "686064fca7384e89b823ccb85de5030f3028a1d7de898b916ea171a22c8dc6a4",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3712,6 +3753,7 @@
    ],
    "reason": "RNF0274: Compiler directive not recognized; directive ignored.",
    "reason_detail": "line 4: Compiler directive not recognized; directive ignored. \u2014 `/* never closed`",
+   "rpgc": "reject",
    "sha256": "3c269419f8cdc1ee59711f7ef07aa6f59b2962583b8ca44d61c9f10e76ff8a65",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3737,6 +3779,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 5: The token is not valid; token is ignored. \u2014 `k = %FKEY;`",
+   "rpgc": "reject",
    "sha256": "7a4c694e2bd9de5911eb028683638e8c90aa67e57033afeccd2a72e33fd20541",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3781,6 +3824,7 @@
    ],
    "reason": "RNF3308: Keyword name is not valid; the keyword is ignored.",
    "reason_detail": "line 5: Keyword name is not valid; the keyword is ignored. \u2014 `DCL-S a b c INT(10) INZ(7);`",
+   "rpgc": "accept",
    "sha256": "e715b613ced0eabe8f5c3cee7c1325018efd488d486570c99ef4335523c35ef2",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3825,6 +3869,7 @@
    ],
    "reason": "RNF5377: The end of the expression is expected.",
    "reason_detail": "line 12: The end of the expression is expected. \u2014 `msg = f'I have {apples} apples and {bananas} bananas';`",
+   "rpgc": "accept",
    "sha256": "52b68fdb3ad811a995eb63f21a5ec13da50b5e64fa467cae728d9802d0968a6d",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3850,6 +3895,7 @@
    ],
    "reason": "RNF5377: The end of the expression is expected.",
    "reason_detail": "line 5: The end of the expression is expected. \u2014 `m = f'a {x';`",
+   "rpgc": "reject",
    "sha256": "94180c5616906f571a76ac812a2dde941cfb77ffef22ee914860aae4a2f0fa34",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3875,6 +3921,7 @@
    ],
    "reason": "RNF5377: The end of the expression is expected.",
    "reason_detail": "line 4: The end of the expression is expected. \u2014 `m = f'a {} b';`",
+   "rpgc": "reject",
    "sha256": "8260b3329e7de12915938ebced031effb58a0e76ab7b1066baa4510ce99bf31b",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3920,6 +3967,7 @@
    ],
    "reason": "RNF1502: The Procedure specification ending the previous procedure is missing.",
    "reason_detail": "line 11: The Procedure specification ending the previous procedure is missing. \u2014 `DCL-PROC outer;`",
+   "rpgc": "accept",
    "sha256": "09a9f7c7869eb0722d4d7d019c5807af622a6a865a5c51a9f50b923435dc2659",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3945,6 +3993,7 @@
    ],
    "reason": "RNF1502: The Procedure specification ending the previous procedure is missing.",
    "reason_detail": "line 6: The Procedure specification ending the previous procedure is missing. \u2014 `DCL-PROC outer;`",
+   "rpgc": "reject",
    "sha256": "08d033d48f3ea35b7dc05ba69cebf57a83c9b08facab81bbc762f9cd8fe0fdc4",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -3995,12 +4044,14 @@
    ],
    "reason": "RNF5377: The end of the expression is expected.",
    "reason_detail": "line 14: The end of the expression is expected. \u2014 `IF val NOT IN %LIST(1 : 3 : 5 : 7);`",
+   "rpgc": "accept",
    "sha256": "cb0790c865c496be4af55043413d621c0486e6b63e6d35b99d8558fadedc945c",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test361_in_array.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "d11c4b069f70566c6daa90a81b9a20185dbc29a9704354b2d067ac81e9dadd10",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -4047,6 +4098,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 10: The token is not valid; token is ignored. \u2014 `IF %MATCHES(email : '^[^@ ]+@[^@ ]+\\.[a-z]+$');`",
+   "rpgc": "accept",
    "sha256": "6124376ce3f2923049a20e0017ba2eb68a9d71149baa67af2fc3de9ebced27f7",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4079,6 +4131,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 4: The token is not valid; token is ignored. \u2014 `IF %MATCHES(s : '[a-');`",
+   "rpgc": "reject",
    "sha256": "0de3b67fb2570a7952633343c518ced2b5abef1e99f3deb79473234d0048a323",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4098,6 +4151,7 @@
    ],
    "reason": "RNF1331: The parameter for keyword OPTION is not valid; parameter is ignored.",
    "reason_detail": "line 5: The parameter for keyword OPTION is not valid; parameter is ignored. \u2014 `CTL-OPT OPTION(*SRCSTMT : *NOLENCHK);`",
+   "rpgc": "accept",
    "sha256": "0897ed589d86d18b8dfa513202e00f18ab5f876d729b44fceb137e0fe38b97f9",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4123,6 +4177,7 @@
    ],
    "reason": "RNF1331: The parameter for keyword OPTION is not valid; parameter is ignored.",
    "reason_detail": "line 1: The parameter for keyword OPTION is not valid; parameter is ignored. \u2014 `H OPTION(*NOLENCHK)`",
+   "rpgc": "accept",
    "sha256": "ae5c17f8605fbc69202e8d48a568de14d1dbdeaf7d30286dd22b99e76295da73",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4166,6 +4221,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 11: The token is not valid; token is ignored. \u2014 `DSPLY %CHAR(p : *NOZEROSUPPRESS);`",
+   "rpgc": "accept",
    "sha256": "7c2e3841618e80aa3b9938d785a7d6fcac4aea3e5d540bc32c47853d88c4ae12",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4191,12 +4247,14 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 5: The token is not valid; token is ignored. \u2014 `DSPLY %CHAR(p * 2 : *NOZEROSUPPRESS);`",
+   "rpgc": "reject",
    "sha256": "3cd8f5f71c9483602184bfb949a285b7bb2cca13b81d6406f6260cc08f6b3573",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test368_elseif_directive.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "30f70f9e4d1df1513553959d2f326bd44d88251b90c3f712013c78b3e2a0e995",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -4240,6 +4298,7 @@
    ],
    "reason": "RNF0275: Field required to be blank is not blank; defaults to blank.",
    "reason_detail": "line 6: Field required to be blank is not blank; defaults to blank. \u2014 `/IF DEFINED(LINUX) AND NOT DEFINED(NOGUI)`",
+   "rpgc": "accept",
    "sha256": "91069b812588c87d459b077c1ea5bd0d5e9f6a6d68c3011506c414a34c56be64",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4271,6 +4330,7 @@
    ],
    "reason": "RNF0275: Field required to be blank is not blank; defaults to blank.",
    "reason_detail": "line 3: Field required to be blank is not blank; defaults to blank. \u2014 `/IF DEFINED(LINUX) AND NOT DEFINED(NOGUI)`",
+   "rpgc": "accept",
    "sha256": "9d9ada7e2e5e4bc28a71c0c422fc52b17cea4023df24021dba9c0f97026dc720",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4289,6 +4349,7 @@
    ],
    "reason": "RNF0275: Field required to be blank is not blank; defaults to blank.",
    "reason_detail": "line 3: Field required to be blank is not blank; defaults to blank. \u2014 `/IF DEFINED(X) AND`",
+   "rpgc": "reject",
    "sha256": "9250f747e44bebae478ff4a421cb848ef2cf153ff95ab5e8acb406806cc5b50a",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4338,6 +4399,7 @@
    ],
    "reason": "RNF3429: Initial value is not valid; parameter is ignored.",
    "reason_detail": "line 4: Initial value is not valid; parameter is ignored. \u2014 `DCL-S done IND INZ(*TRUE);`",
+   "rpgc": "accept",
    "sha256": "c44a255885e9c154607b547862b1c2bde6cd00acf1976b1b2e3579b602b2d1a1",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4384,12 +4446,14 @@
    ],
    "reason": "RNF3429: Initial value is not valid; parameter is ignored.",
    "reason_detail": "line 3: Initial value is not valid; parameter is ignored. \u2014 `DFLAG             S               N   INZ(*TRUE)`",
+   "rpgc": "accept",
    "sha256": "1a10a39be2016089053fdbff9b34f762ec499d57f8e24d3e6f2edd123af124d1",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test374_proc_return_ind.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "5b1ba7f09fbcd921f2805451296e230551a39f88973447d8a83c2551713d4a54",
    "verdict": "accept",
    "verified": "2026-10-06"
