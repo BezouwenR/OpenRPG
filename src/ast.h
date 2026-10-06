@@ -964,6 +964,7 @@ struct EntryParam {
 class Program : public ASTNode {
 public:
     bool nomain = false;
+    bool nolenchk = false;    // CTL-OPT OPTION(*NOLENCHK): %SUBST past the end gives the rest
     bool debug_dump = false;  // CTL-OPT DEBUG(*YES) / DEBUG(*DUMP): DUMP writes a dump
     bool uses_user_const = false; // program references *USER
     std::string main_proc;

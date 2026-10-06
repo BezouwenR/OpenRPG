@@ -310,6 +310,21 @@ inline std::string rpg_subst(const std::string& s, long long start, long long le
     return s.substr(static_cast<size_t>(start - 1), static_cast<size_t>(length));
 }
 
+// %SUBST under CTL-OPT OPTION(*NOLENCHK), an OpenRPG extension: a length
+// that runs past the end of the data gives what there is, from the start
+// to the end, and a length of 0 gives nothing. A start just past the end
+// gives nothing too, so %SUBST(s : 1 : 3) of an empty s is ''. A start
+// further out, or a negative length, is still status 100.
+inline std::string rpg_subst_nolenchk(const std::string& s, long long start,
+                                      long long length = RPG_SUBST_TO_END) {
+    long long n = static_cast<long long>(s.size());
+    if (start == n + 1 && length != RPG_SUBST_TO_END && length >= 0) return "";
+    if (length != RPG_SUBST_TO_END && length >= 0 && start >= 1 && start <= n &&
+        start - 1 + length > n)
+        length = n - start + 1;
+    return rpg_subst(s, start, length);
+}
+
 // %REPLACE(replacement : source {: start {: length}}), as IBM i does it:
 // `length` characters of the source, from `start`, give way to the
 // replacement. The start defaults to 1, and the length to the

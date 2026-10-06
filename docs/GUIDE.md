@@ -805,6 +805,24 @@ DSPLY %LOWER('HELLO');  // 'hello'
 DSPLY %UPPER('hello');  // 'HELLO'
 ```
 
+### A Lenient %SUBST: OPTION(*NOLENCHK)
+
+`%SUBST` is status 100 when its length runs past the end of the data, as on
+IBM i. A program compiled with `CTL-OPT OPTION(*NOLENCHK)` (or `H OPTION(*NOLENCHK)`)
+gets what there is instead:
+
+```rpgle
+CTL-OPT OPTION(*NOLENCHK);
+DCL-S status VARCHAR(10) INZ('200 OK');
+
+DSPLY %SUBST(status : 5 : 20);   // 'OK'
+DSPLY %SUBST(status : 1 : 0);    // ''
+DSPLY %SUBST('' : 1 : 3);        // '', a start just past the end
+```
+
+A start further outside the data, or a negative length, is still status 100.
+The option is an OpenRPG extension; IBM i does not accept `*NOLENCHK`.
+
 ### Regular Expressions
 
 Three built-ins test and search strings with regular expressions (ECMAScript

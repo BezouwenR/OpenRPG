@@ -892,6 +892,7 @@ static void checkSubroutinesLast(const std::vector<std::unique_ptr<Statement>>& 
 
 void CodeGen::visit(Program& node) {
     debug_dump_ = node.debug_dump;
+    nolenchk_ = node.nolenchk;
     checkDeclarationOrder(node.statements, "the main procedure");
     checkSubroutinesLast(node.statements, "the main procedure");
     // Store date/time format settings
@@ -5189,8 +5190,9 @@ void CodeGen::visit(BIFCall& node) {
         node.args[0]->accept(*this);
         expr_ << ".size())";
     } else if (node.name == "SUBST") {
-        // %SUBST(string : start {: length}), range-checked (rpg_subst).
-        expr_ << "rpg_subst(";
+        // %SUBST(string : start {: length}), range-checked (rpg_subst), or
+        // with OPTION(*NOLENCHK) a length past the end giving the rest.
+        expr_ << (nolenchk_ ? "rpg_subst_nolenchk(" : "rpg_subst(");
         node.args[0]->accept(*this);
         for (size_t i = 1; i < node.args.size() && i < 3; i++) {
             expr_ << ", ";

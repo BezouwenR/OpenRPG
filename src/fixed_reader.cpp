@@ -363,6 +363,9 @@ static bool isNumericType(RPGType t) {
 static void applyHSpecKeywords(Program* program, const std::string& tailText) {
     auto kw = rpg::parseKeywordList(tailText);
     if (kw.count("NOMAIN")) program->nomain = true;
+    auto opt = kw.find("OPTION");
+    if (opt != kw.end() && upper(opt->second).find("*NOLENCHK") != std::string::npos)
+        program->nolenchk = true;
     auto dbg = kw.find("DEBUG");
     if (dbg != kw.end()) {
         std::string v = upper(dbg->second);

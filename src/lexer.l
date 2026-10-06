@@ -228,6 +228,7 @@ char ctlopt_datfmt[64] = {0};
 char ctlopt_timfmt[64] = {0};
 bool ctlopt_nomain = false;
 bool ctlopt_debug_dump = false;
+bool ctlopt_nolenchk = false;
 
 // Thin wrapper over the generic rpg::parseKeywordList() (keyword_list.h)
 // — shared with H-spec's fixed-format keyword-list content, which is the
@@ -242,7 +243,16 @@ static void parse_ctlopt(const char* text) {
     ctlopt_timfmt[0] = '\0';
 
     ctlopt_debug_dump = false;
+    ctlopt_nolenchk = false;
     auto kw = rpg::parseKeywordList(text);
+    // OPTION(*NOLENCHK), an OpenRPG extension: a %SUBST length that runs
+    // past the end of the data gives the rest of it, not status 100.
+    auto opt = kw.find("OPTION");
+    if (opt != kw.end()) {
+        std::string v = opt->second;
+        for (auto& c : v) c = (char)toupper((unsigned char)c);
+        ctlopt_nolenchk = v.find("*NOLENCHK") != std::string::npos;
+    }
     if (kw.count("NOMAIN")) ctlopt_nomain = true;
     // DEBUG, DEBUG(*YES) or DEBUG(*DUMP ...): DUMP operations write a dump.
     auto dbg = kw.find("DEBUG");
