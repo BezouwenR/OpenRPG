@@ -967,6 +967,8 @@ run_test "362" "Regular-expression BIFs" "$TESTDIR/test362_regex.rpgle" "run"
 run_test "363" "Reject an invalid literal regular expression" "$TESTDIR/test363_err_regex_literal.rpgle" "error"
 run_test "364" "OPTION(*NOLENCHK): a lenient %SUBST" "$TESTDIR/test364_subst_nolenchk.rpgle" "run"
 run_test "365" "OPTION(*NOLENCHK) on an H-spec" "$TESTDIR/test365_fixed_subst_nolenchk.rpgle" "run"
+run_test "366" "%CHAR(number : *NOZEROSUPPRESS)" "$TESTDIR/test366_char_nozero.rpgle" "run"
+run_test "367" "Reject *NOZEROSUPPRESS on an expression" "$TESTDIR/test367_err_char_nozero_expr.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

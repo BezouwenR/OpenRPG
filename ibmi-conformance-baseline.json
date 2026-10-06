@@ -4127,6 +4127,74 @@
    "verdict": "reject",
    "verified": "2026-10-06"
   },
+  "test366_char_nozero.rpgle": {
+   "codes": [
+    "RNF0604",
+    "RNF0637"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 11,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0637",
+     "line": 11,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 12,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0637",
+     "line": 12,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 13,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 11: The token is not valid; token is ignored. \u2014 `DSPLY %CHAR(p : *NOZEROSUPPRESS);`",
+   "sha256": "7c2e3841618e80aa3b9938d785a7d6fcac4aea3e5d540bc32c47853d88c4ae12",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test367_err_char_nozero_expr.rpgle": {
+   "codes": [
+    "RNF0604",
+    "RNF0637"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 5,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0637",
+     "line": 5,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 5: The token is not valid; token is ignored. \u2014 `DSPLY %CHAR(p * 2 : *NOZEROSUPPRESS);`",
+   "sha256": "3cd8f5f71c9483602184bfb949a285b7bb2cca13b81d6406f6260cc08f6b3573",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
   "test36_ds_params.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -4701,5 +4769,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T18:13:56+00:00"
+ "generated": "2026-10-06T18:17:55+00:00"
 }

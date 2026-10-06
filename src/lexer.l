@@ -690,6 +690,8 @@ static void parse_ctlopt(const char* text) {
     yylval.sval = strdup(v.c_str());
     return IDENTIFIER;
 }
+"*NOZEROSUPPRESS"   { yylval.sval = strdup("*NOZEROSUPPRESS"); return IDENTIFIER; }
+"*ZEROSUPPRESS"     { yylval.sval = strdup("*ZEROSUPPRESS"); return IDENTIFIER; }
 "*INZSR"            { yylval.sval = strdup("*INZSR"); return IDENTIFIER; }
 "*PSSR"             { yylval.sval = strdup("*PSSR"); return IDENTIFIER; }
 "*LDA"              { yylval.sval = strdup("*LDA"); return IDENTIFIER; }

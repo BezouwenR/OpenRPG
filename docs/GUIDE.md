@@ -856,6 +856,21 @@ DSPLY %CHAR(%REM(17:5));    // 2
 DSPLY %CHAR(%SQRT(144));    // 12
 ```
 
+`%CHAR` drops a number's leading zeros. `%CHAR(number : *NOZEROSUPPRESS)` keeps
+every digit the field is declared with, as `%EDITC(number : 'X')` does, but with
+the decimal point and minus sign `%CHAR` gives:
+
+```rpgle
+DCL-S amount PACKED(7:2) INZ(123.4);
+DCL-S zip ZONED(5:0) INZ(2134);
+DSPLY %CHAR(amount : *NOZEROSUPPRESS);   // 00123.40
+DSPLY %CHAR(zip : *NOZEROSUPPRESS);      // 02134
+```
+
+`*ZEROSUPPRESS` is the plain `%CHAR`. The value must be a `PACKED`, `ZONED`,
+`INT` or `UNS` field, whose declared digits say how many to show. Both are an
+OpenRPG extension; IBM i's `%CHAR` takes no such operand.
+
 ### Date/Time Functions
 
 ```rpgle

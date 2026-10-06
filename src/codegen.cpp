@@ -5138,6 +5138,31 @@ void CodeGen::visit(BIFCall& node) {
     if (node.name == "CHAR") {
         // Check if arg is a date/time variable and DATFMT/TIMFMT is set
         FieldAttrs aa = attrsOf(*node.args[0]);
+        // %CHAR(number : *ZEROSUPPRESS | *NOZEROSUPPRESS), an OpenRPG
+        // extension. *ZEROSUPPRESS is plain %CHAR; *NOZEROSUPPRESS keeps
+        // the leading zeros of the field's declared digits.
+        auto* zs = node.args.size() == 2 ? dynamic_cast<Identifier*>(node.args[1].get()) : nullptr;
+        if (zs && zs->name == "*NOZEROSUPPRESS") {
+            int digits = 0, decs = 0;
+            if (aa.known && (aa.type == RPGType::PACKED || aa.type == RPGType::ZONED ||
+                             aa.type == RPGType::BINDEC)) {
+                digits = aa.digits; decs = aa.decimals;
+            } else if (aa.known && (aa.type == RPGType::INT10 || aa.type == RPGType::UNS)) {
+                digits = aa.digits;
+            }
+            if (digits <= 0) {
+                report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_,
+                    "%CHAR(... : *NOZEROSUPPRESS) needs a numeric field declared with its digits "
+                    "(PACKED, ZONED, INT or UNS); it shows every one of them");
+                expr_ << "std::string()";
+                return;
+            }
+            expr_ << "rpg_char_nozero(static_cast<long double>(";
+            node.args[0]->accept(*this);
+            expr_ << "), " << digits << ", " << decs << ")";
+            return;
+        }
+        if (zs && zs->name == "*ZEROSUPPRESS") node.args.pop_back();
         bool is_date_var = aa.known && aa.type == RPGType::DATE;
         bool is_time_var = aa.known && aa.type == RPGType::TIME;
         if (is_date_var && !datfmt_.empty()) {

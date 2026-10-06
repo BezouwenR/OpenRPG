@@ -1188,6 +1188,21 @@ inline std::string rpg_to_char(bool v) { return v ? "1" : "0"; }
 // PACKED/ZONED: format with exactly the declared number of decimal places.
 // IBM i writes no zero before the decimal point: %CHAR of 0.50 is ".50",
 // of -0.5 "-.50", of zero at two decimals ".00" (verified on PUB400).
+// %CHAR(number : *NOZEROSUPPRESS), an OpenRPG extension: every digit the
+// field is declared with, leading zeros kept -- PACKED(7:2) 123.4 is
+// "00123.40", and -5 "-00005.00" -- with a decimal point and a leading
+// minus sign as %CHAR has them.
+inline std::string rpg_char_nozero(long double v, int digits, int dec) {
+    bool neg = v < 0;
+    long double scaled = (neg ? -v : v);
+    for (int i = 0; i < dec; i++) scaled *= 10;
+    unsigned long long n = static_cast<unsigned long long>(std::llround(scaled));
+    std::string d = std::to_string(n);
+    if (static_cast<int>(d.size()) < digits) d.insert(0, digits - d.size(), '0');
+    if (dec > 0) d.insert(d.size() - dec, ".");
+    return (neg && n != 0 ? "-" : "") + d;
+}
+
 inline std::string rpg_to_char_packed(double v, int dec) {
     rpg_chk_dec(v);
     std::string buf;
