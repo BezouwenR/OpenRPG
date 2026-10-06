@@ -195,6 +195,18 @@ static bool looksLikeFixedFormat(const std::string& src_text) {
             continue;
         }
 
+        // A compiler directive (/IF, /DEFINE, /COPY, ...) is written the
+        // same way in both formats, so it says nothing: the next line
+        // decides. A source that opened with one, ahead of its first spec,
+        // used to be read as free-format. /FREE and /END-FREE exist only
+        // in fixed-format source.
+        if (trimmed[0] == '/' && trimmed.size() > 1 && isalpha((unsigned char)trimmed[1])) {
+            std::string upper = trimmed;
+            for (auto& c : upper) c = (char)toupper((unsigned char)c);
+            if (upper.rfind("/FREE", 0) == 0 || upper.rfind("/END-FREE", 0) == 0) return true;
+            continue;
+        }
+
         std::string cols1to5 = line.size() >= 5 ? line.substr(0, 5) : line;
         bool seqLooksFixed = true;
         for (char c : cols1to5) {

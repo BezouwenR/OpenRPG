@@ -4598,6 +4598,18 @@
    "verdict": "reject",
    "verified": "2026-10-06"
   },
+  "test384_fixed_starts_with_directive.rpgle": {
+   "codes": [],
+   "sha256": "f38b8db96d49b5baa515611ef46428986ddbaee4fa852657c5762b57dd94d6aa",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test385_fixed_starts_with_free.rpgle": {
+   "codes": [],
+   "sha256": "f5eb8399bc2d6ac8cfeb56838395a318286b8f7758f5772a601afbfe54d7b51a",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
   "test38_ctlopt.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -5158,5 +5170,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T19:22:06+00:00"
+ "generated": "2026-10-06T19:31:01+00:00"
 }

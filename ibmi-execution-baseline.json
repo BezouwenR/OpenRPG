@@ -2100,6 +2100,28 @@
    "test": "380",
    "verified": "2026-10-06"
   },
+  "test384_fixed_starts_with_directive.rpgle": {
+   "error": "",
+   "output": [
+    "hello                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "also                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     "
+   ],
+   "sha256": "f38b8db96d49b5baa515611ef46428986ddbaee4fa852657c5762b57dd94d6aa",
+   "status": "same",
+   "test": "384",
+   "verified": "2026-10-06"
+  },
+  "test385_fixed_starts_with_free.rpgle": {
+   "error": "",
+   "output": [
+    "in free block                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ",
+    "after                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    "
+   ],
+   "sha256": "f5eb8399bc2d6ac8cfeb56838395a318286b8f7758f5772a601afbfe54d7b51a",
+   "status": "same",
+   "test": "385",
+   "verified": "2026-10-06"
+  },
   "test38_ctlopt.rpgle": {
    "error": "",
    "output": [
