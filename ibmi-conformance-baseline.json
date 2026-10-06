@@ -4525,12 +4525,78 @@
    "verdict": "accept",
    "verified": "2026-10-06"
   },
+  "test379_subst_target.rpgle": {
+   "codes": [],
+   "sha256": "11796b2d90f281d3e8f8b5c6ae62615d182855874e83f00c74375dbb1d39f3ae",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
   "test37_inzsr.rpgle": {
    "codes": [],
    "rpgc": "accept",
    "sha256": "3f1ff9a60d08f1bf66616052f8a02d761f4aad3f28217e7521d66570ed559c49",
    "verdict": "accept",
    "verified": "2026-09-25"
+  },
+  "test380_fixed_subst_target.rpgle": {
+   "codes": [],
+   "sha256": "780d20bfc04b6e6b903caa5f6c0c6d68b5a734aa80bd7689b256d36566be7979",
+   "verdict": "accept",
+   "verified": "2026-10-06"
+  },
+  "test381_err_subst_target_num.rpgle": {
+   "codes": [
+    "RNF0361"
+   ],
+   "messages": [
+    {
+     "code": "RNF0361",
+     "line": 4,
+     "severity": 20,
+     "text": "The first parameter N for %SUBST is not valid; built-in function is ignored."
+    }
+   ],
+   "reason": "RNF0361: The first parameter N for %SUBST is not valid; built-in function is ignored.",
+   "reason_detail": "line 4: The first parameter N for %SUBST is not valid; built-in function is ignored. \u2014 `%SUBST(n : 1 : 1) = '5';`",
+   "sha256": "4d0e40811893b5ad07093c1d227e54586e03beddacac6a3d738921a2f7dc05a2",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test382_err_subst_len_literal.rpgle": {
+   "codes": [
+    "RNF0365"
+   ],
+   "messages": [
+    {
+     "code": "RNF0365",
+     "line": 5,
+     "severity": 20,
+     "text": "The third parameter 5 for %SUBST is too big; parameter is ignored."
+    }
+   ],
+   "reason": "RNF0365: The third parameter n for %SUBST is too big; parameter is ignored.",
+   "reason_detail": "line 5: The third parameter 5 for %SUBST is too big; parameter is ignored. \u2014 `t = %SUBST(s : 9 : 5);`",
+   "sha256": "e0915d5a2436344418e693e202fe70c43ef3097469bc0d788e6cbb43f5403250",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test383_err_subst_start_literal.rpgle": {
+   "codes": [
+    "RNF0364"
+   ],
+   "messages": [
+    {
+     "code": "RNF0364",
+     "line": 5,
+     "severity": 20,
+     "text": "The start position 11 for %SUBST is greater than string length 10; %SUBST is ignored."
+    }
+   ],
+   "reason": "RNF0364: The start position n for %SUBST is greater than string length n; %SUBST is ignored.",
+   "reason_detail": "line 5: The start position 11 for %SUBST is greater than string length 10; %SUBST is ignored. \u2014 `t = %SUBST(s : 11 : 1);`",
+   "sha256": "c77ac17d6d40389bcd49e6f2ccc3ec1d2df58166daf99330778106d252e58ed9",
+   "verdict": "reject",
+   "verified": "2026-10-06"
   },
   "test38_ctlopt.rpgle": {
    "codes": [],
@@ -5092,5 +5158,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T19:10:44+00:00"
+ "generated": "2026-10-06T19:22:06+00:00"
 }

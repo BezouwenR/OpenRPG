@@ -980,6 +980,11 @@ run_test "375" "Reject a name declared twice" "$TESTDIR/test375_err_dup_dcl_s.rp
 run_test "376" "Reject a local named as a parameter" "$TESTDIR/test376_err_dup_param_local.rpgle" "error"
 run_test "377" "Reject a call to an undefined procedure" "$TESTDIR/test377_err_undefined_proc.rpgle" "error"
 run_test "378" "A local hides a global of the same name" "$TESTDIR/test378_local_hides_global.rpgle" "run"
+run_test "379" "%SUBST as an assignment target" "$TESTDIR/test379_subst_target.rpgle" "run"
+run_test "380" "%SUBST as a fixed-format EVAL target" "$TESTDIR/test380_fixed_subst_target.rpgle" "run"
+run_test "381" "Reject %SUBST of a numeric target" "$TESTDIR/test381_err_subst_target_num.rpgle" "error"
+run_test "382" "Reject a literal %SUBST length past the field" "$TESTDIR/test382_err_subst_len_literal.rpgle" "error"
+run_test "383" "Reject a literal %SUBST start outside the field" "$TESTDIR/test383_err_subst_start_literal.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

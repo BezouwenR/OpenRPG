@@ -1167,6 +1167,11 @@ eval_target:
     | BIF_ELEM LPAREN arg_list RPAREN {
         $$ = make_bif("ELEM", $3);
     }
+    /* %SUBST(field : start {: length}) = value: part of the field. */
+    | BIF_SUBST LPAREN arg_list RPAREN {
+        $$ = make_bif("SUBST", $3);
+        $$->line = yylineno;
+    }
     ;
 
 /* After EVAL, a target may be named like an operation code: EVAL out = 1.

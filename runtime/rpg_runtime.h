@@ -310,6 +310,24 @@ inline std::string rpg_subst(const std::string& s, long long start, long long le
     return s.substr(static_cast<size_t>(start - 1), static_cast<size_t>(length));
 }
 
+// %SUBST(field : start {: length}) = value: that part of the field takes
+// the value, padded with blanks or cut to the length -- the rest of the
+// field is left as it was. A start or length outside the field is status
+// 100, as for %SUBST in an expression; with OPTION(*NOLENCHK) a length past
+// the end stops at it.
+inline void rpg_subst_set(std::string& field, long long start, long long length,
+                          const std::string& value, bool nolenchk) {
+    long long n = static_cast<long long>(field.size());
+    if (length == RPG_SUBST_TO_END) length = n - start + 1;
+    if (nolenchk && start >= 1 && start <= n && length >= 0 && start - 1 + length > n)
+        length = n - start + 1;
+    if (start < 1 || start > n || length < 0 || start - 1 + length > n)
+        rpg_raise(100, "RNX0100: Length or start position is out of range for the string operation.");
+    std::string piece = value.substr(0, static_cast<size_t>(length));
+    piece.resize(static_cast<size_t>(length), ' ');
+    field.replace(static_cast<size_t>(start - 1), static_cast<size_t>(length), piece);
+}
+
 // %SUBST under CTL-OPT OPTION(*NOLENCHK), an OpenRPG extension: a length
 // that runs past the end of the data gives what there is, from the start
 // to the end, and a length of 0 gives nothing. A start just past the end

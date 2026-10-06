@@ -2061,6 +2061,24 @@
    "test": "378",
    "verified": "2026-10-06"
   },
+  "test379_subst_target.rpgle": {
+   "error": "",
+   "output": [
+    "aXYZefghij                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+    "Q   efghij                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+    "Q   efgLON                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+    "Q   efgL12                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+    "Jello                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "xabxx                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "..**..                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+    "ev  efgL12                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+    "status 100                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+   ],
+   "sha256": "11796b2d90f281d3e8f8b5c6ae62615d182855874e83f00c74375dbb1d39f3ae",
+   "status": "same",
+   "test": "379",
+   "verified": "2026-10-06"
+  },
   "test37_inzsr.rpgle": {
    "error": "",
    "output": [
@@ -2071,6 +2089,16 @@
    "status": "same",
    "test": "37",
    "verified": "2026-09-26"
+  },
+  "test380_fixed_subst_target.rpgle": {
+   "error": "",
+   "output": [
+    "abZZefghij                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               "
+   ],
+   "sha256": "780d20bfc04b6e6b903caa5f6c0c6d68b5a734aa80bd7689b256d36566be7979",
+   "status": "same",
+   "test": "380",
+   "verified": "2026-10-06"
   },
   "test38_ctlopt.rpgle": {
    "error": "",

@@ -2694,6 +2694,23 @@ void CodeGen::visit(EvalStmt& node) {
         return;
     }
 
+    // %SUBST(field : start {: length}) = value: the value goes into that
+    // part of the field, padded with blanks or cut to the length, as an
+    // assignment to a field of that length would be (rpg_subst_set).
+    if (lhs_bif && lhs_bif->name == "SUBST") {
+        int line = lhs_bif->line > 0 ? lhs_bif->line : (node.line > 0 ? node.line : cur_stmt_line_);
+        if (!checkSubstOperands(*lhs_bif, true, line)) return;
+        Expression* fld = lhs_bif->args[0].get();
+        std::string val = emitExpr(*node.value);
+        emitIndent();
+        out_ << "rpg_subst_set(" << subExpr(*fld) << ", " << subExpr(*lhs_bif->args[1]) << ", "
+             << (lhs_bif->args.size() == 3 ? subExpr(*lhs_bif->args[2]) : "RPG_SUBST_TO_END")
+             << ", " << val << ", " << (nolenchk_ ? "true" : "false") << ");";
+        if (node.line > 0) out_ << " // line " << node.line;
+        out_ << "\n";
+        return;
+    }
+
     // RPG forbids changing a CONST parameter (the caller's value may be a
     // temporary or a literal). Said here, not left to the C++ compiler,
     // whose error would name the generated code.
@@ -4715,6 +4732,47 @@ void CodeGen::dsAsChars(std::unique_ptr<Expression>& e) {
     e = std::make_unique<BIFCall>("__DSCHARS", std::move(args));
 }
 
+// %SUBST's operands, checked as IBM i checks them when it compiles: the
+// first must be a character field (or, in an expression, a character
+// value), and a start or length written as a number must fit the field's
+// declared length -- %SUBST(s : 9 : 5) of a CHAR(10) is RNF0365. A value
+// known only at run time is checked then (status 100). Returns false when
+// the %SUBST is not valid.
+bool CodeGen::checkSubstOperands(BIFCall& bif, bool target, int line) {
+    if (bif.args.size() < 2 || bif.args.size() > 3) {
+        report_semantic_error(line, "%SUBST takes a string, a start and an optional length");
+        return false;
+    }
+    Expression* fld = bif.args[0].get();
+    FieldAttrs fa = attrsOf(*fld);
+    bool lvalue = dynamic_cast<Identifier*>(fld) || dynamic_cast<DotExpr*>(fld) ||
+                  dynamic_cast<ArrayAccess*>(fld) ||
+                  (dynamic_cast<FuncCall*>(fld) && array_vars_.count(static_cast<FuncCall*>(fld)->name));
+    bool isChar = !fa.known || fa.type == RPGType::CHAR || fa.type == RPGType::VARCHAR;
+    if ((target && !lvalue) || !isChar) {
+        std::string what = dynamic_cast<Identifier*>(fld) ? static_cast<Identifier*>(fld)->name + " " : "";
+        report_semantic_error(line, "The first parameter " + what + "for %SUBST is not valid: it "
+            "must be a character " + std::string(target ? "field" : "value") + " (IBM: RNF0361)");
+        return false;
+    }
+    if (!fa.known || fa.length <= 0) return true;
+    auto* st = dynamic_cast<IntLiteral*>(bif.args[1].get());
+    auto* ln = bif.args.size() == 3 ? dynamic_cast<IntLiteral*>(bif.args[2].get()) : nullptr;
+    if (st && (st->value < 1 || st->value > fa.length)) {
+        report_semantic_error(line, "The second parameter " + std::to_string(st->value) +
+            " for %SUBST is outside the " + std::to_string(fa.length) +
+            " characters of the field (IBM: RNF0364)");
+        return false;
+    }
+    if (ln && !nolenchk_ && (ln->value < 0 || (st ? st->value : 1) - 1 + ln->value > fa.length)) {
+        report_semantic_error(line, "The third parameter " + std::to_string(ln->value) +
+            " for %SUBST is too big: it runs past the " + std::to_string(fa.length) +
+            " characters of the field (IBM: RNF0365)");
+        return false;
+    }
+    return true;
+}
+
 // An indicator met by a character value is its character, '1' or '0'.
 void CodeGen::indAsChars(std::unique_ptr<Expression>& e) {
     if (!e || argCategory(*e) != ArgCat::Ind) return;
@@ -5256,6 +5314,7 @@ void CodeGen::visit(BIFCall& node) {
     } else if (node.name == "SUBST") {
         // %SUBST(string : start {: length}), range-checked (rpg_subst), or
         // with OPTION(*NOLENCHK) a length past the end giving the rest.
+        checkSubstOperands(node, false, node.line > 0 ? node.line : cur_stmt_line_);
         expr_ << (nolenchk_ ? "rpg_subst_nolenchk(" : "rpg_subst(");
         node.args[0]->accept(*this);
         for (size_t i = 1; i < node.args.size() && i < 3; i++) {
