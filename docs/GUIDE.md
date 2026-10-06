@@ -723,6 +723,27 @@ END-PROC;
 
 ## Built-In Functions
 
+### Interpolated Strings
+
+A literal written `f'...'` is an interpolated string: each `{expression}` in it
+is replaced by `%CHAR` of that expression's value.
+
+```rpgle
+DCL-S apples INT(10) INZ(4);
+DCL-S name CHAR(10) INZ('Ada');
+
+msg = f'I have {apples} apples';             // 'I have 4 apples'
+msg = f'{apples * 2} for {%TRIMR(name)}';    // '8 for Ada'
+msg = f'[{name}]';                           // '[Ada       ]'
+msg = f'{{braces}} and it''s {%UPPER(''x'')}';  // '{braces} and it's X'
+```
+
+It is exactly the concatenation it stands for — `f'I have {apples} apples'` is
+`'I have ' + %CHAR(apples) + ' apples'` — so a fixed-length character field
+keeps its trailing blanks, as it does with `+`; `%TRIMR` drops them. `{{` and
+`}}` are braces, and a quote is doubled, inside the braces too, as anywhere in a
+literal. This is an OpenRPG extension: IBM i has no interpolated strings.
+
 ### String Functions
 
 ```rpgle

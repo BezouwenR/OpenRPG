@@ -956,6 +956,9 @@ run_test "351" "Block comments in fixed-format source" "$TESTDIR/test351_fixed_b
 run_test "352" "Reject a block comment with no end" "$TESTDIR/test352_err_block_comment_open.rpgle" "error"
 run_test "353" "Reject %FKEY with no WORKSTN file" "$TESTDIR/test353_err_fkey_no_workstn.rpgle" "error"
 run_test "354" "Several names in one DCL-S" "$TESTDIR/test354_dcl_s_names.rpgle" "run"
+run_test "355" "Interpolated strings" "$TESTDIR/test355_fstring.rpgle" "run"
+run_test "356" "Reject an unclosed { in an interpolated string" "$TESTDIR/test356_err_fstring_open.rpgle" "error"
+run_test "357" "Reject an empty {} in an interpolated string" "$TESTDIR/test357_err_fstring_empty.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

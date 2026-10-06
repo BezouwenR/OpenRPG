@@ -30,6 +30,7 @@ test85_getenv.rpgle                  reject  OpenRPG extension: %GETENV has no I
 test350_block_comments.rpgle         reject  OpenRPG extension: block comments; IBM i has only //
 test351_fixed_block_comments.rpgle   reject  OpenRPG extension: block comments; IBM i has only //
 test354_dcl_s_names.rpgle            reject  OpenRPG extension: several names in one DCL-S; IBM i takes one
+test355_fstring.rpgle                reject  OpenRPG extension: interpolated strings
 test332_extfile_usropn.rpgle         reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 test334_free_dclf_disk_len.rpgle     reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 

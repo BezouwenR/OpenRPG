@@ -3785,6 +3785,100 @@
    "verdict": "reject",
    "verified": "2026-10-06"
   },
+  "test355_fstring.rpgle": {
+   "codes": [
+    "RNF5377",
+    "RNF7030",
+    "RNF7503"
+   ],
+   "messages": [
+    {
+     "code": "RNF5377",
+     "line": 12,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF7030",
+     "line": 12,
+     "severity": 30,
+     "text": "The name or indicator F is not defined."
+    },
+    {
+     "code": "RNF7503",
+     "line": 14,
+     "severity": 30,
+     "text": "Expression contains an operand that is not defined."
+    },
+    {
+     "code": "RNF7503",
+     "line": 15,
+     "severity": 30,
+     "text": "Expression contains an operand that is not defined."
+    },
+    {
+     "code": "RNF7503",
+     "line": 16,
+     "severity": 30,
+     "text": "Expression contains an operand that is not defined."
+    }
+   ],
+   "reason": "RNF5377: The end of the expression is expected.",
+   "reason_detail": "line 12: The end of the expression is expected. \u2014 `msg = f'I have {apples} apples and {bananas} bananas';`",
+   "sha256": "52b68fdb3ad811a995eb63f21a5ec13da50b5e64fa467cae728d9802d0968a6d",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test356_err_fstring_open.rpgle": {
+   "codes": [
+    "RNF5377",
+    "RNF7030"
+   ],
+   "messages": [
+    {
+     "code": "RNF5377",
+     "line": 5,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF7030",
+     "line": 5,
+     "severity": 30,
+     "text": "The name or indicator F is not defined."
+    }
+   ],
+   "reason": "RNF5377: The end of the expression is expected.",
+   "reason_detail": "line 5: The end of the expression is expected. \u2014 `m = f'a {x';`",
+   "sha256": "94180c5616906f571a76ac812a2dde941cfb77ffef22ee914860aae4a2f0fa34",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
+  "test357_err_fstring_empty.rpgle": {
+   "codes": [
+    "RNF5377",
+    "RNF7030"
+   ],
+   "messages": [
+    {
+     "code": "RNF5377",
+     "line": 4,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF7030",
+     "line": 4,
+     "severity": 30,
+     "text": "The name or indicator F is not defined."
+    }
+   ],
+   "reason": "RNF5377: The end of the expression is expected.",
+   "reason_detail": "line 4: The end of the expression is expected. \u2014 `m = f'a {} b';`",
+   "sha256": "8260b3329e7de12915938ebced031effb58a0e76ab7b1066baa4510ce99bf31b",
+   "verdict": "reject",
+   "verified": "2026-10-06"
+  },
   "test35_evalcorr.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -4366,5 +4460,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T17:49:54+00:00"
+ "generated": "2026-10-06T17:53:44+00:00"
 }

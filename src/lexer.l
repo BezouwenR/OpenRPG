@@ -125,6 +125,62 @@ static void check_copy_member_format(const char* filename, int copy_line) {
 static YY_BUFFER_STATE include_stack[MAX_INCLUDE_DEPTH];
 static int include_stack_ptr = 0;
 
+// An interpolated string, f'I have {n} apples' (an OpenRPG extension), is
+// rewritten as the concatenation it stands for, ('I have ' + %CHAR((n)) +
+// ' apples'), and that text is read in its place -- pushed like a /COPY
+// member, so the parser sees ordinary tokens. text is the literal between
+// its quotes, with '' still doubled. {{ and }} are a brace.
+static std::string desugar_fstring(const std::string& text, int line) {
+    std::vector<std::string> parts;
+    std::string lit;
+    auto flush = [&]() {
+        if (lit.empty()) return;
+        parts.push_back("'" + lit + "'");   // its quotes are still doubled
+        lit.clear();
+    };
+    for (size_t i = 0; i < text.size(); i++) {
+        char c = text[i];
+        if (c == '{' && i + 1 < text.size() && text[i + 1] == '{') { lit += '{'; i++; continue; }
+        if (c == '}' && i + 1 < text.size() && text[i + 1] == '}') { lit += '}'; i++; continue; }
+        if (c == '}') {
+            report_semantic_error(line, "A } in an interpolated string closes no {; write }} for a brace");
+            continue;
+        }
+        if (c != '{') { lit += c; continue; }
+        // The expression runs to the matching }, skipping any string in it
+        // (written with doubled quotes, as inside any literal).
+        size_t j = i + 1;
+        bool inStr = false;
+        while (j < text.size() && (inStr || text[j] != '}')) {
+            if (text[j] == '\'' && j + 1 < text.size() && text[j + 1] == '\'') { inStr = !inStr; j += 2; continue; }
+            j++;
+        }
+        if (j >= text.size()) {
+            report_semantic_error(line, "A { in an interpolated string has no } to close it; write {{ for a brace");
+            break;
+        }
+        std::string expr = text.substr(i + 1, j - i - 1);
+        // Inside the literal a quote is doubled; in the expression it is one.
+        std::string e;
+        for (size_t k = 0; k < expr.size(); k++) {
+            e += expr[k];
+            if (expr[k] == '\'' && k + 1 < expr.size() && expr[k + 1] == '\'') k++;
+        }
+        i = j;
+        if (e.find_first_not_of(" \t\r\n") == std::string::npos) {
+            report_semantic_error(line, "An interpolated string has an empty {}");
+            continue;
+        }
+        flush();
+        parts.push_back("%CHAR((" + e + "))");
+    }
+    flush();
+    if (parts.empty()) return "''";
+    std::string r = "(";
+    for (size_t k = 0; k < parts.size(); k++) r += (k ? " + " : "") + parts[k];
+    return r + ")";
+}
+
 // Conditional compilation
 #include <set>
 // *OPENRPG is predefined, as IBM's compiler predefines *ILERPG, so one source
@@ -914,6 +970,15 @@ static void parse_ctlopt(const char* text) {
     return INTEGER_LITERAL;
 }
 
+[Ff]'([^']|'')*'    {
+    std::string text = desugar_fstring(std::string(yytext + 2, yyleng - 3), yylineno);
+    if (include_stack_ptr >= MAX_INCLUDE_DEPTH) {
+        report_semantic_error(yylineno, "Interpolated strings nest too deeply");
+    } else {
+        include_stack[include_stack_ptr++] = YY_CURRENT_BUFFER;
+        yy_scan_string(text.c_str());
+    }
+}
 [Xx]'[0-9A-Fa-f]*'  { yylval.sval = process_hex_string(yytext); return STRING_LITERAL; }
  /* Typed literals: D'2024-01-15', T'10.30.00', Z'2024-01-15-10.30.00.000000' */
  /* (std::string rather than strndup, which Windows' C library lacks) */
