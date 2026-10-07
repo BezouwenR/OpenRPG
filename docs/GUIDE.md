@@ -400,6 +400,20 @@ DCL-S rate PACKED(7:2) INZ(15.50);
 DCL-S isActive IND INZ(*ON);
 ```
 
+`CHAR` with no length is a string of any length, as a `String` is in Java —
+it grows and shrinks with what is assigned to it, and never pads or cuts:
+
+```rpgle
+DCL-S text CHAR;
+text = 'Hello';
+text += ', world';       // 'Hello, world', %LEN 12
+```
+
+It can be a standalone field, a procedure's parameter or return value, or an
+SQL host variable; a data structure subfield or a program's (EXTPGM) parameter
+needs a length, since each has a fixed place or size. This is an OpenRPG
+extension.
+
 Several variables of the same type can share one `DCL-S`, their names separated
 by blanks. Each is declared exactly as if it had its own, keywords and `INZ`
 included:

@@ -1003,6 +1003,9 @@ run_test "398" "%SCANRPL with an empty scan string" "$TESTDIR/test398_scanrpl_em
 run_test "399" "OPTIONS(*TRIM)" "$TESTDIR/test399_options_trim.rpgle" "run"
 run_test "400" "OPTIONS(*UPPER) and OPTIONS(*LOWER)" "$TESTDIR/test400_options_upper_lower.rpgle" "run"
 run_test "401" "Reject *UPPER on a by-reference parameter" "$TESTDIR/test401_err_options_upper_ref.rpgle" "error"
+run_test "402" "CHAR with no length" "$TESTDIR/test402_dynamic_char.rpgle" "run"
+run_test "403" "Reject a subfield CHAR with no length" "$TESTDIR/test403_err_dynamic_char_subf.rpgle" "error"
+run_test "404" "Reject a program parameter CHAR with no length" "$TESTDIR/test404_err_dynamic_char_pgm.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

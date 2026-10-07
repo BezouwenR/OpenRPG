@@ -1914,7 +1914,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 49 | ✅ Keyword parameters in prototyped calls, `name => value` — done 2026-10-06 (test390-394; a real argument for an `*OMIT` parameter fixed too, test389) | |
 | 49 | ✅ `%SCANRPL` limited to `*FIRST` / `*LAST` occurrence — done 2026-10-06 (test397; its start and length, ignored until now, test396; an empty scan string, test398) | `SCANRPL` already in `codegen.cpp`. |
 | 48 | ✅ `OPTION(*UPPER)` / `OPTION(*LOWER)` on parameters — done 2026-10-06 (test400-401; `OPTIONS(*TRIM)`, parsed but never applied, done too, test399) | |
-| 44 | Dynamic strings (declare CHAR without a length) | `CHAR` is already a `std::string`. |
+| 44 | ✅ Dynamic strings: `DCL-S text CHAR;` — done 2026-10-07 (test402-404) | `CHAR` is already a `std::string`. |
 | 41 | Initialize arrays with `%LIST` | `%LIST` already ships. |
 | 39 | `%XFOOT` over subfields of a DS array | |
 | 38 | BIF for comparing data structures | |

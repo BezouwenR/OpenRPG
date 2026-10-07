@@ -1442,6 +1442,13 @@ static void checkParamOptions(const std::vector<ParamDecl>& params, const std::s
 void CodeGen::visit(DclPR& node) {
     checkParamOptions(node.interface.params, node.name);
     // A program is not a C++ function to declare: it is found when called.
+    // A program receives its parameters in IBM i's formats, each a fixed size.
+    if (!node.extpgm.empty())
+        for (const auto& p : node.interface.params)
+            if (p.type == RPGType::VARCHAR && p.length == 0 && p.likeds.empty())
+                report_semantic_error(node.line, "Parameter " + p.name + " of program " +
+                    node.name + " needs a length: a program's parameters have a fixed size, so "
+                    "CHAR with no length is for procedures");
     if (!node.extpgm.empty()) {
         pgm_protos_[node.name] = &node;
         uses_pgm_calls_ = true;
@@ -3077,6 +3084,12 @@ std::string CodeGen::fieldTypeDefault(RPGType type, int length) {
 }
 
 void CodeGen::visit(DclDS& node) {
+    // A subfield has a place in the structure's bytes, so a length.
+    for (const auto& f : node.fields)
+        if (f.type == RPGType::VARCHAR && f.length == 0 && f.overlay_field.empty())
+            report_semantic_error(f.line > 0 ? f.line : node.line, "Subfield " + f.name +
+                " needs a length: CHAR with no length is a standalone field, parameter or "
+                "return value, not part of a data structure");
     // Store for LIKEDS lookup
     ds_defs_[node.name] = &node;
     // Without QUALIFIED, RPG names a subfield by its bare name. It lives

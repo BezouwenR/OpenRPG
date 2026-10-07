@@ -5059,6 +5059,93 @@
    "verdict": "reject",
    "verified": "2026-10-06"
   },
+  "test402_dynamic_char.rpgle": {
+   "codes": [
+    "RNF0364",
+    "RNF0603",
+    "RNF3431",
+    "RNF7421"
+   ],
+   "messages": [
+    {
+     "code": "RNF0603",
+     "line": 4,
+     "severity": 20,
+     "text": "Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored."
+    },
+    {
+     "code": "RNF0603",
+     "line": 5,
+     "severity": 20,
+     "text": "Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored."
+    },
+    {
+     "code": "RNF3431",
+     "line": 5,
+     "severity": 20,
+     "text": "Length of initial value 'Hello' exceeds length of field GREETING; initial value is ignored."
+    },
+    {
+     "code": "RNF7421",
+     "line": 9,
+     "severity": 30,
+     "text": "Operands are not compatible with the type of operator."
+    },
+    {
+     "code": "RNF0364",
+     "line": 12,
+     "severity": 20,
+     "text": "The start position 991 for %SUBST is greater than string length 1; %SUBST is ignored."
+    }
+   ],
+   "reason": "RNF0603: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored.",
+   "reason_detail": "line 4: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored. \u2014 `DCL-S text CHAR;`",
+   "sha256": "985a027825ca01da937dcb3d0d19dc74b1963854fc2b691f966023138186419c",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test403_err_dynamic_char_subf.rpgle": {
+   "codes": [
+    "RNF0603"
+   ],
+   "messages": [
+    {
+     "code": "RNF0603",
+     "line": 4,
+     "severity": 20,
+     "text": "Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored."
+    }
+   ],
+   "reason": "RNF0603: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored.",
+   "reason_detail": "line 4: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored. \u2014 `f CHAR;`",
+   "sha256": "cb95860f716d3f387806db30ea169a704c042247e32456a4dec31d16609993f8",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test404_err_dynamic_char_pgm.rpgle": {
+   "codes": [
+    "RNF0603"
+   ],
+   "messages": [
+    {
+     "code": "RNF0603",
+     "line": 4,
+     "severity": 20,
+     "text": "Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored."
+    },
+    {
+     "code": "RNF0603",
+     "line": 6,
+     "severity": 20,
+     "text": "Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored."
+    }
+   ],
+   "reason": "RNF0603: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored.",
+   "reason_detail": "line 4: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored. \u2014 `s CHAR;`",
+   "sha256": "ec826f1fa34d56bba91cae1465e65975778c5c1782aebb1cbee6325058b9b570",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test40_evalr_leavesr.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -5605,5 +5692,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-06T20:28:46+00:00"
+ "generated": "2026-10-07T15:19:27+00:00"
 }

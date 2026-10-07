@@ -1079,6 +1079,9 @@ dcl_s_more_names:
    10 or 20), which decide their edited width and their size in bytes. */
 dcl_type:
     KW_CHAR LPAREN INTEGER_LITERAL RPAREN     { $$ = new rpg::ParamDecl{"", rpg::RPGType::CHAR, $3, 0, 0, false}; }
+    /* CHAR with no length, an OpenRPG extension: a string of any length,
+       held as a VARCHAR whose length 0 means no maximum. */
+    | KW_CHAR                                 { $$ = new rpg::ParamDecl{"", rpg::RPGType::VARCHAR, 0, 0, 0, false}; }
     | KW_VARCHAR LPAREN INTEGER_LITERAL RPAREN { $$ = new rpg::ParamDecl{"", rpg::RPGType::VARCHAR, $3, 0, 0, false}; }
     | KW_INT LPAREN INTEGER_LITERAL RPAREN    { $$ = new rpg::ParamDecl{"", rpg::RPGType::INT10, 0, $3, 0, false}; }
     | KW_UNS LPAREN INTEGER_LITERAL RPAREN    { $$ = new rpg::ParamDecl{"", rpg::RPGType::UNS, $3, $3, 0, false}; }
@@ -1741,6 +1744,7 @@ pi_return_type:
     /* void */ { $$ = -1; g_ret_len = g_ret_digits = g_ret_dec = 0; }
     | KW_INT LPAREN INTEGER_LITERAL RPAREN { $$ = (int)rpg::RPGType::INT10; g_ret_len = 0; g_ret_digits = $3; g_ret_dec = 0; }
     | KW_CHAR LPAREN INTEGER_LITERAL RPAREN { $$ = (int)rpg::RPGType::CHAR; g_ret_len = $3; g_ret_digits = g_ret_dec = 0; }
+    | KW_CHAR { $$ = (int)rpg::RPGType::VARCHAR; g_ret_len = g_ret_digits = g_ret_dec = 0; }
     | KW_VARCHAR LPAREN INTEGER_LITERAL RPAREN { $$ = (int)rpg::RPGType::VARCHAR; g_ret_len = $3; g_ret_digits = g_ret_dec = 0; }
     | KW_PACKED LPAREN INTEGER_LITERAL COLON INTEGER_LITERAL RPAREN { $$ = (int)rpg::RPGType::PACKED; g_ret_len = 0; g_ret_digits = $3; g_ret_dec = $5; }
     | KW_FLOAT_TYPE LPAREN INTEGER_LITERAL RPAREN {
@@ -1809,6 +1813,7 @@ param_type:
     KW_INT LPAREN INTEGER_LITERAL RPAREN      { $$ = new rpg::ParamDecl{"", rpg::RPGType::INT10, 0, $3, 0, false}; }
     | KW_UNS LPAREN INTEGER_LITERAL RPAREN    { $$ = new rpg::ParamDecl{"", rpg::RPGType::UNS, 0, $3, 0, false}; }
     | KW_CHAR LPAREN INTEGER_LITERAL RPAREN   { $$ = new rpg::ParamDecl{"", rpg::RPGType::CHAR, $3, 0, 0, false}; }
+    | KW_CHAR                                 { $$ = new rpg::ParamDecl{"", rpg::RPGType::VARCHAR, 0, 0, 0, false}; }
     | KW_VARCHAR LPAREN INTEGER_LITERAL RPAREN { $$ = new rpg::ParamDecl{"", rpg::RPGType::VARCHAR, $3, 0, 0, false}; }
     | KW_PACKED LPAREN INTEGER_LITERAL COLON INTEGER_LITERAL RPAREN {
         $$ = new rpg::ParamDecl{"", rpg::RPGType::PACKED, 0, $3, $5, false};
