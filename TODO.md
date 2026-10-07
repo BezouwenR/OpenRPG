@@ -39,7 +39,7 @@
 - **Bitwise:** %BITAND, %BITNOT, %BITOR, %BITXOR (Test 68)
 - **Date/Time:** %DATE, %TIME, %TIMESTAMP, %DIFF, %DAYS, %MONTHS, %YEARS, %HOURS, %MINUTES, %SECONDS, %MSECONDS, %SUBDT
 - **Memory/Pointer:** %ALLOC, %REALLOC, %ADDR, %PADDR, %PROC, %STR
-- **Other:** %PARMS, %STATUS, %ERROR, %FOUND, %EOF, %PASSED, %OMITTED, %MAX, %MIN, %GETENV (Test 85), %FKEY (Test 353), %MATCHES/%FIND/%COUNTMATCHES (Test 362), %IF (Test 386)
+- **Other:** %PARMS, %STATUS, %ERROR, %FOUND, %EOF, %PASSED, %OMITTED, %MAX, %MIN, %GETENV (Test 85), %FKEY (Test 353), %MATCHES/%FIND/%COUNTMATCHES (Test 362), %IF (Test 386), %COMPCORR (Test 411)
 
 ### %STATUS Code Values
 | Code | Description | Applicable |
@@ -1917,7 +1917,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 44 | ✅ Dynamic strings: `DCL-S text CHAR;` — done 2026-10-07 (test402-404) | `CHAR` is already a `std::string`. |
 | 41 | ✅ Initialize arrays with `%LIST`: `INZ(%LIST(...))` — done 2026-10-07 (test405-407) | `%LIST` already ships. |
 | 39 | ✅ `%XFOOT` over subfields of a DS array: `%XFOOT(ds(*).subf)` — done 2026-10-07 (test409-410; `ds(*).subf` itself in SORTA and %LOOKUP, standard RPG, test408) | |
-| 38 | BIF for comparing data structures | |
+| 38 | ✅ BIF for comparing data structures: `%COMPCORR(ds1 : ds2 {: n})` — done 2026-10-07 (test411-413) | |
 | 35 | `DEPRECATED` keyword on procedures | Just a compiler warning. |
 | 34 | `%LOOKUP` searching more than one subfield | |
 | 29 | `%REPEAT` BIF | |

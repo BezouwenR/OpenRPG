@@ -4932,7 +4932,8 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
         if (bif->name == "TIMESTAMP") return ArgCat::Timestamp;
         if (bif->name == "FOUND" || bif->name == "EOF" || bif->name == "EQUAL" ||
             bif->name == "ERROR" || bif->name == "OPEN" || bif->name == "PASSED" ||
-            bif->name == "OMITTED" || bif->name == "NULLIND" || bif->name == "MATCHES") return ArgCat::Ind;
+            bif->name == "OMITTED" || bif->name == "NULLIND" || bif->name == "MATCHES" ||
+            bif->name == "COMPCORR") return ArgCat::Ind;
         if (bif->name == "ADDR" || bif->name == "ALLOC" || bif->name == "REALLOC" ||
             bif->name == "PADDR") return ArgCat::Pointer;
         return ArgCat::Unknown;
@@ -6227,6 +6228,75 @@ void CodeGen::visit(BIFCall& node) {
             report_semantic_error(cur_stmt_line_, "%FKEY tells which function key ended the last "
                 "EXFMT or READ of a display file; this program declares no WORKSTN file");
         expr_ << "dspf_fkey()";
+    } else if (node.name == "COMPCORR") {
+        // %COMPCORR(ds1 : ds2 {: n}), an OpenRPG extension: *ON when the
+        // subfields of the same name in both -- the ones EVAL-CORR would
+        // assign -- are all equal; with n, only the first n of them, in
+        // ds1's order. Character subfields compare as RPG compares them,
+        // the shorter padded with blanks.
+        int line = node.line > 0 ? node.line : cur_stmt_line_;
+        auto* a = node.args.size() >= 2 ? dynamic_cast<Identifier*>(node.args[0].get()) : nullptr;
+        auto* b = node.args.size() >= 2 ? dynamic_cast<Identifier*>(node.args[1].get()) : nullptr;
+        const DclDS* da = a ? resolveDsDef(a->name) : nullptr;
+        const DclDS* db = b ? resolveDsDef(b->name) : nullptr;
+        if (node.args.size() < 2 || node.args.size() > 3 || !da || !db) {
+            report_semantic_error(line, "%COMPCORR takes two data structures, and optionally how "
+                "many of their corresponding subfields to compare");
+            expr_ << "false";
+            return;
+        }
+        long long limit = -1;
+        if (node.args.size() == 3) {
+            auto* il = dynamic_cast<IntLiteral*>(node.args[2].get());
+            if (!il || il->value < 1) {
+                report_semantic_error(line, "The third operand of %COMPCORR is a number of "
+                    "subfields, written as a whole number of at least 1");
+                expr_ << "false";
+                return;
+            }
+            limit = il->value;
+        }
+        auto family = [](RPGType t) {
+            switch (t) {
+                case RPGType::CHAR: case RPGType::VARCHAR: case RPGType::UCS2: case RPGType::IND: return 0;
+                case RPGType::DATE: return 2;
+                case RPGType::TIME: return 3;
+                case RPGType::TIMESTAMP: return 4;
+                case RPGType::POINTER: return 5;
+                default: return 1;   // numeric
+            }
+        };
+        std::vector<std::string> tests;
+        for (const auto& fa : da->fields) {
+            if (!fa.overlay_field.empty()) continue;
+            for (const auto& fb : db->fields) {
+                if (fb.name != fa.name || !fb.overlay_field.empty()) continue;
+                if (!fa.likeds.empty() || !fb.likeds.empty()) {
+                    report_semantic_error(line, "%COMPCORR: subfield " + fa.name + " is a data "
+                        "structure; compare it with a %COMPCORR of its own");
+                    break;
+                }
+                if (family(fa.type) != family(fb.type) || (fa.dim > 0) != (fb.dim > 0)) {
+                    report_semantic_error(line, "%COMPCORR: subfield " + fa.name + " has types in "
+                        "the two data structures that cannot be compared");
+                    break;
+                }
+                tests.push_back("rpg_compcorr_eq(" + a->name + "." + fa.name + ", " +
+                                b->name + "." + fb.name + ")");
+                break;
+            }
+            if (limit > 0 && static_cast<long long>(tests.size()) == limit) break;
+        }
+        if (tests.empty())
+            report_semantic_error(line, "%COMPCORR: " + a->name + " and " + b->name +
+                " have no subfields of the same name to compare");
+        if (limit > 0 && static_cast<long long>(tests.size()) < limit)
+            report_semantic_error(line, "%COMPCORR: " + a->name + " and " + b->name + " have only " +
+                std::to_string(tests.size()) + " subfields of the same name, not " + std::to_string(limit));
+        expr_ << "(";
+        if (tests.empty()) expr_ << "false";
+        for (size_t i = 0; i < tests.size(); i++) expr_ << (i ? " && " : "") << tests[i];
+        expr_ << ")";
     } else if (node.name == "IF") {
         // %IF(condition : value if true : value if false), an OpenRPG
         // extension in the form IBM suggested for the conditional operator

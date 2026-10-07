@@ -1012,6 +1012,9 @@ run_test "407" "Reject an INZ(%LIST) value too long" "$TESTDIR/test407_err_inz_l
 run_test "408" "ds(*).subfield in SORTA and %LOOKUP" "$TESTDIR/test408_ds_column.rpgle" "run"
 run_test "409" "%XFOOT over ds(*).subfield" "$TESTDIR/test409_xfoot_ds_column.rpgle" "run"
 run_test "410" "Reject x(*).subfield of no DS array" "$TESTDIR/test410_err_ds_column_not_array.rpgle" "error"
+run_test "411" "%COMPCORR" "$TESTDIR/test411_compcorr.rpgle" "run"
+run_test "412" "Reject %COMPCORR of incompatible subfields" "$TESTDIR/test412_err_compcorr_types.rpgle" "error"
+run_test "413" "Reject %COMPCORR of more subfields than correspond" "$TESTDIR/test413_err_compcorr_count.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

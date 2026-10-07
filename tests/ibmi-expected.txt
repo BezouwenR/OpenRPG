@@ -48,6 +48,7 @@ test400_options_upper_lower.rpgle    reject  OpenRPG extension: OPTIONS(*UPPER) 
 test402_dynamic_char.rpgle           reject  OpenRPG extension: CHAR with no length
 test405_inz_list.rpgle               reject  OpenRPG extension: INZ(%LIST) on an array
 test409_xfoot_ds_column.rpgle        reject  OpenRPG extension: %XFOOT, %MAXARR and IN over ds(*).subfield
+test411_compcorr.rpgle               reject  OpenRPG extension: %COMPCORR
 test332_extfile_usropn.rpgle         reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 test334_free_dclf_disk_len.rpgle     reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 

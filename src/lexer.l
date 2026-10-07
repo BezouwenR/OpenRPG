@@ -679,6 +679,7 @@ static void parse_ctlopt(const char* text) {
 "%GETENV"           { return BIF_GETENV; }
 "%FKEY"             { return BIF_FKEY; }
 "%IF"               { return BIF_IF; }
+"%COMPCORR"         { return BIF_COMPCORR; }
 "%MATCHES"          { return BIF_MATCHES; }
 "%FIND"             { return BIF_FIND; }
 "%COUNTMATCHES"     { return BIF_COUNTMATCHES; }

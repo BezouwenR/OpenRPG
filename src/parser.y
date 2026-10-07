@@ -545,7 +545,7 @@ static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* m
 %token BIF_PADDR BIF_PROC
 %token BIF_PASSED BIF_OMITTED
 %token BIF_BITAND BIF_BITNOT BIF_BITOR BIF_BITXOR
-%token BIF_SCANR BIF_EDITFLT BIF_UNSH BIF_PARMNUM BIF_GETENV BIF_FKEY BIF_IF BIF_MATCHES BIF_FIND BIF_COUNTMATCHES BIF_XML
+%token BIF_SCANR BIF_EDITFLT BIF_UNSH BIF_PARMNUM BIF_GETENV BIF_FKEY BIF_IF BIF_COMPCORR BIF_MATCHES BIF_FIND BIF_COUNTMATCHES BIF_XML
 %token BIF_DATA BIF_PARSER BIF_GEN
 %token KW_ALL
 %token KW_UNS KW_FLOAT_TYPE KW_BINDEC KW_UCS2 KW_GRAPH KW_OBJECT KW_JAVA
@@ -3269,6 +3269,7 @@ primary_expr:
         $$ = make_bif("GETENV", $3);
     }
     | BIF_IF LPAREN arg_list RPAREN { $$ = make_bif("IF", $3); $$->line = yylineno; }
+    | BIF_COMPCORR LPAREN arg_list RPAREN { $$ = make_bif("COMPCORR", $3); $$->line = yylineno; }
     | BIF_MATCHES LPAREN arg_list RPAREN { $$ = make_bif("MATCHES", $3); $$->line = yylineno; }
     | BIF_FIND LPAREN arg_list RPAREN { $$ = make_bif("FIND", $3); $$->line = yylineno; }
     | BIF_COUNTMATCHES LPAREN arg_list RPAREN { $$ = make_bif("COUNTMATCHES", $3); $$->line = yylineno; }

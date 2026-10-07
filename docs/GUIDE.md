@@ -486,6 +486,20 @@ employee.salary = 75000.00;
 DSPLY employee.name;
 ```
 
+### Comparing Data Structures: %COMPCORR
+
+`%COMPCORR(ds1 : ds2)` is `*ON` when every subfield of the same name in both
+data structures — the pairs `EVAL-CORR` would assign — has the same value.
+Subfields only one of them has are not compared, and character ones compare as
+RPG compares them, the shorter padded with blanks. A third operand compares
+only the first so many pairs, in `ds1`'s order — handy for keys:
+
+```rpgle
+IF %COMPCORR(prevKey : curKey : 2);   // same customer and order
+```
+
+`%COMPCORR` is an OpenRPG extension.
+
 ### Array of Data Structures
 
 ```rpgle

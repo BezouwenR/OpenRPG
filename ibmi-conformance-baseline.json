@@ -5295,6 +5295,115 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test411_compcorr.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0604",
+    "RNF0637",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 27,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 27,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF5377",
+     "line": 27,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF0604",
+     "line": 32,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 32,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 27: The token is not valid; token is ignored. \u2014 `IF %COMPCORR(key1 : key2);`",
+   "sha256": "51463f6e972b64ce81080e76474a25eb975c71a8008f370da8c7cd01da060bef",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test412_err_compcorr_types.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0604",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 9,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 9,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF5377",
+     "line": 9,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 9: The token is not valid; token is ignored. \u2014 `IF %COMPCORR(a : b);`",
+   "sha256": "b120ed0c7f6f94a823aeec41c1c2f6d0b5ff3fafbcec4d840ab4d8980609edb9",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test413_err_compcorr_count.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0604",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 10,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 10,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF5377",
+     "line": 10,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 10: The token is not valid; token is ignored. \u2014 `IF %COMPCORR(a : b : 2);`",
+   "sha256": "aa109a3cb3da56f67fd5734deba501344cdc8cb696854be6d76eb965385c7a1f",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test41_string_bifs.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -5834,5 +5943,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T15:29:11+00:00"
+ "generated": "2026-10-07T15:36:08+00:00"
 }

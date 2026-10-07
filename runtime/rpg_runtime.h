@@ -264,6 +264,17 @@ inline std::array<T, N> rpg_filled_array(const T& v) {
     return a;
 }
 
+// %COMPCORR's test of one pair of subfields: as RPG compares them, and an
+// array subfield element by element.
+template<typename A, typename B>
+inline bool rpg_compcorr_eq(const A& a, const B& b) { return rpg_eq(a, b); }
+template<typename T, typename U, std::size_t N, std::size_t M>
+inline bool rpg_compcorr_eq(const std::array<T, N>& a, const std::array<U, M>& b) {
+    if (N != M) return false;
+    for (std::size_t i = 0; i < N; i++) if (!rpg_eq(a[i], b[i])) return false;
+    return true;
+}
+
 // INZ(%LIST(...)) on an array: the list's values first, then the default.
 template<typename T, std::size_t N>
 inline std::array<T, N> rpg_list_array(const T& dflt, std::initializer_list<T> vals) {
