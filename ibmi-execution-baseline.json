@@ -2294,6 +2294,22 @@
    "test": "42",
    "verified": "2026-09-26"
   },
+  "test431_select_when_is.rpgle": {
+   "error": "",
+   "output": [
+    "2 -> 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+    "1 -> 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+    "15 -> 3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ",
+    "17 -> 1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ",
+    "30 -> 4                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ",
+    "is B (padded)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ",
+    "two                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      "
+   ],
+   "sha256": "fe55b9b1b58530b78415625ef2a35f327095f3417d3d80b04006bf32ce4fc781",
+   "status": "same",
+   "test": "431",
+   "verified": "2026-10-07"
+  },
   "test43_static.rpgle": {
    "error": "",
    "output": [

@@ -1032,6 +1032,9 @@ run_test "427" "FOR-EACH ... INDEX(i)" "$TESTDIR/test427_foreach_index.rpgle" "r
 run_test "428" "Reject FOR-EACH INDEX of a non-numeric field" "$TESTDIR/test428_err_foreach_index_type.rpgle" "error"
 run_test "429" "A comparison procedure for SORTA and %LOOKUP" "$TESTDIR/test429_compare_proc.rpgle" "run"
 run_test "430" "Reject a comparison procedure that is none" "$TESTDIR/test430_err_compare_proc.rpgle" "error"
+run_test "431" "SELECT with an operand: WHEN-IS, WHEN-IN" "$TESTDIR/test431_select_when_is.rpgle" "run"
+run_test "432" "WHEN-IS-NOT and WHEN-NOT-IN" "$TESTDIR/test432_when_is_not.rpgle" "run"
+run_test "433" "Reject WHEN in a SELECT with an operand" "$TESTDIR/test433_err_select_operand_when.rpgle" "error"
 
 # A warning is not an error: the program compiles and runs (test415 above),
 # and rpgc says why each call is a concern.

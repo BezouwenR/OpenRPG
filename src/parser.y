@@ -455,6 +455,27 @@ static rpg::DclPR* make_overload_pr(char* name, int ret, std::vector<std::string
 }
 
 %code {
+// SELECT operand: the variable holding each open SELECT's operand.
+static std::vector<std::string> g_select_vars;
+static int g_select_count = 0;
+static WhenData* make_is_clause(rpg::BinOp op, rpg::Expression* value, StmtList* body) {
+    auto* w = new WhenData();
+    w->cond = new rpg::BinaryExpr(op, std::make_unique<rpg::Identifier>(g_select_vars.back()),
+                                  std::unique_ptr<rpg::Expression>(value));
+    w->body = std::move(body->stmts);
+    delete body;
+    return w;
+}
+static WhenData* make_in_clause(bool negate, rpg::Expression* coll, StmtList* body) {
+    auto* w = new WhenData();
+    rpg::Expression* in = new rpg::InExpr(std::make_unique<rpg::Identifier>(g_select_vars.back()),
+                                          std::unique_ptr<rpg::Expression>(coll));
+    w->cond = negate ? new rpg::NotExpr(std::unique_ptr<rpg::Expression>(in)) : in;
+    w->body = std::move(body->stmts);
+    delete body;
+    return w;
+}
+
 // "A" or "A.B.C" for a target that is a plain chain of names, else "".
 static std::string qualified_name(rpg::Expression* e) {
     if (auto* id = dynamic_cast<rpg::Identifier*>(e)) return id->name;
@@ -548,7 +569,7 @@ static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* m
 %token KW_IF KW_ELSEIF KW_ELSE KW_ENDIF
 %token KW_DOW KW_DOU KW_ENDDO
 %token KW_FOR KW_ENDFOR KW_TO KW_DOWNTO KW_BY
-%token KW_SELECT KW_WHEN KW_OTHER KW_ENDSL
+%token KW_SELECT KW_WHEN KW_OTHER KW_ENDSL KW_WHEN_IS KW_WHEN_IN KW_WHEN_IS_NOT KW_WHEN_NOT_IN
 %token KW_ITER KW_LEAVE
 %token KW_MONITOR KW_ON_ERROR KW_ENDMON KW_STAR_FILE KW_STAR_PROGRAM
 %token KW_BEGSR KW_ENDSR KW_EXSR
@@ -628,8 +649,8 @@ static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* m
 %type <elseif_list> elseif_clauses
 %type <elseif_data> elseif_clause
 %type <stmt_list> else_clause
-%type <when_list> when_clauses
-%type <when_data> when_clause
+%type <when_list> when_clauses is_clauses
+%type <when_data> when_clause is_clause
 %type <stmt_list> other_clause
 %type <ds_field_list> ds_fields
 %type <ds_field> ds_field
@@ -2495,7 +2516,31 @@ for_each_stmt:
     ;
 
 select_stmt:
-    KW_SELECT SEMICOLON when_clauses other_clause KW_ENDSL SEMICOLON {
+    /* SELECT operand; WHEN-IS value; WHEN-IN %LIST(...) | %RANGE(...);
+       (IBM i 7.4/7.5) -- and WHEN-IS-NOT and WHEN-NOT-IN, OpenRPG
+       extensions. The operand is evaluated once, into a variable each
+       condition compares (g_select_var, set as the operand is reduced). */
+    KW_SELECT expression SEMICOLON { g_select_vars.push_back("__SEL" + std::to_string(++g_select_count)); }
+      is_clauses other_clause KW_ENDSL SEMICOLON {
+        auto* node = new rpg::SelectStmt();
+        node->subject.reset($2);
+        node->subject_var = g_select_vars.back();
+        g_select_vars.pop_back();
+        for (auto* w : *$5) {
+            rpg::WhenBranch branch;
+            branch.condition.reset(w->cond);
+            for (auto* s : w->body) branch.body.emplace_back(s);
+            node->when_branches.push_back(std::move(branch));
+            delete w;
+        }
+        delete $5;
+        if ($6) {
+            for (auto* s : $6->stmts) node->other_body.emplace_back(s);
+            delete $6;
+        }
+        $$ = node;
+    }
+    | KW_SELECT SEMICOLON when_clauses other_clause KW_ENDSL SEMICOLON {
         auto* node = new rpg::SelectStmt();
         for (auto* w : *$3) {
             rpg::WhenBranch branch;
@@ -2530,6 +2575,30 @@ when_clause:
         $$->cond = $2;
         $$->body = std::move($4->stmts);
         delete $4;
+    }
+    ;
+
+is_clauses:
+    /* none */ { $$ = new std::vector<WhenData*>(); }
+    | is_clauses is_clause { $$ = $1; $$->push_back($2); }
+    ;
+
+is_clause:
+    KW_WHEN_IS expression SEMICOLON statement_list {
+        $$ = make_is_clause(rpg::BinOp::EQ, $2, $4);
+    }
+    | KW_WHEN_IS_NOT expression SEMICOLON statement_list {
+        $$ = make_is_clause(rpg::BinOp::NE, $2, $4);
+    }
+    | KW_WHEN_IN expression SEMICOLON statement_list {
+        $$ = make_in_clause(false, $2, $4);
+    }
+    | KW_WHEN_NOT_IN expression SEMICOLON statement_list {
+        $$ = make_in_clause(true, $2, $4);
+    }
+    | KW_WHEN expression SEMICOLON statement_list {
+        yyerror("A SELECT with an operand is followed by WHEN-IS, WHEN-IN, OTHER or ENDSL, not WHEN (IBM: RNF0203)");
+        $$ = make_is_clause(rpg::BinOp::EQ, $2, $4);
     }
     ;
 

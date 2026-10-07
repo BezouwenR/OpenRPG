@@ -3169,6 +3169,26 @@ void CodeGen::visit(ForStmt& node) {
 }
 
 void CodeGen::visit(SelectStmt& node) {
+    if (node.subject) {
+        // SELECT operand: evaluated once, as on IBM i, so a WHEN-IS that
+        // changes what the operand reads still compares the value it had.
+        emitIndent();
+        out_ << "{\n";
+        indent_++;
+        emitIndent();
+        out_ << "const auto " << node.subject_var << " = " << emitExpr(*node.subject) << ";\n";
+        if (node.when_branches.empty() && !node.other_body.empty()) {
+            emitStatements(node.other_body);
+        } else if (!node.when_branches.empty()) {
+            std::unique_ptr<Expression> subj = std::move(node.subject);
+            visit(node);   // the WHEN chain, with no subject left
+            node.subject = std::move(subj);
+        }
+        indent_--;
+        emitIndent();
+        out_ << "}\n";
+        return;
+    }
     for (size_t i = 0; i < node.when_branches.size(); i++) {
         emitIndent();
         if (i == 0) {

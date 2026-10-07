@@ -779,6 +779,25 @@ SELECT;
 ENDSL;
 ```
 
+`SELECT` with an operand compares that one value: `WHEN-IS` for equality,
+`WHEN-IN` against a `%LIST` or a `%RANGE`. The operand is evaluated once.
+
+```rpgle
+SELECT age;
+  WHEN-IN %LIST(2 : 5 : 17);
+    r = 1;
+  WHEN-IS 1;
+    r = 2;
+  WHEN-IN %RANGE(10 : 20);
+    r = 3;
+  OTHER;
+    r = 4;
+ENDSL;
+```
+
+`WHEN-IS-NOT` and `WHEN-NOT-IN` are taken when the operand is not equal, or not
+in the list or range — an OpenRPG extension.
+
 ### DOW (Do While) / DOU (Do Until)
 
 ```rpgle

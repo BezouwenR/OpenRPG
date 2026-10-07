@@ -456,6 +456,10 @@ struct WhenBranch {
 
 class SelectStmt : public Statement {
 public:
+    // SELECT operand; with WHEN-IS / WHEN-IN: the operand, evaluated once
+    // into subject_var, which each WHEN-IS / WHEN-IN condition compares.
+    std::unique_ptr<Expression> subject;
+    std::string subject_var;
     std::vector<WhenBranch> when_branches;
     std::vector<std::unique_ptr<Statement>> other_body;
     SelectStmt();

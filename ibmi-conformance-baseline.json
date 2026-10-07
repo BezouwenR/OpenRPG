@@ -5951,6 +5951,82 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test431_select_when_is.rpgle": {
+   "codes": [],
+   "sha256": "fe55b9b1b58530b78415625ef2a35f327095f3417d3d80b04006bf32ce4fc781",
+   "verdict": "accept",
+   "verified": "2026-10-07"
+  },
+  "test432_when_is_not.rpgle": {
+   "codes": [
+    "RNF5347",
+    "RNF7030"
+   ],
+   "messages": [
+    {
+     "code": "RNF5347",
+     "line": 12,
+     "severity": 30,
+     "text": "An assignment operator is expected with the EVAL operation."
+    },
+    {
+     "code": "RNF7030",
+     "line": 12,
+     "severity": 30,
+     "text": "The name or indicator WHEN is not defined."
+    },
+    {
+     "code": "RNF5347",
+     "line": 14,
+     "severity": 30,
+     "text": "An assignment operator is expected with the EVAL operation."
+    }
+   ],
+   "reason": "RNF5347: An assignment operator is expected with the EVAL operation.",
+   "reason_detail": "line 12: An assignment operator is expected with the EVAL operation. \u2014 `WHEN-NOT-IN %LIST('X' : 'Y');`",
+   "sha256": "94d4270ff86f4eca960ddeb17efcc0b39a7c45871d6990d1598dd19b11eb9e69",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test433_err_select_operand_when.rpgle": {
+   "codes": [
+    "RNF0203",
+    "RNF5141",
+    "RNF5177",
+    "RNF5249"
+   ],
+   "messages": [
+    {
+     "code": "RNF0203",
+     "line": 4,
+     "severity": 30,
+     "text": "SELECT WITH AN OPERAND MUST BE FOLLOWED BY WHEN-IS, WHEN-IN, OTHER, OR ENDSL."
+    },
+    {
+     "code": "RNF5177",
+     "line": 4,
+     "severity": 30,
+     "text": "ENDyy operation missing for  operation group at statement"
+    },
+    {
+     "code": "RNF5249",
+     "line": 5,
+     "severity": 20,
+     "text": "WHEN found outside of SELECT group."
+    },
+    {
+     "code": "RNF5141",
+     "line": 7,
+     "severity": 30,
+     "text": "ENDyy is specified without associated structured operation."
+    }
+   ],
+   "reason": "RNF0203: SELECT WITH AN OPERAND MUST BE FOLLOWED BY WHEN-IS, WHEN-IN, OTHER, OR ENDSL.",
+   "reason_detail": "line 4: SELECT WITH AN OPERAND MUST BE FOLLOWED BY WHEN-IS, WHEN-IN, OTHER, OR ENDSL. \u2014 `SELECT n;`",
+   "sha256": "d476c70ebd896e2b44acfa61613cb961f46a56e12b8748e11a91e5d62d1d7590",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test43_static.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -6476,5 +6552,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T16:24:04+00:00"
+ "generated": "2026-10-07T16:31:22+00:00"
 }

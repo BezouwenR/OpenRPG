@@ -564,6 +564,10 @@ static void parse_ctlopt(const char* text) {
 "DOWNTO"            { return KW_DOWNTO; }
 "BY"                { return KW_BY; }
 "SELECT"            { return KW_SELECT; }
+"WHEN-IS-NOT"       { return KW_WHEN_IS_NOT; }
+"WHEN-NOT-IN"       { return KW_WHEN_NOT_IN; }
+"WHEN-IS"           { return KW_WHEN_IS; }
+"WHEN-IN"           { return KW_WHEN_IN; }
 "WHEN"              { return KW_WHEN; }
 "OTHER"             { return KW_OTHER; }
 "ENDSL"             { return KW_ENDSL; }
