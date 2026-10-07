@@ -1037,6 +1037,20 @@ run_test "432" "WHEN-IS-NOT and WHEN-NOT-IN" "$TESTDIR/test432_when_is_not.rpgle
 run_test "433" "Reject WHEN in a SELECT with an operand" "$TESTDIR/test433_err_select_operand_when.rpgle" "error"
 run_test "434" "*EMPTY" "$TESTDIR/test434_empty.rpgle" "run"
 run_test "435" "%TOHEX, %HEX and %FROMHEX" "$TESTDIR/test435_hex_bifs.rpgle" "run"
+run_test "436" "/MESSAGE" "$TESTDIR/test436_message_directive.rpgle" "run"
+run_test "437" "/MESSAGE *ERROR fails the compile" "$TESTDIR/test437_err_message_directive.rpgle" "error"
+run_test "438" "/MESSAGE in fixed-format source" "$TESTDIR/test438_fixed_message_directive.rpgle" "run"
+
+printf "Test 436w: /MESSAGE warnings are shown            "
+w436=$($RPGC -S "$TESTDIR/test436_message_directive.rpgle" -o "$TMPDIR/test436w.cpp" 2>&1 >/dev/null)
+if echo "$w436" | grep -qF "Warning at line 5: /MESSAGE: Built with the test settings" &&
+   echo "$w436" | grep -qF "Warning at line 9: /MESSAGE: it's a warning" &&
+   ! echo "$w436" | grep -qF "never"; then
+    echo -e "${GREEN}PASS${NC}"; PASS=$((PASS + 1))
+else
+    echo -e "${RED}FAIL${NC} (warnings wrong)"; echo "$w436" | sed 's/^/    /'
+    FAIL=$((FAIL + 1)); FAILURES="$FAILURES\n  Test 436w (/MESSAGE warnings)"
+fi
 
 # A warning is not an error: the program compiles and runs (test415 above),
 # and rpgc says why each call is a concern.

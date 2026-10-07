@@ -854,6 +854,18 @@ static void parse_ctlopt(const char* text) {
     else BEGIN(INITIAL);
 }
 
+ /* /MESSAGE {*WARNING | *ERROR} 'text': a warning, or an error that fails
+    the compile -- only where code is being compiled (cond_expr.h). */
+^[ \t]*"/"[Mm][Ee][Ss][Ss][Aa][Gg][Ee]([ \t][^\n]*)?$ {
+    const char* c = yytext;
+    while (*c == ' ' || *c == '\t') c++;
+    bool err = false;
+    std::string text;
+    rpgc_cond::message(std::string(c + 8), err, text);
+    if (err) report_semantic_error(yylineno, "/MESSAGE: " + text);
+    else report_semantic_warning(yylineno, "/MESSAGE: " + text);
+}
+
 <INITIAL,SKIPPING>^[ \t]*"/"[Ee][Ll][Ss][Ee][ \t]*$ {
     if (cond_depth > 0) {
         cond_active[cond_depth] = !cond_done[cond_depth];

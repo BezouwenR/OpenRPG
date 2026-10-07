@@ -1930,7 +1930,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 18 | ✅ `%SCANRPL` first/last (duplicate filing of the 49-vote entry) — done with it | |
 | 16 | ✅ `*EMPTY` figurative constant — done 2026-10-07 (test434) | |
 | 14 | ✅ `%HEX` / `%TOHEX` / `%FROMHEX` — done 2026-10-07 (test435) | |
-| 12 | `/MESSAGE` compiler directive | |
+| 12 | ✅ `/MESSAGE` compiler directive: `/MESSAGE {*WARNING \| *ERROR} 'text'` — done 2026-10-07 (test436-438) | |
 
 ### Larger, but worth their vote count
 

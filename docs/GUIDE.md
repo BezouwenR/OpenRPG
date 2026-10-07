@@ -366,6 +366,20 @@ binds tightest, then `AND`, then `OR`:
 
 A condition with more than one test is an OpenRPG extension.
 
+`/MESSAGE` prints a message when the program compiles: a warning, or with
+`*ERROR` an error that fails the compile, as C's `#warning` and `#error`. It
+acts only where code is being compiled, so inside an `/IF` it can stop a build
+that lacks a setting:
+
+```rpgle
+/IF NOT DEFINED(PLATFORM)
+/MESSAGE *ERROR 'define PLATFORM to build this'
+/ENDIF
+/MESSAGE 'built with the test settings'      // or /MESSAGE *WARNING '...'
+```
+
+`/MESSAGE` is an OpenRPG extension.
+
 ---
 
 ## Data Types

@@ -102,6 +102,35 @@ inline bool evaluate(const std::string& text, const std::set<std::string>& defs,
     return Parser(text, defs).parse(result, err);
 }
 
+// /MESSAGE {*WARNING | *ERROR} 'text', an OpenRPG extension: the text after
+// the directive, and whether it is an error (which fails the compile, as
+// C's #error) rather than a warning. The text is a quoted literal, its
+// quotes doubled inside, or else the rest of the line as written.
+inline void message(const std::string& rest, bool& error, std::string& text) {
+    std::string r = rest;
+    auto trim = [](std::string& s) {
+        size_t a = s.find_first_not_of(" \t\r");
+        size_t b = s.find_last_not_of(" \t\r");
+        s = a == std::string::npos ? "" : s.substr(a, b - a + 1);
+    };
+    trim(r);
+    error = false;
+    std::string up = r;
+    for (auto& c : up) c = (char)std::toupper((unsigned char)c);
+    if (up.rfind("*ERROR", 0) == 0) { error = true; r = r.substr(6); }
+    else if (up.rfind("*WARNING", 0) == 0) r = r.substr(8);
+    trim(r);
+    if (r.size() >= 2 && r.front() == '\'' && r.back() == '\'') {
+        text.clear();
+        for (size_t i = 1; i + 1 < r.size(); i++) {
+            text += r[i];
+            if (r[i] == '\'' && r[i + 1] == '\'') i++;
+        }
+    } else {
+        text = r;
+    }
+}
+
 } // namespace rpgc_cond
 
 #endif // RPGC_COND_EXPR_H

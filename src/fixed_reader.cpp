@@ -157,6 +157,21 @@ void expandMember(const std::vector<std::string>& lines, int depth, bool inFreeA
 
         // --- Conditional directives: evaluated even in inactive branches,
         // so nesting is tracked correctly.
+        if (startsWord(d, "/MESSAGE")) {
+            // A warning, or with *ERROR an error that fails the compile --
+            // only in a branch being compiled.
+            if (st.compiling()) {
+                std::string raw = trim(line);
+                if (!raw.empty() && raw[0] != '/') raw = trim(line.substr(6));
+                bool isErr = false;
+                std::string text;
+                rpgc_cond::message(raw.substr(8), isErr, text);
+                if (isErr) { err(lineNo, "/MESSAGE: " + text); ok = false; }
+                else report_semantic_warning(lineNo, "/MESSAGE: " + text);
+            }
+            out.emplace_back();
+            continue;
+        }
         if (startsWord(d, "/IF")) {
             bool cond = false;
             std::string why;

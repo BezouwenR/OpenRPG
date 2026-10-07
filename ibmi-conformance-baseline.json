@@ -6117,6 +6117,72 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test436_message_directive.rpgle": {
+   "codes": [
+    "RNF0274"
+   ],
+   "messages": [
+    {
+     "code": "RNF0274",
+     "line": 5,
+     "severity": 30,
+     "text": "Compiler directive not recognized; directive ignored."
+    },
+    {
+     "code": "RNF0274",
+     "line": 7,
+     "severity": 30,
+     "text": "Compiler directive not recognized; directive ignored."
+    },
+    {
+     "code": "RNF0274",
+     "line": 9,
+     "severity": 30,
+     "text": "Compiler directive not recognized; directive ignored."
+    }
+   ],
+   "reason": "RNF0274: Compiler directive not recognized; directive ignored.",
+   "reason_detail": "line 5: Compiler directive not recognized; directive ignored. \u2014 `/MESSAGE 'Built with the test settings'`",
+   "sha256": "12e67ac79b97c01e4f3d05be03ecc12b9704e730c8e595bd46e46b70eee54bd1",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test437_err_message_directive.rpgle": {
+   "codes": [
+    "RNF0274"
+   ],
+   "messages": [
+    {
+     "code": "RNF0274",
+     "line": 4,
+     "severity": 30,
+     "text": "Compiler directive not recognized; directive ignored."
+    }
+   ],
+   "reason": "RNF0274: Compiler directive not recognized; directive ignored.",
+   "reason_detail": "line 4: Compiler directive not recognized; directive ignored. \u2014 `/MESSAGE *ERROR 'define PLATFORM to build this'`",
+   "sha256": "b7988da0d0e8c7258b0bd911dff41dac1ae6cb5e27fba7dcc1aef249fada3cef",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test438_fixed_message_directive.rpgle": {
+   "codes": [
+    "RNF0274"
+   ],
+   "messages": [
+    {
+     "code": "RNF0274",
+     "line": 2,
+     "severity": 30,
+     "text": "Compiler directive not recognized; directive ignored."
+    }
+   ],
+   "reason": "RNF0274: Compiler directive not recognized; directive ignored.",
+   "reason_detail": "line 2: Compiler directive not recognized; directive ignored. \u2014 `/MESSAGE 'fixed warning'`",
+   "sha256": "583259ef02f1df7502b4da91a76110b5e699fd3e18dcdb59f259929813a790b5",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test43_static.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -6642,5 +6708,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T16:39:12+00:00"
+ "generated": "2026-10-07T16:44:31+00:00"
 }
