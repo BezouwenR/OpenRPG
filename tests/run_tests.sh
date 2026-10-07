@@ -1023,6 +1023,7 @@ run_test "418" "%REPEAT" "$TESTDIR/test418_repeat.rpgle" "run"
 run_test "419" "Reject %REPEAT of a figurative constant" "$TESTDIR/test419_err_repeat_fig.rpgle" "error"
 run_test "420" "DEFAULT for a parameter left out" "$TESTDIR/test420_param_default.rpgle" "run"
 run_test "421" "Reject DEFAULT on a required parameter" "$TESTDIR/test421_err_param_default_required.rpgle" "error"
+run_test "422" "%PROGNAME" "$TESTDIR/test422_progname.rpgle" "run"
 
 # A warning is not an error: the program compiles and runs (test415 above),
 # and rpgc says why each call is a concern.

@@ -578,7 +578,7 @@ static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* m
 %token BIF_PADDR BIF_PROC
 %token BIF_PASSED BIF_OMITTED
 %token BIF_BITAND BIF_BITNOT BIF_BITOR BIF_BITXOR
-%token BIF_SCANR BIF_EDITFLT BIF_UNSH BIF_PARMNUM BIF_GETENV BIF_FKEY BIF_IF BIF_COMPCORR BIF_KDS BIF_REPEAT BIF_MATCHES BIF_FIND BIF_COUNTMATCHES BIF_XML
+%token BIF_SCANR BIF_EDITFLT BIF_UNSH BIF_PARMNUM BIF_GETENV BIF_FKEY BIF_IF BIF_COMPCORR BIF_KDS BIF_REPEAT BIF_PROGNAME BIF_MATCHES BIF_FIND BIF_COUNTMATCHES BIF_XML
 %token BIF_DATA BIF_PARSER BIF_GEN
 %token KW_ALL
 %token KW_UNS KW_FLOAT_TYPE KW_BINDEC KW_UCS2 KW_GRAPH KW_OBJECT KW_JAVA
@@ -3363,6 +3363,15 @@ primary_expr:
     | BIF_COMPCORR LPAREN arg_list RPAREN { $$ = make_bif("COMPCORR", $3); $$->line = yylineno; }
     | BIF_KDS LPAREN arg_list RPAREN { $$ = make_bif("KDS", $3); $$->line = yylineno; }
     | BIF_REPEAT LPAREN arg_list RPAREN { $$ = make_bif("REPEAT", $3); $$->line = yylineno; }
+    /* %PROGNAME, with or without (): the running program's name. */
+    | BIF_PROGNAME {
+        if (g_program) g_program->uses_progname = true;
+        $$ = make_bif("PROGNAME", new std::vector<rpg::Expression*>());
+    }
+    | BIF_PROGNAME LPAREN RPAREN {
+        if (g_program) g_program->uses_progname = true;
+        $$ = make_bif("PROGNAME", new std::vector<rpg::Expression*>());
+    }
     | BIF_MATCHES LPAREN arg_list RPAREN { $$ = make_bif("MATCHES", $3); $$->line = yylineno; }
     | BIF_FIND LPAREN arg_list RPAREN { $$ = make_bif("FIND", $3); $$->line = yylineno; }
     | BIF_COUNTMATCHES LPAREN arg_list RPAREN { $$ = make_bif("COUNTMATCHES", $3); $$->line = yylineno; }

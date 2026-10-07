@@ -5678,6 +5678,50 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test422_progname.rpgle": {
+   "codes": [
+    "RNF0604",
+    "RNF0637",
+    "RNF5136"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 4,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF5136",
+     "line": 4,
+     "severity": 30,
+     "text": "Factor 1 operand or Result-Field operand not specified for DSPLY operation."
+    },
+    {
+     "code": "RNF0604",
+     "line": 5,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0637",
+     "line": 5,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 11,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 4: The token is not valid; token is ignored. \u2014 `DSPLY %PROGNAME;`",
+   "sha256": "a6f2051e823d4f08c9bb0290521af662ac80b254941bb0f55d9f712d3b818e66",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test42_onexit.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -6210,5 +6254,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T15:59:24+00:00"
+ "generated": "2026-10-07T16:02:29+00:00"
 }

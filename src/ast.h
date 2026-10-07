@@ -980,6 +980,7 @@ public:
     bool nolenchk = false;    // CTL-OPT OPTION(*NOLENCHK): %SUBST past the end gives the rest
     bool debug_dump = false;  // CTL-OPT DEBUG(*YES) / DEBUG(*DUMP): DUMP writes a dump
     bool uses_user_const = false; // program references *USER
+    bool uses_progname = false;   // program references %PROGNAME
     std::string main_proc;
     // *ENTRY PLIST — the program's own incoming parameters. When
     // entry_params is non-empty the mainline compiles to a function named

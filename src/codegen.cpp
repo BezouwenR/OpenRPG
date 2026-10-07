@@ -931,7 +931,7 @@ void CodeGen::visit(Program& node) {
     timfmt_ = node.timfmt;
 
     // *USER constant requires PSDS initialization
-    if (node.uses_user_const) uses_psds_ = true;
+    if (node.uses_user_const || node.uses_progname) uses_psds_ = true;
 
     // Scan for EXEC SQL / XML-INTO / PSDS / RLA usage to set feature flags
     for (auto& stmt : node.statements) {
@@ -4987,7 +4987,7 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
     if (auto* bif = dynamic_cast<const BIFCall*>(&e)) {
         static const std::set<std::string> chr = {"CHAR", "TRIM", "TRIML", "TRIMR", "SUBST", "UPPER",
             "LOWER", "XLATE", "SCANRPL", "REPLACE", "EDITC", "EDITW", "STR", "EDITFLT", "__DSCHARS", "__INDCHARS",
-            "REPEAT"};
+            "REPEAT", "PROGNAME"};
         static const std::set<std::string> num = {"INT", "INTH", "DEC", "DECH", "FLOAT", "UNS", "UNSH",
             "LEN", "SCAN", "SCANR", "CHECK", "CHECKR", "ELEM", "ABS", "DIV", "REM", "SIZE", "DIFF",
             "SUBDT", "FKEY", "FIND", "COUNTMATCHES", "LOOKUP", "LOOKUPLT", "LOOKUPLE", "LOOKUPGT", "LOOKUPGE", "STATUS", "PARMS",
@@ -6022,6 +6022,11 @@ void CodeGen::visit(BIFCall& node) {
             node.args[i]->accept(*this);
         }
         expr_ << ")";
+    } else if (node.name == "PROGNAME") {
+        // %PROGNAME, an OpenRPG extension: the running program's name, as
+        // the PSDS has it (positions 334-343) -- the executable's name,
+        // upper-cased, at most 10 characters.
+        expr_ << "rpg_psds().program_name";
     } else if (node.name == "REPEAT") {
         // %REPEAT(string : count), an OpenRPG extension: the string count
         // times over, as SQL's REPEAT. A figurative constant has no length

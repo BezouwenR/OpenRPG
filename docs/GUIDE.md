@@ -1785,6 +1785,18 @@ rpgc main.rpgle mathlib.o -o myapp # compiles main and links with module
 
 ---
 
+## The Program's Name: %PROGNAME
+
+`%PROGNAME` is the running program's name: the executable's file name without
+its extension, upper-cased, at most 10 characters — what the program status
+data structure holds in positions 334-343.
+
+```rpgle
+DSPLY ('Starting ' + %PROGNAME);
+```
+
+`%PROGNAME` is an OpenRPG extension.
+
 ## Environment Variables
 
 Read environment variables at runtime with `%GETENV`. It is an OpenRPG
