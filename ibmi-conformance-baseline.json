@@ -5867,12 +5867,89 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test429_compare_proc.rpgle": {
+   "codes": [
+    "RNF0317",
+    "RNF0572",
+    "RNF5106",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF5377",
+     "line": 21,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF0317",
+     "line": 26,
+     "severity": 20,
+     "text": "Too many parameters are specified for this built-in function."
+    },
+    {
+     "code": "RNF5106",
+     "line": 26,
+     "severity": 30,
+     "text": "Data structure array ITEMS must be specified in the form DS_ARRAY(*).KEY_SUBF."
+    },
+    {
+     "code": "RNF0317",
+     "line": 28,
+     "severity": 20,
+     "text": "Too many parameters are specified for this built-in function."
+    },
+    {
+     "code": "RNF5106",
+     "line": 28,
+     "severity": 30,
+     "text": "Data structure array ITEMS must be specified in the form DS_ARRAY(*).KEY_SUBF."
+    }
+   ],
+   "reason": "RNF5377: The end of the expression is expected.",
+   "reason_detail": "line 21: The end of the expression is expected. \u2014 `SORTA items %PADDR(byQty);`",
+   "sha256": "e0a7307e1d67f9f88a45ec2793dc3873085d7ce2c5434bc581340c56c61cd76d",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test42_onexit.rpgle": {
    "codes": [],
    "rpgc": "accept",
    "sha256": "7126373e9444295f059d855968d2797e8cab584ba6501bef4c1260c78eedaf63",
    "verdict": "accept",
    "verified": "2026-09-25"
+  },
+  "test430_err_compare_proc.rpgle": {
+   "codes": [
+    "RNF5377",
+    "RNF7030",
+    "RNF7451"
+   ],
+   "messages": [
+    {
+     "code": "RNF5377",
+     "line": 4,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF7451",
+     "line": 4,
+     "severity": 30,
+     "text": "Built-in function %PADDR(NOSUCH) is not defined; built-in function is ignored."
+    },
+    {
+     "code": "RNF7030",
+     "line": 4,
+     "severity": 30,
+     "text": "The name or indicator NOSUCH is not defined."
+    }
+   ],
+   "reason": "RNF5377: The end of the expression is expected.",
+   "reason_detail": "line 4: The end of the expression is expected. \u2014 `SORTA a %PADDR(nosuch);`",
+   "sha256": "0158757f000ad9ced80998066c5cfded1323c484dd04481407b0cdb5cbf37965",
+   "verdict": "reject",
+   "verified": "2026-10-07"
   },
   "test43_static.rpgle": {
    "codes": [],
@@ -6399,5 +6476,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T16:18:10+00:00"
+ "generated": "2026-10-07T16:24:04+00:00"
 }

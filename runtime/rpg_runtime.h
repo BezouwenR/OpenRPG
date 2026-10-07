@@ -355,6 +355,31 @@ inline int rpg_lookup(const V& val, const std::array<T, N>& arr, int start = 1, 
     return rpg_lookup_in(val, arr.data(), N, 'E', start, count);
 }
 
+// %LOOKUPxx(arg : array : start : count : %PADDR(proc)), an OpenRPG
+// extension: as rpg_lookup_in, with the order the procedure gives --
+// cmp(a, b) below 0 when a comes before b, 0 when they are equal, above 0
+// when a comes after -- in place of RPG's own comparison.
+template<typename V, typename C, typename Cmp>
+inline int rpg_lookup_cmp(const V& val, const C& c, char mode, int start, int count, Cmp cmp) {
+    std::size_t n = c.size();
+    std::size_t lo = start > 1 ? static_cast<std::size_t>(start - 1) : 0;
+    std::size_t hi = n;
+    if (count >= 0 && lo + static_cast<std::size_t>(count) < hi) hi = lo + count;
+    for (std::size_t i = lo; i < hi; i++)
+        if (mode != 'L' && mode != 'G' && cmp(c[i], val) == 0) return static_cast<int>(i + 1);
+    if (mode == 'E') return 0;
+    bool below = (mode == 'L' || mode == 'l');
+    int best = 0;
+    for (std::size_t i = lo; i < hi; i++) {
+        int r = cmp(c[i], val);
+        if (below ? r >= 0 : r <= 0) continue;
+        if (best == 0) { best = static_cast<int>(i + 1); continue; }
+        int rb = cmp(c[i], c[best - 1]);
+        if (below ? rb > 0 : rb < 0) best = static_cast<int>(i + 1);
+    }
+    return best;
+}
+
 // %CHECK - find first char in base NOT in comparator (1-based, 0 if all found)
 inline int rpg_check(const std::string& comp, const std::string& base, int start = 1) {
     for (int i = start - 1; i < static_cast<int>(base.size()); i++) {

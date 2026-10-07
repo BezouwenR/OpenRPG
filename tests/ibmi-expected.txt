@@ -56,6 +56,7 @@ test420_param_default.rpgle          reject  OpenRPG extension: DEFAULT on a par
 test422_progname.rpgle               reject  OpenRPG extension: %PROGNAME
 test424_binary_literal.rpgle         reject  OpenRPG extension: binary literals
 test427_foreach_index.rpgle          reject  OpenRPG extension: FOR-EACH INDEX
+test429_compare_proc.rpgle           reject  OpenRPG extension: a comparison procedure for SORTA and %LOOKUP
 test332_extfile_usropn.rpgle         reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 test334_free_dclf_disk_len.rpgle     reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 

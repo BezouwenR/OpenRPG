@@ -2104,6 +2104,18 @@ sorta_stmt:
         $$ = new rpg::SortAStmt($2);
         free($2);
     }
+    /* SORTA array %PADDR(proc): ordered by a comparison procedure, an
+       OpenRPG extension. */
+    | KW_SORTA ident BIF_PADDR LPAREN expression RPAREN SEMICOLON {
+        auto* st = new rpg::SortAStmt($2);
+        if (auto* sl = dynamic_cast<rpg::StringLiteral*>($5)) st->cmp_proc = sl->value;
+        else if (auto* id = dynamic_cast<rpg::Identifier*>($5)) st->cmp_proc = id->name;
+        else yyerror("SORTA array %PADDR(proc): name the comparison procedure");
+        for (auto& ch : st->cmp_proc) ch = (char)toupper((unsigned char)ch);
+        delete $5;
+        free($2);
+        $$ = st;
+    }
     /* SORTA ds(*).subfield: a data structure array's elements, ordered by
        that subfield. */
     | KW_SORTA IDENTIFIER LPAREN STAR RPAREN DOT ident SEMICOLON {

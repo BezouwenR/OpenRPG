@@ -722,6 +722,22 @@ key.seq = 2;
 i = %LOOKUP(%KDS(key) : line(*));      // OpenRPG extension
 ```
 
+### Sorting and Searching in Your Own Order
+
+A comparison procedure decides the order for `SORTA` and `%LOOKUPxx`, as C's
+`qsort` and `bsearch` take one. It receives two elements and returns below 0
+when the first comes first, 0 when they are equal, and above 0 otherwise:
+
+```rpgle
+SORTA items %PADDR(byQty);
+i = %LOOKUP(want : items : 1 : %ELEM(items) : %PADDR(byQty));
+i = %LOOKUP('apple' : words : %PADDR(noCase));   // start and count optional
+```
+
+`%PADDR(proc)` comes last; `%LOOKUPLT`, `%LOOKUPLE`, `%LOOKUPGT` and
+`%LOOKUPGE` find the nearest element in the procedure's order. This is an
+OpenRPG extension.
+
 ### IN and NOT IN
 
 `x IN` tests whether a value is in a list, a range, an array or an enum:

@@ -676,6 +676,7 @@ class SortAStmt : public Statement {
 public:
     std::string array_name;
     std::string key_field;   // SORTA ds(*).subfield: sort the DS array by it
+    std::string cmp_proc;    // SORTA array %PADDR(proc): ordered by the procedure
     explicit SortAStmt(std::string name);
     void accept(ASTVisitor& visitor) override;
 };

@@ -1030,6 +1030,8 @@ run_test "425" "Reject a binary literal not a whole number of bytes" "$TESTDIR/t
 run_test "426" "arr(*NEXT) on a DIM(*AUTO) array" "$TESTDIR/test426_auto_next.rpgle" "run"
 run_test "427" "FOR-EACH ... INDEX(i)" "$TESTDIR/test427_foreach_index.rpgle" "run"
 run_test "428" "Reject FOR-EACH INDEX of a non-numeric field" "$TESTDIR/test428_err_foreach_index_type.rpgle" "error"
+run_test "429" "A comparison procedure for SORTA and %LOOKUP" "$TESTDIR/test429_compare_proc.rpgle" "run"
+run_test "430" "Reject a comparison procedure that is none" "$TESTDIR/test430_err_compare_proc.rpgle" "error"
 
 # A warning is not an error: the program compiles and runs (test415 above),
 # and rpgc says why each call is a concern.

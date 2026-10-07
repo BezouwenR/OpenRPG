@@ -1925,7 +1925,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 27 | ✅ `%PROGNAME` BIF — done 2026-10-07 (test422) | |
 | 26 | ✅ Binary literals, like the hex form: `B'10100001'` — done 2026-10-07 (test424-425; character operands for %BITAND/%BITOR/%BITXOR/%BITNOT fixed too, test423) | Hex literals already ship (Test 112). |
 | 22 | ✅ Named index of the current `FOR-EACH` iteration: `INDEX(i)` — done 2026-10-07 (test427-428; `arr(*NEXT)` on a `DIM(*AUTO)` array, standard RPG, done too, test426) | |
-| 22 | Comparison procedure for `SORTA` / `%LOOKUPxx` | |
+| 22 | ✅ Comparison procedure for `SORTA` / `%LOOKUPxx`: `%PADDR(proc)` — done 2026-10-07 (test429-430) | |
 | 22 | `WHEN-IS-NOT` on the newer `SELECT` | Needs `SELECT`/`WHEN-IS` first. |
 | 18 | ✅ `%SCANRPL` first/last (duplicate filing of the 49-vote entry) — done with it | |
 | 16 | `*EMPTY` figurative constant | |

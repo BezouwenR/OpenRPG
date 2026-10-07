@@ -6068,6 +6068,31 @@ void CodeGen::visit(BIFCall& node) {
             : "ds(*) is supported as the array of %LOOKUP(%KDS(key) : ds(*)); for one subfield "
               "of every element, write ds(*).subfield");
         expr_ << "0";
+    } else if ((node.name == "LOOKUP" || node.name == "LOOKUPLT" || node.name == "LOOKUPLE" ||
+                node.name == "LOOKUPGT" || node.name == "LOOKUPGE") && node.args.size() >= 3 &&
+               dynamic_cast<BIFCall*>(node.args.back().get()) &&
+               static_cast<BIFCall*>(node.args.back().get())->name == "PADDR") {
+        // %LOOKUPxx(arg : array {: start {: count}} : %PADDR(proc)), an
+        // OpenRPG extension: searched in the order the procedure gives.
+        auto* pa = static_cast<BIFCall*>(node.args.back().get());
+        std::string proc;
+        if (auto* sl = dynamic_cast<StringLiteral*>(pa->args[0].get())) proc = sl->value;
+        else if (auto* id = dynamic_cast<Identifier*>(pa->args[0].get())) proc = id->name;
+        for (auto& ch : proc) ch = (char)toupper((unsigned char)ch);
+        if (!proc_sigs_.count(proc))
+            report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_, "%" + node.name +
+                ": " + proc + " is not a procedure");
+        char mode = node.name == "LOOKUP" ? 'E' : node.name == "LOOKUPLT" ? 'L' :
+                    node.name == "LOOKUPLE" ? 'l' : node.name == "LOOKUPGT" ? 'G' : 'g';
+        expr_ << "rpg_lookup_cmp(";
+        node.args[0]->accept(*this);
+        expr_ << ", ";
+        node.args[1]->accept(*this);
+        expr_ << ", '" << mode << "', ";
+        if (node.args.size() >= 4) node.args[2]->accept(*this); else expr_ << "1";
+        expr_ << ", ";
+        if (node.args.size() >= 5) node.args[3]->accept(*this); else expr_ << "-1";
+        expr_ << ", [&](auto __a, auto __b) { return static_cast<int>(" << proc << "(__a, __b)); })";
     } else if (node.name == "LOOKUP" || node.name == "LOOKUPLT" || node.name == "LOOKUPLE" ||
                node.name == "LOOKUPGT" || node.name == "LOOKUPGE") {
         // %LOOKUPxx(arg : array {: start {: count}}) → 1-based index, 0 if not found
@@ -6728,6 +6753,9 @@ void CodeGen::emitXmlFieldAssignments(DclDS* ds, const std::string& target, cons
 void CodeGen::checkLookupArray(BIFCall& node) {
     bool lookup = node.name.rfind("LOOKUP", 0) == 0 || node.name.rfind("TLOOKUP", 0) == 0;
     if (!lookup || node.args.size() < 2) return;
+    // With a comparison procedure the order is the procedure's own.
+    if (auto* last = dynamic_cast<BIFCall*>(node.args.back().get()); last && last->name == "PADDR")
+        return;
     auto* id = dynamic_cast<Identifier*>(node.args[1].get());
     if (!id) return;
     auto it = array_sort_.find(id->name);
@@ -7299,6 +7327,17 @@ void CodeGen::visit(CallpStmt& node) {
 
 void CodeGen::visit(SortAStmt& node) {
     emitIndent();
+    if (!node.cmp_proc.empty()) {
+        // SORTA array %PADDR(proc): the procedure says which of two elements
+        // comes first (below 0), as C's qsort comparison does.
+        if (!proc_sigs_.count(node.cmp_proc))
+            report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_, "SORTA: " +
+                node.cmp_proc + " is not a procedure");
+        out_ << "std::stable_sort(" << node.array_name << ".begin(), " << node.array_name
+             << ".end(), [&](auto __a, auto __b) { return static_cast<long long>("
+             << node.cmp_proc << "(__a, __b)) < 0; });\n";
+        return;
+    }
     if (!node.key_field.empty()) {
         // SORTA ds(*).subfield: the elements, ordered by that subfield.
         out_ << "std::stable_sort(" << node.array_name << ".begin(), " << node.array_name
