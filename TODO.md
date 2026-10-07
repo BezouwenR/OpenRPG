@@ -1928,7 +1928,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 22 | ✅ Comparison procedure for `SORTA` / `%LOOKUPxx`: `%PADDR(proc)` — done 2026-10-07 (test429-430) | |
 | 22 | ✅ `WHEN-IS-NOT` on the newer `SELECT`, with `WHEN-NOT-IN` — done 2026-10-07 (test432-433; `SELECT operand` / `WHEN-IS` / `WHEN-IN` itself, standard RPG, test431) | Needs `SELECT`/`WHEN-IS` first. |
 | 18 | ✅ `%SCANRPL` first/last (duplicate filing of the 49-vote entry) — done with it | |
-| 16 | `*EMPTY` figurative constant | |
+| 16 | ✅ `*EMPTY` figurative constant — done 2026-10-07 (test434) | |
 | 14 | `%HEX` / `%TOHEX` / `%FROMHEX` | |
 | 12 | `/MESSAGE` compiler directive | |
 

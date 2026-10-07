@@ -6027,6 +6027,54 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test434_empty.rpgle": {
+   "codes": [
+    "RNF0604",
+    "RNF5358",
+    "RNF5377",
+    "RNF5413",
+    "RNF5415",
+    "RNF7030",
+    "RNF7421"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 7,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF5358",
+     "line": 7,
+     "severity": 30,
+     "text": "The EVAL operation is missing an expression."
+    },
+    {
+     "code": "RNF0604",
+     "line": 9,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF5358",
+     "line": 9,
+     "severity": 30,
+     "text": "The EVAL operation is missing an expression."
+    },
+    {
+     "code": "RNF0604",
+     "line": 11,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 7: The token is not valid; token is ignored. \u2014 `v = *EMPTY;`",
+   "sha256": "26fb60429fde8b3d6da77361463f969c4b22e66d6f8624d51fccf003ab36128e",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test43_static.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -6552,5 +6600,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T16:31:22+00:00"
+ "generated": "2026-10-07T16:36:00+00:00"
 }

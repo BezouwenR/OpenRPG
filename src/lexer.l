@@ -707,6 +707,8 @@ static void parse_ctlopt(const char* text) {
 "*NOZEROSUPPRESS"   { yylval.sval = strdup("*NOZEROSUPPRESS"); return IDENTIFIER; }
 "*FIRST"            { yylval.sval = strdup("*FIRST"); return IDENTIFIER; }
 "*NEXT"             { yylval.sval = strdup("*NEXT"); return IDENTIFIER; }
+ /* *EMPTY, an OpenRPG extension: the empty string, exactly as ''. */
+"*EMPTY"            { yylval.sval = strdup(""); return STRING_LITERAL; }
 "*LAST"             { yylval.sval = strdup("*LAST"); return IDENTIFIER; }
 "*ZEROSUPPRESS"     { yylval.sval = strdup("*ZEROSUPPRESS"); return IDENTIFIER; }
 "*INZSR"            { yylval.sval = strdup("*INZSR"); return IDENTIFIER; }

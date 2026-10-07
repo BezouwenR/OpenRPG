@@ -447,6 +447,7 @@ DCL-C PI 3.14159;
 | `*ON` | Boolean true / '1' |
 | `*OFF` | Boolean false / '0' |
 | `*TRUE`, `*FALSE` | Other names for `*ON` and `*OFF` (OpenRPG extension) |
+| `*EMPTY` | The empty string, exactly as `''` (OpenRPG extension) |
 | `*NULL` | Null pointer |
 | `*ALL'x'` | Repeated character pattern |
 

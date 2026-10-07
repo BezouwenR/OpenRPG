@@ -1035,6 +1035,7 @@ run_test "430" "Reject a comparison procedure that is none" "$TESTDIR/test430_er
 run_test "431" "SELECT with an operand: WHEN-IS, WHEN-IN" "$TESTDIR/test431_select_when_is.rpgle" "run"
 run_test "432" "WHEN-IS-NOT and WHEN-NOT-IN" "$TESTDIR/test432_when_is_not.rpgle" "run"
 run_test "433" "Reject WHEN in a SELECT with an operand" "$TESTDIR/test433_err_select_operand_when.rpgle" "error"
+run_test "434" "*EMPTY" "$TESTDIR/test434_empty.rpgle" "run"
 
 # A warning is not an error: the program compiles and runs (test415 above),
 # and rpgc says why each call is a concern.
