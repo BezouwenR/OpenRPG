@@ -1006,6 +1006,9 @@ run_test "401" "Reject *UPPER on a by-reference parameter" "$TESTDIR/test401_err
 run_test "402" "CHAR with no length" "$TESTDIR/test402_dynamic_char.rpgle" "run"
 run_test "403" "Reject a subfield CHAR with no length" "$TESTDIR/test403_err_dynamic_char_subf.rpgle" "error"
 run_test "404" "Reject a program parameter CHAR with no length" "$TESTDIR/test404_err_dynamic_char_pgm.rpgle" "error"
+run_test "405" "INZ(%LIST) on an array" "$TESTDIR/test405_inz_list.rpgle" "run"
+run_test "406" "Reject INZ(%LIST) longer than the array" "$TESTDIR/test406_err_inz_list_long.rpgle" "error"
+run_test "407" "Reject an INZ(%LIST) value too long" "$TESTDIR/test407_err_inz_list_value.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

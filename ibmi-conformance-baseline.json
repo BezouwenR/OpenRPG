@@ -5146,6 +5146,78 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test405_inz_list.rpgle": {
+   "codes": [
+    "RNF0314"
+   ],
+   "messages": [
+    {
+     "code": "RNF0314",
+     "line": 5,
+     "severity": 20,
+     "text": "Built-in function %LIST(1:2:3:4) does not have a value known at compile-time; built-in function is ignored."
+    },
+    {
+     "code": "RNF0314",
+     "line": 6,
+     "severity": 20,
+     "text": "Built-in function %LIST('A':'BB':'CCC') does not have a value known at compile-time; built-in function is ignored."
+    },
+    {
+     "code": "RNF0314",
+     "line": 7,
+     "severity": 20,
+     "text": "Built-in function %LIST(1.5:2.25) does not have a value known at compile-time; built-in function is ignored."
+    },
+    {
+     "code": "RNF0314",
+     "line": 8,
+     "severity": 20,
+     "text": "Built-in function %LIST('Ada':'Grace') does not have a value known at compile-time; built-in function is ignored."
+    }
+   ],
+   "reason": "RNF0314: Built-in function %LIST(n:n:n:n) does not have a value known at compile-time; built-in function is ignored.",
+   "reason_detail": "line 5: Built-in function %LIST(1:2:3:4) does not have a value known at compile-time; built-in function is ignored. \u2014 `DCL-S allowed INT(10) DIM(4) INZ(%LIST(1 : 2 : 3 : 4));`",
+   "sha256": "d387b70bc72e582a46c1c1d0d2a2b0f2f4c7c0edcd31243b02b0e0bebdd1ca25",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test406_err_inz_list_long.rpgle": {
+   "codes": [
+    "RNF0314"
+   ],
+   "messages": [
+    {
+     "code": "RNF0314",
+     "line": 3,
+     "severity": 20,
+     "text": "Built-in function %LIST(1:2:3) does not have a value known at compile-time; built-in function is ignored."
+    }
+   ],
+   "reason": "RNF0314: Built-in function %LIST(n:n:n) does not have a value known at compile-time; built-in function is ignored.",
+   "reason_detail": "line 3: Built-in function %LIST(1:2:3) does not have a value known at compile-time; built-in function is ignored. \u2014 `DCL-S a INT(10) DIM(2) INZ(%LIST(1 : 2 : 3));`",
+   "sha256": "88cdda6929cc4b855b20e71c42d1201ac91df9692f24efa540c1c93718d35833",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test407_err_inz_list_value.rpgle": {
+   "codes": [
+    "RNF0314"
+   ],
+   "messages": [
+    {
+     "code": "RNF0314",
+     "line": 3,
+     "severity": 20,
+     "text": "Built-in function %LIST('ok':'long') does not have a value known at compile-time; built-in function is ignored."
+    }
+   ],
+   "reason": "RNF0314: Built-in function %LIST('ok':'long') does not have a value known at compile-time; built-in function is ignored.",
+   "reason_detail": "line 3: Built-in function %LIST('ok':'long') does not have a value known at compile-time; built-in function is ignored. \u2014 `DCL-S a CHAR(2) DIM(2) INZ(%LIST('ok' : 'long'));`",
+   "sha256": "726f4009ad567c8211bb04d4d4b905ade7dfb745f7cbacc799447a44c6a54ddb",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test40_evalr_leavesr.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -5692,5 +5764,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T15:19:27+00:00"
+ "generated": "2026-10-07T15:23:02+00:00"
 }

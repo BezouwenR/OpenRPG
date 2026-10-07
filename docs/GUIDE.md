@@ -561,6 +561,15 @@ items(1) = 'First';
 DCL-S scores INT(10) DIM(3) INZ(0);
 ```
 
+`INZ(%LIST(...))` gives each element its own initial value; elements past the
+end of the list start blank or zero, and a varying array starts with exactly
+the list's elements. `RESET` puts them back. This is an OpenRPG extension.
+
+```rpgle
+DCL-S allowed INT(10) DIM(4) INZ(%LIST(1 : 2 : 3 : 4));
+DCL-S names VARCHAR(10) DIM(*VAR : 10) INZ(%LIST('Ada' : 'Grace'));
+```
+
 ### Array Operations
 
 ```rpgle

@@ -2202,7 +2202,15 @@ void CodeGen::visit(DclS& node) {
     if (node.dim > 0) {
         if (node.dim_type == 1 || node.dim_type == 2) {
             // DIM(*VAR:max) or DIM(*AUTO:max) — use std::vector
-            out_ << "std::vector<" << typeToString(node.type, node.length, node.digits) << "> " << node.name << ";\n";
+            out_ << "std::vector<" << typeToString(node.type, node.length, node.digits) << "> " << node.name;
+            std::vector<std::string> listed = listElements(node);
+            if (!listed.empty()) {
+                // INZ(%LIST(...)): the array starts with the list's elements.
+                out_ << " = {";
+                for (size_t i = 0; i < listed.size(); i++) out_ << (i ? ", " : "") << listed[i];
+                out_ << "}";
+            }
+            out_ << ";\n";
             varying_arrays_.insert(node.name);
             if (node.dim_type == 2) auto_arrays_[node.name] = node.dim;
             std::string init = arrayElementInit(node);
@@ -2241,6 +2249,14 @@ void CodeGen::visit(DclS& node) {
                     deferred_init_.push_back("for (size_t __i = " + std::to_string(node.ctdata_elems.size()) +
                         "; __i < " + node.name + ".size(); __i++) " + node.name +
                         "[__i] = std::string(" + std::to_string(node.length) + ", ' ');");
+            } else if (std::vector<std::string> listed = listElements(node); !listed.empty()) {
+                // INZ(%LIST(...)): each element its own value, the rest as
+                // without an INZ.
+                std::string dflt = init.empty() ? elemType + "{}" : init;
+                out_ << " = rpg_list_array<" << elemType << ", " << node.dim << ">(" << dflt << ", {";
+                for (size_t i = 0; i < listed.size(); i++) out_ << (i ? ", " : "") << listed[i];
+                out_ << "})";
+                init = "list";   // a shadow copy for RESET, below
             } else if (!init.empty())
                 out_ << " = rpg_filled_array<" << elemType << ", " << node.dim << ">("
                      << "static_cast<" << elemType << ">(" << init << "))";
@@ -2590,10 +2606,39 @@ std::string CodeGen::emitInzValue(const rpg::DclS& node) {
 // has one; otherwise its type's initial value, which for CHAR(n) is n
 // blanks. "" means the element type's own default is right.
 std::string CodeGen::arrayElementInit(const rpg::DclS& node) {
-    if (node.inz_value) return emitInzValue(node);
+    // INZ(%LIST(...)) gives each element its own value (listElements); an
+    // element past the list's end starts as if there were no INZ.
+    auto* l = dynamic_cast<const BIFCall*>(node.inz_value.get());
+    if (node.inz_value && !(l && l->name == "LIST")) return emitInzValue(node);
     if (node.type == RPGType::CHAR && node.length > 0)
         return "std::string(" + std::to_string(node.length) + ", ' ')";
     return "";
+}
+
+// INZ(%LIST(a : b : ...)) on an array, an OpenRPG extension: element i
+// starts as the list's value i, fitted to the element's type. A list longer
+// than the array is an error. Empty when the INZ is not a %LIST.
+std::vector<std::string> CodeGen::listElements(const rpg::DclS& node) {
+    std::vector<std::string> out;
+    auto* l = dynamic_cast<BIFCall*>(node.inz_value.get());
+    if (!l || l->name != "LIST") return out;
+    if (static_cast<int>(l->args.size()) > node.dim)
+        report_semantic_error(node.line, "INZ(%LIST(...)) on " + node.name + " gives " +
+            std::to_string(l->args.size()) + " values, but the array has only " +
+            std::to_string(node.dim) + " elements");
+    std::string elemType = typeToString(node.type, node.length, node.digits);
+    for (auto& a : l->args) {
+        if (auto* sl = dynamic_cast<StringLiteral*>(a.get()))
+            if ((node.type == RPGType::CHAR || node.type == RPGType::VARCHAR) && node.length > 0 &&
+                static_cast<int>(sl->value.size()) > node.length)
+                report_semantic_error(node.line, "Length of initial value '" + sl->value +
+                    "' exceeds length of an element of " + node.name + " (IBM: RNF3431)");
+        std::string v = elemType + "(" + emitExpr(*a) + ")";
+        if (node.type == RPGType::CHAR || node.type == RPGType::VARCHAR)
+            v = fitValue(node.type, node.length, node.decimals, v);
+        out.push_back(v);
+    }
+    return out;
 }
 
 std::string CodeGen::figConstValue(const std::string& name, RPGType type, const std::string& var_name) {

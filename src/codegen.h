@@ -265,6 +265,7 @@ private:
     void indAsChars(std::unique_ptr<Expression>& e);
     bool checkSubstOperands(BIFCall& bif, bool target, int line);
     void placeNamedArgs(FuncCall& call);
+    std::vector<std::string> listElements(const rpg::DclS& node);
     void checkCallArgs(const std::string& proc, const ProcInterface& sig,
                        const std::vector<std::unique_ptr<Expression>>& args, int line);
     void checkAssignTypes(const Expression& target, const Expression& value, int line);

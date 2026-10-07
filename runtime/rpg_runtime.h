@@ -264,6 +264,16 @@ inline std::array<T, N> rpg_filled_array(const T& v) {
     return a;
 }
 
+// INZ(%LIST(...)) on an array: the list's values first, then the default.
+template<typename T, std::size_t N>
+inline std::array<T, N> rpg_list_array(const T& dflt, std::initializer_list<T> vals) {
+    std::array<T, N> a;
+    a.fill(dflt);
+    std::size_t i = 0;
+    for (const auto& v : vals) { if (i == N) break; a[i++] = v; }
+    return a;
+}
+
 // %LOOKUP - find element in array, returns 1-based index (0 if not found)
 // --- %LOOKUPxx: 1-based index of the element found, 0 if none ---
 // mode 'E' finds an equal element. The others find the element nearest the
