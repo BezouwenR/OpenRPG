@@ -6075,6 +6075,48 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test435_hex_bifs.rpgle": {
+   "codes": [
+    "RNF0604"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 8,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 10,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 11,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 12,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0604",
+     "line": 15,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 8: The token is not valid; token is ignored. \u2014 `h = %TOHEX(s);`",
+   "sha256": "c8b753ae4020360f9fe2d210564d3c0800358424c06991d9c6b7cb9c6f63bd03",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test43_static.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -6600,5 +6642,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T16:36:00+00:00"
+ "generated": "2026-10-07T16:39:12+00:00"
 }

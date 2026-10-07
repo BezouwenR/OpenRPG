@@ -689,6 +689,9 @@ static void parse_ctlopt(const char* text) {
 "%KDS"              { return BIF_KDS; }
 "%REPEAT"           { return BIF_REPEAT; }
 "%PROGNAME"         { return BIF_PROGNAME; }
+"%TOHEX"            { return BIF_TOHEX; }
+"%HEX"              { return BIF_TOHEX; }
+"%FROMHEX"          { return BIF_FROMHEX; }
 "%MATCHES"          { return BIF_MATCHES; }
 "%FIND"             { return BIF_FIND; }
 "%COUNTMATCHES"     { return BIF_COUNTMATCHES; }

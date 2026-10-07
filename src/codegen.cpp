@@ -5016,7 +5016,7 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
     if (auto* bif = dynamic_cast<const BIFCall*>(&e)) {
         static const std::set<std::string> chr = {"CHAR", "TRIM", "TRIML", "TRIMR", "SUBST", "UPPER",
             "LOWER", "XLATE", "SCANRPL", "REPLACE", "EDITC", "EDITW", "STR", "EDITFLT", "__DSCHARS", "__INDCHARS",
-            "REPEAT", "PROGNAME"};
+            "REPEAT", "PROGNAME", "TOHEX", "FROMHEX"};
         static const std::set<std::string> num = {"INT", "INTH", "DEC", "DECH", "FLOAT", "UNS", "UNSH",
             "LEN", "SCAN", "SCANR", "CHECK", "CHECKR", "ELEM", "ABS", "DIV", "REM", "SIZE", "DIFF",
             "SUBDT", "FKEY", "FIND", "COUNTMATCHES", "LOOKUP", "LOOKUPLT", "LOOKUPLE", "LOOKUPGT", "LOOKUPGE", "STATUS", "PARMS",
@@ -6051,6 +6051,25 @@ void CodeGen::visit(BIFCall& node) {
             node.args[i]->accept(*this);
         }
         expr_ << ")";
+    } else if (node.name == "TOHEX" || node.name == "FROMHEX") {
+        // %TOHEX (or %HEX) and %FROMHEX, OpenRPG extensions: what the C
+        // functions cvthc and cvtch do -- each byte as two hex digits, and
+        // back. The bytes are the host's, so %TOHEX('AB') is '4142' here,
+        // where IBM i's EBCDIC gives 'C1C2'.
+        int line = node.line > 0 ? node.line : cur_stmt_line_;
+        if (node.args.size() != 1) {
+            report_semantic_error(line, "%" + node.name + " takes one operand");
+            expr_ << "std::string()";
+            return;
+        }
+        ArgCat c = argCategory(*node.args[0]);
+        if (c != ArgCat::Char && c != ArgCat::DS && c != ArgCat::Unknown)
+            report_semantic_error(line, "The operand of %" + node.name + " must be character; "
+                "for a number, convert it with %CHAR or %EDITC first");
+        dsAsChars(node.args[0]);
+        expr_ << (node.name == "TOHEX" ? "rpg_tohex(std::string(" : "rpg_fromhex(std::string(");
+        node.args[0]->accept(*this);
+        expr_ << "))";
     } else if (node.name == "PROGNAME") {
         // %PROGNAME, an OpenRPG extension: the running program's name, as
         // the PSDS has it (positions 334-343) -- the executable's name,

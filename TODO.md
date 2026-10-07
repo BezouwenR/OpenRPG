@@ -39,7 +39,7 @@
 - **Bitwise:** %BITAND, %BITNOT, %BITOR, %BITXOR (Test 68)
 - **Date/Time:** %DATE, %TIME, %TIMESTAMP, %DIFF, %DAYS, %MONTHS, %YEARS, %HOURS, %MINUTES, %SECONDS, %MSECONDS, %SUBDT
 - **Memory/Pointer:** %ALLOC, %REALLOC, %ADDR, %PADDR, %PROC, %STR
-- **Other:** %PARMS, %STATUS, %ERROR, %FOUND, %EOF, %PASSED, %OMITTED, %MAX, %MIN, %GETENV (Test 85), %FKEY (Test 353), %MATCHES/%FIND/%COUNTMATCHES (Test 362), %IF (Test 386), %COMPCORR (Test 411), %REPEAT (Test 418), %PROGNAME (Test 422)
+- **Other:** %PARMS, %STATUS, %ERROR, %FOUND, %EOF, %PASSED, %OMITTED, %MAX, %MIN, %GETENV (Test 85), %FKEY (Test 353), %MATCHES/%FIND/%COUNTMATCHES (Test 362), %IF (Test 386), %COMPCORR (Test 411), %REPEAT (Test 418), %PROGNAME (Test 422), %TOHEX/%HEX/%FROMHEX (Test 435)
 
 ### %STATUS Code Values
 | Code | Description | Applicable |
@@ -1929,7 +1929,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 22 | ✅ `WHEN-IS-NOT` on the newer `SELECT`, with `WHEN-NOT-IN` — done 2026-10-07 (test432-433; `SELECT operand` / `WHEN-IS` / `WHEN-IN` itself, standard RPG, test431) | Needs `SELECT`/`WHEN-IS` first. |
 | 18 | ✅ `%SCANRPL` first/last (duplicate filing of the 49-vote entry) — done with it | |
 | 16 | ✅ `*EMPTY` figurative constant — done 2026-10-07 (test434) | |
-| 14 | `%HEX` / `%TOHEX` / `%FROMHEX` | |
+| 14 | ✅ `%HEX` / `%TOHEX` / `%FROMHEX` — done 2026-10-07 (test435) | |
 | 12 | `/MESSAGE` compiler directive | |
 
 ### Larger, but worth their vote count

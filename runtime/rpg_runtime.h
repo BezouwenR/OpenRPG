@@ -287,6 +287,35 @@ inline std::string rpg_bits_chars(char op, std::initializer_list<std::string> ar
     return r;
 }
 
+// %TOHEX(value): each byte as two upper-case hex digits. %FROMHEX(digits):
+// each two hex digits as a byte; an odd number of digits, or a character
+// that is not one, is status 100.
+inline std::string rpg_tohex(const std::string& s) {
+    static const char* d = "0123456789ABCDEF";
+    std::string r;
+    r.reserve(s.size() * 2);
+    for (unsigned char c : s) { r += d[c >> 4]; r += d[c & 15]; }
+    return r;
+}
+inline std::string rpg_fromhex(const std::string& h) {
+    auto val = [](char c) -> int {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        return -1;
+    };
+    if (h.size() % 2 != 0)
+        rpg_raise(100, "RNX0100: %FROMHEX needs an even number of hex digits.");
+    std::string r;
+    for (std::size_t i = 0; i < h.size(); i += 2) {
+        int a = val(h[i]), b = val(h[i + 1]);
+        if (a < 0 || b < 0)
+            rpg_raise(100, "RNX0100: %FROMHEX found a character that is not a hex digit.");
+        r += static_cast<char>(a * 16 + b);
+    }
+    return r;
+}
+
 // %REPEAT(string : count): the string count times over. A negative count
 // is status 100, as a bad length is elsewhere.
 inline std::string rpg_repeat(const std::string& s, long long count) {

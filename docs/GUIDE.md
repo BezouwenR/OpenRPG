@@ -1027,6 +1027,21 @@ DSPLY %LOWER('HELLO');  // 'hello'
 DSPLY %UPPER('hello');  // 'HELLO'
 ```
 
+### %TOHEX and %FROMHEX
+
+`%TOHEX(value)` (or `%HEX`) shows each byte of a character value as two hex
+digits, and `%FROMHEX(digits)` turns them back into bytes — what the C functions
+`cvthc` and `cvtch` do:
+
+```rpgle
+DSPLY %TOHEX('AB');          // 4142
+DSPLY %FROMHEX('4869');      // Hi
+```
+
+The bytes are the host's ASCII or UTF-8, so `%TOHEX('AB')` is `4142` here
+where EBCDIC on IBM i would give `C1C2`. An odd number of digits, or a
+character that is not one, is status 100. These are OpenRPG extensions.
+
 ### %REPEAT
 
 `%REPEAT(string : count)` is the string `count` times over, as SQL's `REPEAT`:
