@@ -54,6 +54,7 @@ test416_lookup_kds.rpgle             reject  OpenRPG extension: %LOOKUP(%KDS(key
 test418_repeat.rpgle                 reject  OpenRPG extension: %REPEAT
 test420_param_default.rpgle          reject  OpenRPG extension: DEFAULT on a parameter
 test422_progname.rpgle               reject  OpenRPG extension: %PROGNAME
+test424_binary_literal.rpgle         reject  OpenRPG extension: binary literals
 test332_extfile_usropn.rpgle         reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 test334_free_dclf_disk_len.rpgle     reject  OpenRPG extension: EXTFILE names a host file path; IBM i wants LIB/FILE, 10 characters each (RNF0652)
 

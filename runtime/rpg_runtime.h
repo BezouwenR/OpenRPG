@@ -264,6 +264,29 @@ inline std::array<T, N> rpg_filled_array(const T& v) {
     return a;
 }
 
+// %BITAND, %BITOR, %BITXOR and %BITNOT of character operands, byte by byte.
+// The result is as long as the longest operand; a shorter one is padded
+// with the byte that changes nothing: X'FF' for AND, X'00' for OR and XOR.
+inline std::string rpg_bits_chars(char op, std::initializer_list<std::string> args) {
+    std::size_t n = 0;
+    for (const auto& a : args) n = std::max(n, a.size());
+    unsigned char pad = op == '&' ? 0xFF : 0x00;
+    std::string r;
+    bool first = true;
+    for (const auto& a : args) {
+        std::string b = a;
+        b.resize(n, static_cast<char>(pad));
+        if (first) { r = b; first = false; continue; }
+        for (std::size_t i = 0; i < n; i++) {
+            unsigned char x = static_cast<unsigned char>(r[i]), y = static_cast<unsigned char>(b[i]);
+            r[i] = static_cast<char>(op == '&' ? (x & y) : op == '|' ? (x | y) : (x ^ y));
+        }
+    }
+    if (op == '~')
+        for (auto& c : r) c = static_cast<char>(~static_cast<unsigned char>(c));
+    return r;
+}
+
 // %REPEAT(string : count): the string count times over. A negative count
 // is status 100, as a bad length is elsewhere.
 inline std::string rpg_repeat(const std::string& s, long long count) {

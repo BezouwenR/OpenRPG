@@ -1923,7 +1923,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 29 | ✅ `%REPEAT` BIF — done 2026-10-07 (test418-419) | |
 | 28 | ✅ Default values for `*NOPASS` / `*OMIT` parameters: `DEFAULT(value)` — done 2026-10-07 (test420-421) | |
 | 27 | ✅ `%PROGNAME` BIF — done 2026-10-07 (test422) | |
-| 26 | Binary literals, like the hex form | Hex literals already ship (Test 112). |
+| 26 | ✅ Binary literals, like the hex form: `B'10100001'` — done 2026-10-07 (test424-425; character operands for %BITAND/%BITOR/%BITXOR/%BITNOT fixed too, test423) | Hex literals already ship (Test 112). |
 | 22 | Named index of the current `FOR-EACH` iteration | |
 | 22 | Comparison procedure for `SORTA` / `%LOOKUPxx` | |
 | 22 | `WHEN-IS-NOT` on the newer `SELECT` | Needs `SELECT`/`WHEN-IS` first. |

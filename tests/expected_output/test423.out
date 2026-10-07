@@ -1,0 +1,9 @@
+and ok
+or ok
+xor ok
+not ok
+and len 2
+and pads X'FF'
+or len 2
+or pads X'00'
+three ok

@@ -1024,6 +1024,9 @@ run_test "419" "Reject %REPEAT of a figurative constant" "$TESTDIR/test419_err_r
 run_test "420" "DEFAULT for a parameter left out" "$TESTDIR/test420_param_default.rpgle" "run"
 run_test "421" "Reject DEFAULT on a required parameter" "$TESTDIR/test421_err_param_default_required.rpgle" "error"
 run_test "422" "%PROGNAME" "$TESTDIR/test422_progname.rpgle" "run"
+run_test "423" "Bit BIFs of character operands" "$TESTDIR/test423_bit_chars.rpgle" "run"
+run_test "424" "Binary literals" "$TESTDIR/test424_binary_literal.rpgle" "run"
+run_test "425" "Reject a binary literal not a whole number of bytes" "$TESTDIR/test425_err_binary_literal.rpgle" "error"
 
 # A warning is not an error: the program compiles and runs (test415 above),
 # and rpgc says why each call is a concern.

@@ -2687,6 +2687,16 @@ DCL-C LF X'0A';
 csv = 'NAME,AGE' + LF + 'Alice,30';
 ```
 
+A binary literal, `B'...'`, is the same with eight binary digits to each byte:
+`B'10100001'` is `X'A1'`. It reads well as a bit mask, and `%BITAND`, `%BITOR`,
+`%BITXOR` and `%BITNOT` work on character values byte by byte:
+
+```rpgle
+IF %BITAND(flags : B'00001111') = X'05';
+```
+
+Binary literals are an OpenRPG extension.
+
 ---
 
 ## XML-INTO

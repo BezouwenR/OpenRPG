@@ -995,6 +995,28 @@ static void parse_ctlopt(const char* text) {
         yy_scan_string(text.c_str());
     }
 }
+[Bb]'[^'\n]*'       {
+    /* A binary literal, an OpenRPG extension: B'10100001' is X'A1' -- each
+       eight binary digits one byte, the first the most significant. */
+    std::string bits(yytext + 2, yyleng - 3);
+    std::string hex = "X'";
+    if (bits.size() % 8 != 0 || bits.find_first_not_of("01") != std::string::npos) {
+        report_semantic_error(yylineno, "A binary literal holds only the digits 0 and 1, eight to "
+            "each byte: B'" + bits + "' has " + std::to_string(bits.size()) + " characters");
+    } else {
+        // As the hex literal it equals, so a zero byte is kept as one is there.
+        static const char* digits = "0123456789ABCDEF";
+        for (size_t i = 0; i < bits.size(); i += 8) {
+            unsigned v = 0;
+            for (size_t k = 0; k < 8; k++) v = v * 2 + (unsigned)(bits[i + k] - '0');
+            hex += digits[v >> 4];
+            hex += digits[v & 15];
+        }
+    }
+    hex += "'";
+    yylval.sval = process_hex_string(hex.c_str());
+    return STRING_LITERAL;
+}
 [Xx]'[0-9A-Fa-f]*'  { yylval.sval = process_hex_string(yytext); return STRING_LITERAL; }
  /* Typed literals: D'2024-01-15', T'10.30.00', Z'2024-01-15-10.30.00.000000' */
  /* (std::string rather than strndup, which Windows' C library lacks) */

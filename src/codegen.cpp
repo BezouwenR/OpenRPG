@@ -6349,28 +6349,39 @@ void CodeGen::visit(BIFCall& node) {
         } else {
             expr_ << "rpg_eof()";
         }
-    } else if (node.name == "BITAND") {
-        expr_ << "(static_cast<unsigned int>(";
-        node.args[0]->accept(*this);
-        expr_ << ") & static_cast<unsigned int>(";
-        node.args[1]->accept(*this);
-        expr_ << "))";
-    } else if (node.name == "BITNOT") {
-        expr_ << "(~static_cast<unsigned int>(";
-        node.args[0]->accept(*this);
-        expr_ << "))";
-    } else if (node.name == "BITOR") {
-        expr_ << "(static_cast<unsigned int>(";
-        node.args[0]->accept(*this);
-        expr_ << ") | static_cast<unsigned int>(";
-        node.args[1]->accept(*this);
-        expr_ << "))";
-    } else if (node.name == "BITXOR") {
-        expr_ << "(static_cast<unsigned int>(";
-        node.args[0]->accept(*this);
-        expr_ << ") ^ static_cast<unsigned int>(";
-        node.args[1]->accept(*this);
-        expr_ << "))";
+    } else if (node.name == "BITAND" || node.name == "BITOR" || node.name == "BITXOR" ||
+               node.name == "BITNOT") {
+        // Character operands work on their bytes (rpg_bits_chars), as on
+        // IBM i: the result is as long as the longest, a shorter one padded
+        // with the byte that changes nothing -- X'FF' for %BITAND, X'00'
+        // for %BITOR and %BITXOR (test423, run on PUB400). %BITAND, %BITOR
+        // and %BITXOR take two or more operands.
+        bool chars = false;
+        for (auto& a : node.args) if (argCategory(*a) == ArgCat::Char) chars = true;
+        char op = node.name == "BITAND" ? '&' : node.name == "BITOR" ? '|' :
+                  node.name == "BITXOR" ? '^' : '~';
+        if (chars) {
+            expr_ << "rpg_bits_chars('" << op << "', {";
+            for (size_t i = 0; i < node.args.size(); i++) {
+                expr_ << (i ? ", " : "") << "std::string(";
+                node.args[i]->accept(*this);
+                expr_ << ")";
+            }
+            expr_ << "})";
+        } else if (op == '~') {
+            expr_ << "(~static_cast<unsigned int>(";
+            node.args[0]->accept(*this);
+            expr_ << "))";
+        } else {
+            expr_ << "(";
+            for (size_t i = 0; i < node.args.size(); i++) {
+                if (i) expr_ << " " << op << " ";
+                expr_ << "static_cast<unsigned int>(";
+                node.args[i]->accept(*this);
+                expr_ << ")";
+            }
+            expr_ << ")";
+        }
     } else if (node.name == "SCANR") {
         // %SCANR(search : source {: start {: length}})
         expr_ << "rpg_scanr(";

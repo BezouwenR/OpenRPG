@@ -2251,6 +2251,24 @@
    "test": "41",
    "verified": "2026-09-26"
   },
+  "test423_bit_chars.rpgle": {
+   "error": "",
+   "output": [
+    "and ok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+    "or ok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "xor ok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+    "not ok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+    "and len 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ",
+    "and pads X'FF'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ",
+    "or len 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
+    "or pads X'00'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ",
+    "three ok                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 "
+   ],
+   "sha256": "0c12c27ffaba62ebb4d473ef77d2f63c822953e84ceebedf79cd06cc74c5dd1e",
+   "status": "same",
+   "test": "423",
+   "verified": "2026-10-07"
+  },
   "test42_onexit.rpgle": {
    "error": "",
    "output": [

@@ -5722,6 +5722,82 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test423_bit_chars.rpgle": {
+   "codes": [],
+   "sha256": "0c12c27ffaba62ebb4d473ef77d2f63c822953e84ceebedf79cd06cc74c5dd1e",
+   "verdict": "accept",
+   "verified": "2026-10-07"
+  },
+  "test424_binary_literal.rpgle": {
+   "codes": [
+    "RNF0313",
+    "RNF5377",
+    "RNF7030",
+    "RNF7503"
+   ],
+   "messages": [
+    {
+     "code": "RNF5377",
+     "line": 6,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF7030",
+     "line": 6,
+     "severity": 30,
+     "text": "The name or indicator B is not defined."
+    },
+    {
+     "code": "RNF5377",
+     "line": 9,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF5377",
+     "line": 12,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF0313",
+     "line": 14,
+     "severity": 20,
+     "text": "A colon is expected but is not found; colon assumed."
+    }
+   ],
+   "reason": "RNF5377: The end of the expression is expected.",
+   "reason_detail": "line 6: The end of the expression is expected. \u2014 `IF B'10100001' = X'A1';`",
+   "sha256": "8ebfce37e3bb7bed26db4c124ddbc3a0fc7bdd341ba01f6b9cc401b5992cc578",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test425_err_binary_literal.rpgle": {
+   "codes": [
+    "RNF5377",
+    "RNF7030"
+   ],
+   "messages": [
+    {
+     "code": "RNF5377",
+     "line": 4,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF7030",
+     "line": 4,
+     "severity": 30,
+     "text": "The name or indicator B is not defined."
+    }
+   ],
+   "reason": "RNF5377: The end of the expression is expected.",
+   "reason_detail": "line 4: The end of the expression is expected. \u2014 `c = B'1010';`",
+   "sha256": "95282675c6c4b933fb659bc3b4b167a6100e12a457f7fb12ccb0ae03fcff9426",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test42_onexit.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -6254,5 +6330,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T16:02:29+00:00"
+ "generated": "2026-10-07T16:08:48+00:00"
 }
