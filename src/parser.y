@@ -571,7 +571,7 @@ static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* m
 %token BIF_PADDR BIF_PROC
 %token BIF_PASSED BIF_OMITTED
 %token BIF_BITAND BIF_BITNOT BIF_BITOR BIF_BITXOR
-%token BIF_SCANR BIF_EDITFLT BIF_UNSH BIF_PARMNUM BIF_GETENV BIF_FKEY BIF_IF BIF_COMPCORR BIF_MATCHES BIF_FIND BIF_COUNTMATCHES BIF_XML
+%token BIF_SCANR BIF_EDITFLT BIF_UNSH BIF_PARMNUM BIF_GETENV BIF_FKEY BIF_IF BIF_COMPCORR BIF_KDS BIF_MATCHES BIF_FIND BIF_COUNTMATCHES BIF_XML
 %token BIF_DATA BIF_PARSER BIF_GEN
 %token KW_ALL
 %token KW_UNS KW_FLOAT_TYPE KW_BINDEC KW_UCS2 KW_GRAPH KW_OBJECT KW_JAVA
@@ -2644,7 +2644,18 @@ unary_expr:
 postfix_expr:
     primary_expr { $$ = $1; }
     | postfix_expr DOT ident {
-        $$ = new rpg::DotExpr(std::unique_ptr<rpg::Expression>($1), $3);
+        // ds(*).subfield: that subfield of every element (__DSCOL).
+        if (auto* all = dynamic_cast<rpg::BIFCall*>($1); all && all->name == "__DSALL") {
+            auto* args = new std::vector<rpg::Expression*>();
+            args->push_back(all->args[0].release());
+            args->push_back(new rpg::StringLiteral($3));
+            int line = all->line;
+            delete all;
+            $$ = make_bif("__DSCOL", args);
+            $$->line = line;
+        } else {
+            $$ = new rpg::DotExpr(std::unique_ptr<rpg::Expression>($1), $3);
+        }
         free($3);
     }
     /* Per-subfield array element (read): ds.field(idx), ds.sub.field(idx) —
@@ -2901,16 +2912,18 @@ primary_expr:
         $$ = make_func($1, $3);
         free($1);
     }
-    /* ds(*).subfield: that subfield of every element of a data structure
-       array, as an array -- for %LOOKUP, %XFOOT, %MAXARR, %MINARR, IN. */
-    | IDENTIFIER LPAREN STAR RPAREN DOT ident {
+    /* ds(*): every element of a data structure array, for
+       %LOOKUP(%KDS(key) : ds(*)). Followed by .subfield (postfix_expr) it
+       is that subfield of every element, as an array -- for SORTA's
+       sibling forms, %LOOKUP, %XFOOT, %MAXARR, %MINARR and IN. */
+    | IDENTIFIER LPAREN STAR RPAREN {
         auto* args = new std::vector<rpg::Expression*>();
         args->push_back(new rpg::Identifier($1));
-        args->push_back(new rpg::StringLiteral($6));
-        $$ = make_bif("__DSCOL", args);
+        $$ = make_bif("__DSALL", args);
         $$->line = yylineno;
-        free($1); free($6);
+        free($1);
     }
+
     | call_kw_name LPAREN call_args_opt RPAREN {
         $$ = make_func($1, $3);
         free($1);
@@ -3335,6 +3348,7 @@ primary_expr:
     }
     | BIF_IF LPAREN arg_list RPAREN { $$ = make_bif("IF", $3); $$->line = yylineno; }
     | BIF_COMPCORR LPAREN arg_list RPAREN { $$ = make_bif("COMPCORR", $3); $$->line = yylineno; }
+    | BIF_KDS LPAREN arg_list RPAREN { $$ = make_bif("KDS", $3); $$->line = yylineno; }
     | BIF_MATCHES LPAREN arg_list RPAREN { $$ = make_bif("MATCHES", $3); $$->line = yylineno; }
     | BIF_FIND LPAREN arg_list RPAREN { $$ = make_bif("FIND", $3); $$->line = yylineno; }
     | BIF_COUNTMATCHES LPAREN arg_list RPAREN { $$ = make_bif("COUNTMATCHES", $3); $$->line = yylineno; }

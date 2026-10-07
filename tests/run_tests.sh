@@ -1017,6 +1017,8 @@ run_test "412" "Reject %COMPCORR of incompatible subfields" "$TESTDIR/test412_er
 run_test "413" "Reject %COMPCORR of more subfields than correspond" "$TESTDIR/test413_err_compcorr_count.rpgle" "error"
 run_test "414" "A procedure called before its definition" "$TESTDIR/test414_proc_forward.rpgle" "run"
 run_test "415" "DEPRECATED procedures" "$TESTDIR/test415_deprecated.rpgle" "run"
+run_test "416" "%LOOKUP(%KDS(key) : ds(*))" "$TESTDIR/test416_lookup_kds.rpgle" "run"
+run_test "417" "Reject a %KDS key subfield the array lacks" "$TESTDIR/test417_err_lookup_kds_field.rpgle" "error"
 
 # A warning is not an error: the program compiles and runs (test415 above),
 # and rpgc says why each call is a concern.

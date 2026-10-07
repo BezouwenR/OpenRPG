@@ -1919,7 +1919,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 39 | ✅ `%XFOOT` over subfields of a DS array: `%XFOOT(ds(*).subf)` — done 2026-10-07 (test409-410; `ds(*).subf` itself in SORTA and %LOOKUP, standard RPG, test408) | |
 | 38 | ✅ BIF for comparing data structures: `%COMPCORR(ds1 : ds2 {: n})` — done 2026-10-07 (test411-413) | |
 | 35 | ✅ `DEPRECATED` keyword on procedures — done 2026-10-07 (test415; a call to a procedure defined later with no DCL-PR fixed too, test414) | Just a compiler warning. |
-| 34 | `%LOOKUP` searching more than one subfield | |
+| 34 | ✅ `%LOOKUP` searching more than one subfield: `%LOOKUP(%KDS(key) : ds(*))` — done 2026-10-07 (test416-417) | |
 | 29 | `%REPEAT` BIF | |
 | 28 | Default values for `*NOPASS` / `*OMIT` parameters | |
 | 27 | `%PROGNAME` BIF | |

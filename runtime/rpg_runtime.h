@@ -1902,6 +1902,19 @@ inline std::vector<T> rpg_subarr(const std::array<T, N>& arr, int start, int cou
     return std::vector<T>(arr.begin() + s, arr.begin() + s + c);
 }
 
+// %LOOKUP(%KDS(key) : ds(*) {: start {: count}}): the 1-based index of the
+// first element, of those searched, that the predicate holds for, or 0.
+template<typename C, typename P>
+inline int rpg_lookup_if(const C& c, P pred, int start = 1, int count = -1) {
+    int n = static_cast<int>(c.size());
+    if (start < 1 || start > n + 1)
+        rpg_raise(121, "RNX0121: Array index not valid.");
+    int end = count < 0 ? n : std::min(n, start - 1 + count);
+    for (int i = start - 1; i < end; i++)
+        if (pred(c[i])) return i + 1;
+    return 0;
+}
+
 // ds(*).subfield: that subfield of each element of a data structure array.
 template<typename C, typename F>
 inline auto rpg_ds_column(const C& c, F f) {

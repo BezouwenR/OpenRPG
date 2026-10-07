@@ -681,6 +681,7 @@ static void parse_ctlopt(const char* text) {
 "DEPRECATED"        { return KW_DEPRECATED; }
 "%IF"               { return BIF_IF; }
 "%COMPCORR"         { return BIF_COMPCORR; }
+"%KDS"              { return BIF_KDS; }
 "%MATCHES"          { return BIF_MATCHES; }
 "%FIND"             { return BIF_FIND; }
 "%COUNTMATCHES"     { return BIF_COUNTMATCHES; }

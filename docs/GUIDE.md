@@ -697,6 +697,21 @@ IF 0 IN ord(*).amt;                    // OpenRPG extension
 `%XFOOT`, `%MAXARR`, `%MINARR` and `IN` over `ds(*).subfield` are OpenRPG
 extensions; IBM i takes it in `SORTA` and `%LOOKUP` only.
 
+To search on more than one subfield, give `%LOOKUP` a key data structure with
+`%KDS`: it finds the first element whose subfields equal the key's subfields of
+the same name, or only its first n with `%KDS(key : n)`:
+
+```rpgle
+DCL-DS key QUALIFIED;
+  ord INT(10);
+  seq INT(5);
+END-DS;
+
+key.ord = 7;
+key.seq = 2;
+i = %LOOKUP(%KDS(key) : line(*));      // OpenRPG extension
+```
+
 ### IN and NOT IN
 
 `x IN` tests whether a value is in a list, a range, an array or an enum:

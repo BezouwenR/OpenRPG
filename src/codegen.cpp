@@ -5919,6 +5919,69 @@ void CodeGen::visit(BIFCall& node) {
         expr_ << ", ";
         node.args[1]->accept(*this);
         expr_ << ", " << dec << ")";
+    } else if (node.name == "LOOKUP" && node.args.size() >= 2 &&
+               dynamic_cast<BIFCall*>(node.args[0].get()) &&
+               static_cast<BIFCall*>(node.args[0].get())->name == "KDS") {
+        // %LOOKUP(%KDS(key {: n}) : ds(*) {: start {: count}}), an OpenRPG
+        // extension: the first element whose subfields equal the key data
+        // structure's subfields of the same name -- its first n, with n.
+        int line = node.line > 0 ? node.line : cur_stmt_line_;
+        auto* kds = static_cast<BIFCall*>(node.args[0].get());
+        auto* all = dynamic_cast<BIFCall*>(node.args[1].get());
+        auto* key = kds->args.empty() ? nullptr : dynamic_cast<Identifier*>(kds->args[0].get());
+        const DclDS* kd = key ? resolveDsDef(key->name) : nullptr;
+        std::string arr = all && all->name == "__DSALL" ? static_cast<Identifier*>(all->args[0].get())->name : "";
+        const DclDS* ad = arr.empty() ? nullptr : resolveDsDef(arr);
+        if (!kd || !ad || !array_vars_.count(arr) || kds->args.size() > 2) {
+            report_semantic_error(line, "%LOOKUP(%KDS(key {: n}) : ds(*)) searches a data structure "
+                "array, ds(*), for the element matching a key data structure");
+            expr_ << "0";
+            return;
+        }
+        long long n = -1;
+        if (kds->args.size() == 2) {
+            auto* il = dynamic_cast<IntLiteral*>(kds->args[1].get());
+            if (!il || il->value < 1) {
+                report_semantic_error(line, "The second operand of %KDS is how many key subfields "
+                    "to use, written as a whole number of at least 1");
+                expr_ << "0";
+                return;
+            }
+            n = il->value;
+        }
+        std::vector<std::string> tests;
+        for (const auto& kf : kd->fields) {
+            if (!kf.overlay_field.empty()) continue;
+            if (n > 0 && static_cast<long long>(tests.size()) == n) break;
+            bool found = false;
+            for (const auto& af : ad->fields)
+                if (af.name == kf.name) { found = true; break; }
+            if (!found) {
+                report_semantic_error(line, "%LOOKUP: key subfield " + kf.name + " of " + key->name +
+                    " is not a subfield of " + arr);
+                expr_ << "0";
+                return;
+            }
+            tests.push_back("rpg_eq(__e." + kf.name + ", " + key->name + "." + kf.name + ")");
+        }
+        if (n > 0 && static_cast<long long>(tests.size()) < n)
+            report_semantic_error(line, "%KDS(" + key->name + " : " + std::to_string(n) + "): " +
+                key->name + " has only " + std::to_string(tests.size()) + " subfields");
+        expr_ << "rpg_lookup_if(" << arr << ", [&](const auto& __e) { return ";
+        for (size_t i = 0; i < tests.size(); i++) expr_ << (i ? " && " : "") << tests[i];
+        if (tests.empty()) expr_ << "false";
+        expr_ << "; }";
+        for (size_t i = 2; i < node.args.size() && i < 4; i++) {
+            expr_ << ", ";
+            node.args[i]->accept(*this);
+        }
+        expr_ << ")";
+    } else if (node.name == "KDS" || node.name == "__DSALL") {
+        report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_, node.name == "KDS"
+            ? "%KDS is supported as the search argument of %LOOKUP(%KDS(key) : ds(*))"
+            : "ds(*) is supported as the array of %LOOKUP(%KDS(key) : ds(*)); for one subfield "
+              "of every element, write ds(*).subfield");
+        expr_ << "0";
     } else if (node.name == "LOOKUP" || node.name == "LOOKUPLT" || node.name == "LOOKUPLE" ||
                node.name == "LOOKUPGT" || node.name == "LOOKUPGE") {
         // %LOOKUPxx(arg : array {: start {: count}}) → 1-based index, 0 if not found

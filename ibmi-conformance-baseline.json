@@ -5460,6 +5460,69 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test416_lookup_kds.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0316",
+    "RNF0637",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0637",
+     "line": 28,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    },
+    {
+     "code": "RNF0637",
+     "line": 29,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    },
+    {
+     "code": "RNF0637",
+     "line": 30,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    },
+    {
+     "code": "RNF0637",
+     "line": 32,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 32,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    }
+   ],
+   "reason": "RNF0637: An operand was expected but was not found; specification is ignored.",
+   "reason_detail": "line 28: An operand was expected but was not found; specification is ignored. \u2014 `DSPLY %CHAR(%LOOKUP(%KDS(key) : line(*)));`",
+   "sha256": "7da2a2e2aae79143d82b417f65e22d6f9ddf3cabddb72d5929e5313b1d277095",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test417_err_lookup_kds_field.rpgle": {
+   "codes": [
+    "RNF0637"
+   ],
+   "messages": [
+    {
+     "code": "RNF0637",
+     "line": 9,
+     "severity": 30,
+     "text": "An operand was expected but was not found; specification is ignored."
+    }
+   ],
+   "reason": "RNF0637: An operand was expected but was not found; specification is ignored.",
+   "reason_detail": "line 9: An operand was expected but was not found; specification is ignored. \u2014 `DSPLY %CHAR(%LOOKUP(%KDS(k) : a(*)));`",
+   "sha256": "7567e9cf8610ec7c19df73931a2d70247ef52b0a8751b464b75d0aa26d02dd6d",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test41_string_bifs.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -5999,5 +6062,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T15:44:48+00:00"
+ "generated": "2026-10-07T15:52:01+00:00"
 }
