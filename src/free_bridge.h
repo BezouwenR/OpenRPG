@@ -33,6 +33,8 @@ parse_free_block(const std::string& text, int start_line);
 // report_fixed_format_error; main.cpp re-checks the count after codegen
 // runs so these gate compilation too.
 void report_semantic_error(int line, const std::string& msg);
+// A warning: printed, but the program still compiles.
+void report_semantic_warning(int line, const std::string& msg);
 
 // Reports a fixed-format-reader diagnostic through the same channel
 // yyerror() uses (stderr, "Error at line N: ..." format) and increments

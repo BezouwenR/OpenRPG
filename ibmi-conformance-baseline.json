@@ -5404,6 +5404,62 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test414_proc_forward.rpgle": {
+   "codes": [],
+   "sha256": "d3c00814cbf3508de4249b5469d38eb5b5dee4b54cffc54e4f828879249662bf",
+   "verdict": "accept",
+   "verified": "2026-10-07"
+  },
+  "test415_deprecated.rpgle": {
+   "codes": [
+    "RNF0267",
+    "RNF0312",
+    "RNF0633",
+    "RNF1507",
+    "RNF3308",
+    "RNF3312",
+    "RNF3749",
+    "RNF3766",
+    "RNF5407"
+   ],
+   "messages": [
+    {
+     "code": "RNF3308",
+     "line": 5,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 5,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF0633",
+     "line": 5,
+     "severity": 20,
+     "text": "An unexpected right parenthesis was encountered; right parenthesis is ignored."
+    },
+    {
+     "code": "RNF0267",
+     "line": 5,
+     "severity": 20,
+     "text": "Character literal has missing trailing apostrophe; trailing apostrophe assumed."
+    },
+    {
+     "code": "RNF3308",
+     "line": 6,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    }
+   ],
+   "reason": "RNF3308: Keyword name is not valid; the keyword is ignored.",
+   "reason_detail": "line 5: Keyword name is not valid; the keyword is ignored. \u2014 `DCL-PR oldTax PACKED(7:2) DEPRECATED('use tax() instead');`",
+   "sha256": "6938bdef3204e41dae2f721e090bc617e7ccf1e50cbe60b81a54a68c6488c6ae",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test41_string_bifs.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -5943,5 +5999,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T15:36:08+00:00"
+ "generated": "2026-10-07T15:44:48+00:00"
 }

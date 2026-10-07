@@ -2225,6 +2225,16 @@
    "test": "40",
    "verified": "2026-09-26"
   },
+  "test414_proc_forward.rpgle": {
+   "error": "",
+   "output": [
+    "11                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       "
+   ],
+   "sha256": "d3c00814cbf3508de4249b5469d38eb5b5dee4b54cffc54e4f828879249662bf",
+   "status": "same",
+   "test": "414",
+   "verified": "2026-10-07"
+  },
   "test41_string_bifs.rpgle": {
    "error": "",
    "output": [

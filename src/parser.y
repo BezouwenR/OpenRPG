@@ -195,6 +195,32 @@ static rpg::Statement* make_move(rpg::Expression* src, char* dst, bool left, boo
     return s;
 }
 
+// DEPRECATED {('message')} on a DCL-PR, after its return type: kept here
+// by deprecated_opt and taken by the prototype's rule (apply_deprecated).
+// On a DCL-PROC it is part of proc_export's value instead, an index into
+// g_dep_msgs, since procedures nest and a side channel would cross them.
+static bool g_dep_pending = false;
+static std::string g_dep_msg;
+static std::vector<std::string> g_dep_msgs;
+static void apply_deprecated(rpg::ProcInterface& iface) {
+    if (!g_dep_pending) return;
+    iface.deprecated = true;
+    iface.deprecated_msg = g_dep_msg;
+    g_dep_pending = false;
+}
+static void apply_proc_deprecated(rpg::ProcInterface& iface, int proc_export) {
+    // DEPRECATED on a DCL-PI belongs on its DCL-PROC.
+    if (g_dep_pending) {
+        yyerror("DEPRECATED goes on the DCL-PROC or the DCL-PR, not the DCL-PI");
+        g_dep_pending = false;
+    }
+    int idx = proc_export >> 1;
+    if (idx > 0) {
+        iface.deprecated = true;
+        iface.deprecated_msg = g_dep_msgs[idx - 1];
+    }
+}
+
 // name => value in an argument list. Only make_func takes one: it records
 // the name on the call and keeps the value, so no later stage sees this.
 struct NamedArgExpr : rpg::Expression {
@@ -508,7 +534,7 @@ static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* m
 %token <sval> KW_OPEN_EXT KW_CLOSE_EXT
 %token KW_OPEN KW_CLOSE BIF_OPEN
 %token KW_STATIC KW_TEMPLATE KW_BASED KW_OPTIONS KW_NOPASS KW_OMIT
-%token KW_EXPORT KW_IMPORT KW_EXTPGM KW_EXTPROC KW_CTLOPT KW_OVERLOAD
+%token KW_EXPORT KW_IMPORT KW_EXTPGM KW_EXTPROC KW_CTLOPT KW_OVERLOAD KW_DEPRECATED
 %token KW_RETURN
 %token KW_ON
 %token KW_BLANKS KW_ZEROS KW_HIVAL KW_LOVAL KW_USER
@@ -604,7 +630,7 @@ static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* m
 %type <param_decl> pi_param pr_param param_decl param_type
 %type <ds_field> ds_kws
 %type <ival> param_kws param_kw param_opts param_opt
-%type <ival> pi_return_type proc_export
+%type <ival> pi_return_type pi_ret_type proc_export proc_kw
 %type <sval> pi_name
 %type <param_decl> dcl_type
 %type <dcl_kws> dcl_kws
@@ -1534,6 +1560,7 @@ dcl_pr_stmt:
         }
         iface.params = std::move($5->params);
         delete $5;
+        apply_deprecated(iface);
         $$ = new rpg::DclPR($2, std::move(iface));
         free($2);
     }
@@ -1551,6 +1578,7 @@ dcl_pr_stmt:
         }
         iface.params = std::move($9->params);
         delete $9;
+        apply_deprecated(iface);
         auto* pr = new rpg::DclPR($2, std::move(iface));
         pr->extproc = $6;
         free($2);
@@ -1563,6 +1591,7 @@ dcl_pr_stmt:
         iface.has_return = false;
         iface.params = std::move($8->params);
         delete $8;
+        apply_deprecated(iface);
         auto* pr = new rpg::DclPR($2, std::move(iface));
         pr->extpgm = $5;
         free($2);
@@ -1575,6 +1604,7 @@ dcl_pr_stmt:
         iface.has_return = false;
         iface.params = std::move($8->params);
         delete $8;
+        apply_deprecated(iface);
         auto* pr = new rpg::DclPR($2, std::move(iface));
         pr->extpgm = $5;
         pr->extpgm_var = true;
@@ -1588,6 +1618,7 @@ dcl_pr_stmt:
         iface.has_return = false;
         iface.params = std::move($5->params);
         delete $5;
+        apply_deprecated(iface);
         auto* pr = new rpg::DclPR($2, std::move(iface));
         pr->extpgm = $2;
         free($2);
@@ -1660,8 +1691,9 @@ dcl_proc_stmt:
         }
         iface.params = std::move($9->params);
         delete $9;
+        apply_proc_deprecated(iface, $3);
         auto* proc = new rpg::DclProc($2, std::move(iface));
-        proc->is_export = ($3 != 0);
+        proc->is_export = ($3 & 1) != 0;
         for (auto* s : $<stmt_list>12->stmts) proc->body.emplace_back(s);
         delete $<stmt_list>12;
         free($2);
@@ -1686,8 +1718,9 @@ dcl_proc_stmt:
         }
         iface.params = std::move($9->params);
         delete $9;
+        apply_proc_deprecated(iface, $3);
         auto* proc = new rpg::DclProc($2, std::move(iface));
-        proc->is_export = ($3 != 0);
+        proc->is_export = ($3 & 1) != 0;
         for (auto* s : $<stmt_list>12->stmts) proc->body.emplace_back(s);
         delete $<stmt_list>12;
         for (auto* s : $15->stmts) proc->on_exit_body.emplace_back(s);
@@ -1705,8 +1738,9 @@ dcl_proc_stmt:
       KW_END_PROC SEMICOLON {
         rpg::ProcInterface iface;
         iface.has_return = false;
+        apply_proc_deprecated(iface, $3);
         auto* proc = new rpg::DclProc($2, std::move(iface));
-        proc->is_export = ($3 != 0);
+        proc->is_export = ($3 & 1) != 0;
         for (auto* s : $<stmt_list>5->stmts) proc->body.emplace_back(s);
         delete $<stmt_list>5;
         free($2);
@@ -1718,8 +1752,9 @@ dcl_proc_stmt:
       KW_END_PROC SEMICOLON {
         rpg::ProcInterface iface;
         iface.has_return = false;
+        apply_proc_deprecated(iface, $3);
         auto* proc = new rpg::DclProc($2, std::move(iface));
-        proc->is_export = ($3 != 0);
+        proc->is_export = ($3 & 1) != 0;
         for (auto* s : $<stmt_list>5->stmts) proc->body.emplace_back(s);
         delete $<stmt_list>5;
         for (auto* s : $8->stmts) proc->on_exit_body.emplace_back(s);
@@ -1729,9 +1764,24 @@ dcl_proc_stmt:
     }
     ;
 
+/* A DCL-PROC's keywords: EXPORT (bit 0) and DEPRECATED, whose message
+   is g_dep_msgs[(value >> 1) - 1]. */
 proc_export:
     /* empty */ { $$ = 0; }
-    | KW_EXPORT { $$ = 1; }
+    | proc_export proc_kw { $$ = ($1 & 1) | $2; }
+    ;
+
+proc_kw:
+    KW_EXPORT { $$ = 1; }
+    | KW_DEPRECATED {
+        g_dep_msgs.push_back("");
+        $$ = static_cast<int>(g_dep_msgs.size()) << 1;
+    }
+    | KW_DEPRECATED LPAREN STRING_LITERAL RPAREN {
+        g_dep_msgs.push_back(rpg::rpg_decode_lexed_string($3));
+        free($3);
+        $$ = static_cast<int>(g_dep_msgs.size()) << 1;
+    }
     ;
 
 /* Return type for PI/PR: returns -1 if void, or RPGType enum value */
@@ -1741,6 +1791,20 @@ proc_export:
    length and scale of 0. Nothing between this reduction and that action
    parses another return type, so the side channel cannot be clobbered. */
 pi_return_type:
+    pi_ret_type deprecated_opt { $$ = $1; }
+    ;
+
+deprecated_opt:
+    /* empty */ { }
+    | KW_DEPRECATED { g_dep_pending = true; g_dep_msg.clear(); }
+    | KW_DEPRECATED LPAREN STRING_LITERAL RPAREN {
+        g_dep_pending = true;
+        g_dep_msg = rpg::rpg_decode_lexed_string($3);
+        free($3);
+    }
+    ;
+
+pi_ret_type:
     /* void */ { $$ = -1; g_ret_len = g_ret_digits = g_ret_dec = 0; }
     | KW_INT LPAREN INTEGER_LITERAL RPAREN { $$ = (int)rpg::RPGType::INT10; g_ret_len = 0; g_ret_digits = $3; g_ret_dec = 0; }
     | KW_CHAR LPAREN INTEGER_LITERAL RPAREN { $$ = (int)rpg::RPGType::CHAR; g_ret_len = $3; g_ret_digits = g_ret_dec = 0; }
@@ -2643,6 +2707,7 @@ kw_name:
     | KW_DISK { $$ = strdup("DISK"); }
     | KW_PRINTER { $$ = strdup("PRINTER"); }
     | KW_WORKSTN { $$ = strdup("WORKSTN"); }
+    | KW_DEPRECATED { $$ = strdup("DEPRECATED"); }
     | KW_USAGE { $$ = strdup("USAGE"); }
     | KW_KEYED { $$ = strdup("KEYED"); }
     | KW_EXTDESC { $$ = strdup("EXTDESC"); }
@@ -3428,4 +3493,8 @@ void report_fixed_format_error(int line, const std::string& msg) {
 
 void report_semantic_error(int line, const std::string& msg) {
     report_fixed_format_error(line, msg);
+}
+
+void report_semantic_warning(int line, const std::string& msg) {
+    fprintf(stderr, "Warning at line %d: %s\n", line, msg.c_str());
 }

@@ -500,6 +500,9 @@ struct ProcInterface {
     int return_decimals;
     bool has_return;
     std::vector<ParamDecl> params;
+    // DEPRECATED {('message')}, an OpenRPG extension: a call is warned of.
+    bool deprecated = false;
+    std::string deprecated_msg;
 };
 
 // Prototype (DCL-PR) - forward declaration

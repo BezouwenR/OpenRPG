@@ -1015,6 +1015,20 @@ run_test "410" "Reject x(*).subfield of no DS array" "$TESTDIR/test410_err_ds_co
 run_test "411" "%COMPCORR" "$TESTDIR/test411_compcorr.rpgle" "run"
 run_test "412" "Reject %COMPCORR of incompatible subfields" "$TESTDIR/test412_err_compcorr_types.rpgle" "error"
 run_test "413" "Reject %COMPCORR of more subfields than correspond" "$TESTDIR/test413_err_compcorr_count.rpgle" "error"
+run_test "414" "A procedure called before its definition" "$TESTDIR/test414_proc_forward.rpgle" "run"
+run_test "415" "DEPRECATED procedures" "$TESTDIR/test415_deprecated.rpgle" "run"
+
+# A warning is not an error: the program compiles and runs (test415 above),
+# and rpgc says why each call is a concern.
+printf "Test 415w: DEPRECATED calls are warned of          "
+w415=$($RPGC -S "$TESTDIR/test415_deprecated.rpgle" -o "$TMPDIR/test415w.cpp" 2>&1 >/dev/null)
+if echo "$w415" | grep -qF "Warning at line 9: Procedure OLDTAX is deprecated: use tax() instead" &&
+   echo "$w415" | grep -qF "Warning at line 11: Procedure LEGACY is deprecated"; then
+    echo -e "${GREEN}PASS${NC}"; PASS=$((PASS + 1))
+else
+    echo -e "${RED}FAIL${NC} (warnings missing)"; echo "$w415" | sed 's/^/    /'
+    FAIL=$((FAIL + 1)); FAILURES="$FAILURES\n  Test 415w (DEPRECATED warnings)"
+fi
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

@@ -836,6 +836,28 @@ to the parameter, so a `CHAR` one is padded again on the right. `*UPPER` and
 `*LOWER` upper- or lower-case it — an OpenRPG extension. The caller's own field
 is never changed.
 
+### Deprecated Procedures
+
+`DEPRECATED` marks a procedure that should no longer be used, on its `DCL-PR`
+after the return type or on its `DCL-PROC`, with a message if you like. Every
+call still compiles, with a warning:
+
+```rpgle
+DCL-PR oldTax PACKED(7:2) DEPRECATED('use tax() instead');
+  amt PACKED(7:2) VALUE;
+END-PR;
+
+DCL-PROC legacy DEPRECATED;
+  ...
+END-PROC;
+```
+
+```
+Warning at line 12: Procedure OLDTAX is deprecated: use tax() instead
+```
+
+`DEPRECATED` is an OpenRPG extension.
+
 ### Keyword Arguments
 
 An argument may name its parameter, `name => value`, in any order:

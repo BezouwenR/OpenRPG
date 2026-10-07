@@ -1075,10 +1075,23 @@ void CodeGen::visit(Program& node) {
         if (auto* pr = dynamic_cast<DclPR*>(s)) {
             // An OVERLOAD prototype's signature is its return type: what a
             // call through it yields.
+            bool dep = proc_sigs_.count(pr->name) && proc_sigs_[pr->name].deprecated;
+            std::string depMsg = dep ? proc_sigs_[pr->name].deprecated_msg : "";
             proc_sigs_[pr->name] = pr->interface;
+            if (dep && !pr->interface.deprecated) {   // DEPRECATED on the DCL-PROC
+                proc_sigs_[pr->name].deprecated = true;
+                proc_sigs_[pr->name].deprecated_msg = depMsg;
+            }
             if (!pr->overload_impls.empty()) overloads_[pr->name] = pr->overload_impls;
         } else if (auto* proc = dynamic_cast<DclProc*>(s)) {
+            // DEPRECATED may be on the DCL-PR or the DCL-PROC; either counts.
+            bool dep = proc_sigs_.count(proc->name) && proc_sigs_[proc->name].deprecated;
+            std::string depMsg = dep ? proc_sigs_[proc->name].deprecated_msg : "";
             proc_sigs_[proc->name] = proc->interface;
+            if (dep && !proc->interface.deprecated) {
+                proc_sigs_[proc->name].deprecated = true;
+                proc_sigs_[proc->name].deprecated_msg = depMsg;
+            }
             std::function<void(DclProc*)> collect = [&](DclProc* outer) {
                 for (auto& st : outer->body)
                     if (auto* inner = dynamic_cast<DclProc*>(st.get())) {
@@ -1239,6 +1252,31 @@ void CodeGen::visit(Program& node) {
                  << sanitizeSRName(static_cast<BegSR*>(st)->name) << "();\n";
         }
         if (!all_srs.empty()) out_ << "\n";
+    }
+
+    // A procedure with no DCL-PR may be called before it is defined, as on
+    // IBM i, so each is declared ahead of every procedure body -- the same
+    // signature visit(DclProc) gives its definition.
+    {
+        std::set<std::string> prototyped;
+        for (auto* s : proc_stmts)
+            if (auto* pr = dynamic_cast<DclPR*>(s)) prototyped.insert(pr->name);
+        bool any = false;
+        for (auto* s : proc_stmts) {
+            auto* proc = dynamic_cast<DclProc*>(s);
+            if (!proc || prototyped.count(proc->name)) continue;
+            const auto& in = proc->interface;
+            out_ << (in.has_return ? typeToString(in.return_type, 0, in.return_digits) : "void")
+                 << " " << proc->name << "(";
+            for (size_t i = 0; i < in.params.size(); i++)
+                out_ << (i ? ", " : "") << paramTypeToString(in.params[i]);
+            bool nopass = std::any_of(in.params.begin(), in.params.end(),
+                                      [](const ParamDecl& p) { return p.nopass; });
+            if (nopass) out_ << ", int _rpg_parms";
+            out_ << ");\n";
+            any = true;
+        }
+        if (any) out_ << "\n";
     }
 
     // Emit prototypes and procedures
@@ -5330,6 +5368,11 @@ void CodeGen::visit(FuncCall& node) {
         auto sig = proc_sigs_.find(target);
         if (sig != proc_sigs_.end())
             checkCallArgs(target, sig->second, node.args, node.line > 0 ? node.line : cur_stmt_line_);
+        // DEPRECATED: the call still compiles, with a warning.
+        if (sig != proc_sigs_.end() && sig->second.deprecated)
+            report_semantic_warning(node.line > 0 ? node.line : cur_stmt_line_, "Procedure " +
+                target + " is deprecated" + (sig->second.deprecated_msg.empty() ? std::string() :
+                ": " + sig->second.deprecated_msg));
     }
     // A program (EXTPGM): called through the loader, its parameters in
     // IBM i's formats. EXTPGM(var) names it at run time.
