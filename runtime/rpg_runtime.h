@@ -1891,6 +1891,37 @@ inline std::vector<T> rpg_subarr(const std::array<T, N>& arr, int start, int cou
     return std::vector<T>(arr.begin() + s, arr.begin() + s + c);
 }
 
+// ds(*).subfield: that subfield of each element of a data structure array.
+template<typename C, typename F>
+inline auto rpg_ds_column(const C& c, F f) {
+    std::vector<std::decay_t<decltype(f(*c.begin()))>> v;
+    v.reserve(c.size());
+    for (const auto& e : c) v.push_back(f(e));
+    return v;
+}
+
+// The array BIFs over a std::vector too: a varying array, or ds(*).subfield.
+template<typename T>
+inline T rpg_xfoot(const std::vector<T>& arr) {
+    T sum = T{};
+    for (const auto& v : arr) sum += v;
+    return sum;
+}
+template<typename T>
+inline int rpg_maxarr(const std::vector<T>& arr) {
+    if (arr.empty()) return 0;
+    return static_cast<int>(std::distance(arr.begin(), std::max_element(arr.begin(), arr.end()))) + 1;
+}
+template<typename T>
+inline int rpg_minarr(const std::vector<T>& arr) {
+    if (arr.empty()) return 0;
+    return static_cast<int>(std::distance(arr.begin(), std::min_element(arr.begin(), arr.end()))) + 1;
+}
+template<typename V, typename T>
+inline int rpg_lookup(const V& val, const std::vector<T>& arr, int start = 1, int count = -1) {
+    return rpg_lookup_in(val, arr.data(), arr.size(), 'E', start, count);
+}
+
 // --- %MAXARR / %MINARR: index of max/min element (1-based) ---
 template<typename T, std::size_t N>
 inline int rpg_maxarr(const std::array<T, N>& arr) {

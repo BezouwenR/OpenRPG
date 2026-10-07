@@ -5218,12 +5218,82 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test408_ds_column.rpgle": {
+   "codes": [],
+   "sha256": "d765a2291d85eaa232e1fd9dde014727691070b0c98b85a46c5f01310711721d",
+   "verdict": "accept",
+   "verified": "2026-10-07"
+  },
+  "test409_xfoot_ds_column.rpgle": {
+   "codes": [
+    "RNF0555",
+    "RNF0747",
+    "RNF5343",
+    "RNF7591"
+   ],
+   "messages": [
+    {
+     "code": "RNF7591",
+     "line": 9,
+     "severity": 30,
+     "text": "An operand of a qualified name expression is not valid."
+    },
+    {
+     "code": "RNF0555",
+     "line": 9,
+     "severity": 20,
+     "text": "The parameter AMT for %XFOOT is not valid; %XFOOT is ignored."
+    },
+    {
+     "code": "RNF5343",
+     "line": 11,
+     "severity": 30,
+     "text": "Array ORD has too many omitted indexes."
+    },
+    {
+     "code": "RNF0747",
+     "line": 11,
+     "severity": 30,
+     "text": "Operand AMT is not valid following the 'IN' operator."
+    }
+   ],
+   "reason": "RNF7591: An operand of a qualified name expression is not valid.",
+   "reason_detail": "line 9: An operand of a qualified name expression is not valid. \u2014 `DSPLY %CHAR(%XFOOT(ord(*).amt));`",
+   "sha256": "8f0c65d5b5c191773c5ca2b722b5351149a0d9aa48ccf1cbb2d0947cb81f6dec",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test40_evalr_leavesr.rpgle": {
    "codes": [],
    "rpgc": "accept",
    "sha256": "a8e22ead3de7e93244c7f96da6d3b4d1c1178254cc6d0a3c724d221fe846224c",
    "verdict": "accept",
    "verified": "2026-09-25"
+  },
+  "test410_err_ds_column_not_array.rpgle": {
+   "codes": [
+    "RNF0528",
+    "RNF0571"
+   ],
+   "messages": [
+    {
+     "code": "RNF0528",
+     "line": 6,
+     "severity": 20,
+     "text": "Index is not allowed for name D that is not an array; index is ignored."
+    },
+    {
+     "code": "RNF0571",
+     "line": 6,
+     "severity": 20,
+     "text": "The second parameter A for %LOOKUPxx is not valid."
+    }
+   ],
+   "reason": "RNF0528: Index is not allowed for name D that is not an array; index is ignored.",
+   "reason_detail": "line 6: Index is not allowed for name D that is not an array; index is ignored. \u2014 `DSPLY %CHAR(%LOOKUP(1 : d(*).a));`",
+   "sha256": "441fa5d7b9a3f651d0f5849e224d3350f16ae679e445823404ed5fc07f0b9650",
+   "verdict": "reject",
+   "verified": "2026-10-07"
   },
   "test41_string_bifs.rpgle": {
    "codes": [],
@@ -5764,5 +5834,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T15:23:02+00:00"
+ "generated": "2026-10-07T15:29:11+00:00"
 }

@@ -1009,6 +1009,9 @@ run_test "404" "Reject a program parameter CHAR with no length" "$TESTDIR/test40
 run_test "405" "INZ(%LIST) on an array" "$TESTDIR/test405_inz_list.rpgle" "run"
 run_test "406" "Reject INZ(%LIST) longer than the array" "$TESTDIR/test406_err_inz_list_long.rpgle" "error"
 run_test "407" "Reject an INZ(%LIST) value too long" "$TESTDIR/test407_err_inz_list_value.rpgle" "error"
+run_test "408" "ds(*).subfield in SORTA and %LOOKUP" "$TESTDIR/test408_ds_column.rpgle" "run"
+run_test "409" "%XFOOT over ds(*).subfield" "$TESTDIR/test409_xfoot_ds_column.rpgle" "run"
+run_test "410" "Reject x(*).subfield of no DS array" "$TESTDIR/test410_err_ds_column_not_array.rpgle" "error"
 
 # ── Customer / drop-in tests ─────────────────────────────────────────────
 # Drop any .rpgle or .sqlrpgle file into tests/customer/ and it will be

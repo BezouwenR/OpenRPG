@@ -669,6 +669,7 @@ public:
 class SortAStmt : public Statement {
 public:
     std::string array_name;
+    std::string key_field;   // SORTA ds(*).subfield: sort the DS array by it
     explicit SortAStmt(std::string name);
     void accept(ASTVisitor& visitor) override;
 };

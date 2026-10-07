@@ -2028,6 +2028,14 @@ sorta_stmt:
         $$ = new rpg::SortAStmt($2);
         free($2);
     }
+    /* SORTA ds(*).subfield: a data structure array's elements, ordered by
+       that subfield. */
+    | KW_SORTA IDENTIFIER LPAREN STAR RPAREN DOT ident SEMICOLON {
+        auto* st = new rpg::SortAStmt($2);
+        st->key_field = $7;
+        $$ = st;
+        free($2); free($7);
+    }
     ;
 
 /* RESET and CLEAR */
@@ -2827,6 +2835,16 @@ primary_expr:
     | IDENTIFIER LPAREN call_args_opt RPAREN {
         $$ = make_func($1, $3);
         free($1);
+    }
+    /* ds(*).subfield: that subfield of every element of a data structure
+       array, as an array -- for %LOOKUP, %XFOOT, %MAXARR, %MINARR, IN. */
+    | IDENTIFIER LPAREN STAR RPAREN DOT ident {
+        auto* args = new std::vector<rpg::Expression*>();
+        args->push_back(new rpg::Identifier($1));
+        args->push_back(new rpg::StringLiteral($6));
+        $$ = make_bif("__DSCOL", args);
+        $$->line = yylineno;
+        free($1); free($6);
     }
     | call_kw_name LPAREN call_args_opt RPAREN {
         $$ = make_func($1, $3);

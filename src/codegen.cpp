@@ -2435,6 +2435,18 @@ const DclDS* CodeGen::dsOfExpr(const Expression& e) const {
 // CHAR subfield was taken for a numeric target.
 CodeGen::FieldAttrs CodeGen::attrsOf(const Expression& e) const {
     FieldAttrs a;
+    if (auto* b = dynamic_cast<const BIFCall*>(&e)) {
+        // ds(*).subfield has the subfield's declaration, and %XFOOT the
+        // declaration of the elements it adds up.
+        if (b->name == "__DSCOL" && b->args.size() == 2) {
+            auto* ds = static_cast<const Identifier*>(b->args[0].get());
+            auto* f = static_cast<const StringLiteral*>(b->args[1].get());
+            DotExpr dot(std::make_unique<Identifier>(ds->name), f->value);
+            return attrsOf(dot);
+        }
+        if (b->name == "XFOOT" && b->args.size() == 1) return attrsOf(*b->args[0]);
+        return a;
+    }
     if (auto* id = dynamic_cast<const Identifier*>(&e)) {
         auto t = var_types_.find(id->name);
         if (t == var_types_.end()) {
@@ -4902,6 +4914,14 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
         // %MAX and %MIN return their operands' type
         if ((bif->name == "MAX" || bif->name == "MIN") && !bif->args.empty())
             return argCategory(*bif->args[0]);
+        // ds(*).subfield: its subfield's type
+        if (bif->name == "__DSCOL" && bif->args.size() == 2) {
+            auto* ds = static_cast<const Identifier*>(bif->args[0].get());
+            auto* f = static_cast<const StringLiteral*>(bif->args[1].get());
+            auto c = const_cats_.find(ds->name + "." + f->value);
+            if (c != const_cats_.end()) return c->second;
+            return ArgCat::Unknown;
+        }
         // %IF returns its values' type
         if (bif->name == "IF" && bif->args.size() == 3) {
             ArgCat a = argCategory(*bif->args[1]);
@@ -5403,6 +5423,18 @@ void CodeGen::visit(BIFCall& node) {
         "LOWER", "XLATE", "SCANRPL", "REPLACE", "SCAN", "SCANR", "CHECK", "CHECKR", "LEN"};
     if (strBifs.count(node.name))
         for (auto& a : node.args) dsAsChars(a);
+    if (node.name == "__DSCOL") {
+        // ds(*).subfield: the subfield's value in each element, in order.
+        auto* ds = static_cast<Identifier*>(node.args[0].get());
+        auto* f = static_cast<StringLiteral*>(node.args[1].get());
+        if (!ds_defs_.count(ds->name) || !array_vars_.count(ds->name))
+            report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_, ds->name +
+                "(*)." + f->value + ": " + ds->name + " is not a data structure array, so it "
+                "takes no index (IBM: RNF0528)");
+        expr_ << "rpg_ds_column(" << ds->name << ", [](const auto& __e) { return __e."
+              << f->value << "; })";
+        return;
+    }
     if (node.name == "__INDCHARS" || node.name == "__CHARSIND") {
         expr_ << (node.name == "__INDCHARS" ? "rpg_ind_chars(" : "rpg_chars_ind(");
         node.args[0]->accept(*this);
@@ -6992,6 +7024,13 @@ void CodeGen::visit(CallpStmt& node) {
 
 void CodeGen::visit(SortAStmt& node) {
     emitIndent();
+    if (!node.key_field.empty()) {
+        // SORTA ds(*).subfield: the elements, ordered by that subfield.
+        out_ << "std::stable_sort(" << node.array_name << ".begin(), " << node.array_name
+             << ".end(), [](const auto& __a, const auto& __b) { return rpg_lt(__a."
+             << node.key_field << ", __b." << node.key_field << "); });\n";
+        return;
+    }
     out_ << "std::sort(" << node.array_name << ".begin(), " << node.array_name << ".end());\n";
 }
 

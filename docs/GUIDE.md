@@ -662,6 +662,27 @@ ORD
 
 ---
 
+### A Subfield of a Data Structure Array: ds(*).subfield
+
+`ds(*).subfield` is that subfield across every element of a data structure
+array. `SORTA` orders the elements by it, and `%LOOKUP` searches it:
+
+```rpgle
+DCL-DS ord QUALIFIED DIM(100);
+  id INT(10);
+  amt PACKED(7:2);
+END-DS;
+
+SORTA ord(*).id;                       // the elements, in id order
+i = %LOOKUP(1234 : ord(*).id);         // the element whose id is 1234
+total = %XFOOT(ord(*).amt);            // OpenRPG extension
+big = %MAXARR(ord(*).amt);             // OpenRPG extension
+IF 0 IN ord(*).amt;                    // OpenRPG extension
+```
+
+`%XFOOT`, `%MAXARR`, `%MINARR` and `IN` over `ds(*).subfield` are OpenRPG
+extensions; IBM i takes it in `SORTA` and `%LOOKUP` only.
+
 ### IN and NOT IN
 
 `x IN` tests whether a value is in a list, a range, an array or an enum:

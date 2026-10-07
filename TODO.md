@@ -1916,7 +1916,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 48 | ✅ `OPTION(*UPPER)` / `OPTION(*LOWER)` on parameters — done 2026-10-06 (test400-401; `OPTIONS(*TRIM)`, parsed but never applied, done too, test399) | |
 | 44 | ✅ Dynamic strings: `DCL-S text CHAR;` — done 2026-10-07 (test402-404) | `CHAR` is already a `std::string`. |
 | 41 | ✅ Initialize arrays with `%LIST`: `INZ(%LIST(...))` — done 2026-10-07 (test405-407) | `%LIST` already ships. |
-| 39 | `%XFOOT` over subfields of a DS array | |
+| 39 | ✅ `%XFOOT` over subfields of a DS array: `%XFOOT(ds(*).subf)` — done 2026-10-07 (test409-410; `ds(*).subf` itself in SORTA and %LOOKUP, standard RPG, test408) | |
 | 38 | BIF for comparing data structures | |
 | 35 | `DEPRECATED` keyword on procedures | Just a compiler warning. |
 | 34 | `%LOOKUP` searching more than one subfield | |

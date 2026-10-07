@@ -2197,6 +2197,23 @@
    "test": "39",
    "verified": "2026-09-26"
   },
+  "test408_ds_column.rpgle": {
+   "error": "",
+   "output": [
+    "3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ",
+    "0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ",
+    "10 BB                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "20 CC                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "30 AA                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "40 DD                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ",
+    "AA    DD                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
+    "3.00                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     "
+   ],
+   "sha256": "d765a2291d85eaa232e1fd9dde014727691070b0c98b85a46c5f01310711721d",
+   "status": "same",
+   "test": "408",
+   "verified": "2026-10-07"
+  },
   "test40_evalr_leavesr.rpgle": {
    "error": "",
    "output": [
@@ -2781,7 +2798,7 @@
    "verified": "2026-09-26"
   }
  },
- "generated": "2026-10-06",
+ "generated": "2026-10-07",
  "skipped": [
   [
    "test175_fixed_cspec_call_parm.rpgle",
