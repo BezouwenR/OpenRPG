@@ -34,7 +34,11 @@ jobs:
 
 
     steps:
+      # The release's own tests: by the time a release has built, main may
+      # have moved on to tests for features the release does not have.
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.check.outputs.tag }}
 
       - name: Install ODBC dependencies
         timeout-minutes: 10
@@ -79,7 +83,11 @@ jobs:
 
 
     steps:
+      # The release's own tests: by the time a release has built, main may
+      # have moved on to tests for features the release does not have.
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.check.outputs.tag }}
 
       - name: Install ODBC dependencies
         run: sudo apt-get install -y unixodbc unixodbc-dev libsqliteodbc
@@ -110,7 +118,11 @@ jobs:
 
 
     steps:
+      # The release's own tests: by the time a release has built, main may
+      # have moved on to tests for features the release does not have.
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.check.outputs.tag }}
 
       - name: Install ODBC dependencies
         run: |
@@ -152,7 +164,11 @@ jobs:
     # and the installed rpgc.exe are both reachable without extra setup.
 
     steps:
+      # The release's own tests: by the time a release has built, main may
+      # have moved on to tests for features the release does not have.
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.check.outputs.tag }}
 
       - name: Install SQLite ODBC driver
         shell: pwsh
@@ -200,7 +216,11 @@ jobs:
     needs: check
 
     steps:
+      # The release's own tests: by the time a release has built, main may
+      # have moved on to tests for features the release does not have.
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.check.outputs.tag }}
 
       - name: Install ODBC dependencies
         run: sudo apt-get install -y unixodbc unixodbc-dev libsqliteodbc
@@ -228,7 +248,11 @@ jobs:
     needs: check
 
     steps:
+      # The release's own tests: by the time a release has built, main may
+      # have moved on to tests for features the release does not have.
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.check.outputs.tag }}
 
       - name: Install ODBC dependencies
         run: |
@@ -265,7 +289,11 @@ jobs:
     # this job could have caught.
 
     steps:
+      # The release's own tests: by the time a release has built, main may
+      # have moved on to tests for features the release does not have.
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.check.outputs.tag }}
 
       - name: Download release installer
         shell: pwsh
