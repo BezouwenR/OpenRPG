@@ -821,7 +821,9 @@ inline auto& rpg_elem(A& a, I index) {
 template <class V, class I, class T>
 inline auto& rpg_elem_auto(V& v, I index, long long max, const T& fill) {
     long long i = static_cast<long long>(index);
-    if (i < 1 || i > max) rpg_raise(121, "RNX0121: Array index not valid.");
+    if (i < 1) rpg_raise(121, "RNX0121: Array index not valid.");
+    // Growing past the DIM(*AUTO : max) maximum is status 124 (PUB400, test426).
+    if (i > max) rpg_raise(124, "RNX0124: The index is greater than the maximum allowed for the array.");
     if (i > static_cast<long long>(v.size())) v.resize(static_cast<size_t>(i), fill);
     return v[static_cast<size_t>(i - 1)];
 }

@@ -2269,6 +2269,19 @@
    "test": "423",
    "verified": "2026-10-07"
   },
+  "test426_auto_next.rpgle": {
+   "error": "",
+   "output": [
+    "2 Grace                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ",
+    "3 Alan                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ",
+    "status 124                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+    "3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "
+   ],
+   "sha256": "5e5a358b6d4a7a1950f3aac2668807ef938f77c6f937aae87dbfd74eb6b54839",
+   "status": "same",
+   "test": "426",
+   "verified": "2026-10-07"
+  },
   "test42_onexit.rpgle": {
    "error": "",
    "output": [

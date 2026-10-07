@@ -5798,6 +5798,75 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test426_auto_next.rpgle": {
+   "codes": [],
+   "sha256": "5e5a358b6d4a7a1950f3aac2668807ef938f77c6f937aae87dbfd74eb6b54839",
+   "verdict": "accept",
+   "verified": "2026-10-07"
+  },
+  "test427_foreach_index.rpgle": {
+   "codes": [
+    "RNF0314",
+    "RNF5377",
+    "RNF7030"
+   ],
+   "messages": [
+    {
+     "code": "RNF0314",
+     "line": 7,
+     "severity": 20,
+     "text": "Built-in function %LIST(5:7:9) does not have a value known at compile-time; built-in function is ignored."
+    },
+    {
+     "code": "RNF5377",
+     "line": 12,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF7030",
+     "line": 12,
+     "severity": 30,
+     "text": "The name or indicator INDEX is not defined."
+    },
+    {
+     "code": "RNF5377",
+     "line": 15,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    }
+   ],
+   "reason": "RNF0314: Built-in function %LIST(n:n:n) does not have a value known at compile-time; built-in function is ignored.",
+   "reason_detail": "line 7: Built-in function %LIST(5:7:9) does not have a value known at compile-time; built-in function is ignored. \u2014 `DCL-S scores INT(10) DIM(3) INZ(%LIST(5 : 7 : 9));`",
+   "sha256": "d773b97416ebf1e7aadbb7418d9fb8be56d3c40499befbb3bf68d76e6d1d151f",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test428_err_foreach_index_type.rpgle": {
+   "codes": [
+    "RNF5377",
+    "RNF7030"
+   ],
+   "messages": [
+    {
+     "code": "RNF5377",
+     "line": 6,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF7030",
+     "line": 6,
+     "severity": 30,
+     "text": "The name or indicator INDEX is not defined."
+    }
+   ],
+   "reason": "RNF5377: The end of the expression is expected.",
+   "reason_detail": "line 6: The end of the expression is expected. \u2014 `FOR-EACH x IN a INDEX(c);`",
+   "sha256": "5e6f65b067e894a9e1ccef47d9828aaf2b4c407c5a6dfdcf83aa123c3149294f",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test42_onexit.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -6330,5 +6399,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T16:08:48+00:00"
+ "generated": "2026-10-07T16:18:10+00:00"
 }

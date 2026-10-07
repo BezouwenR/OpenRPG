@@ -910,6 +910,7 @@ public:
 class ForEachStmt : public Statement {
 public:
     std::string var;
+    std::string index_var;   // INDEX(name), an OpenRPG extension: the element's position
     std::unique_ptr<Expression> collection;
     std::vector<std::unique_ptr<Statement>> body;
     ForEachStmt(std::string var, std::unique_ptr<Expression> collection);

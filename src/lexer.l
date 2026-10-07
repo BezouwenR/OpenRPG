@@ -702,6 +702,7 @@ static void parse_ctlopt(const char* text) {
 }
 "*NOZEROSUPPRESS"   { yylval.sval = strdup("*NOZEROSUPPRESS"); return IDENTIFIER; }
 "*FIRST"            { yylval.sval = strdup("*FIRST"); return IDENTIFIER; }
+"*NEXT"             { yylval.sval = strdup("*NEXT"); return IDENTIFIER; }
 "*LAST"             { yylval.sval = strdup("*LAST"); return IDENTIFIER; }
 "*ZEROSUPPRESS"     { yylval.sval = strdup("*ZEROSUPPRESS"); return IDENTIFIER; }
 "*INZSR"            { yylval.sval = strdup("*INZSR"); return IDENTIFIER; }

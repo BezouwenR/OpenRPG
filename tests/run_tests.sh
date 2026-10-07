@@ -1027,6 +1027,9 @@ run_test "422" "%PROGNAME" "$TESTDIR/test422_progname.rpgle" "run"
 run_test "423" "Bit BIFs of character operands" "$TESTDIR/test423_bit_chars.rpgle" "run"
 run_test "424" "Binary literals" "$TESTDIR/test424_binary_literal.rpgle" "run"
 run_test "425" "Reject a binary literal not a whole number of bytes" "$TESTDIR/test425_err_binary_literal.rpgle" "error"
+run_test "426" "arr(*NEXT) on a DIM(*AUTO) array" "$TESTDIR/test426_auto_next.rpgle" "run"
+run_test "427" "FOR-EACH ... INDEX(i)" "$TESTDIR/test427_foreach_index.rpgle" "run"
+run_test "428" "Reject FOR-EACH INDEX of a non-numeric field" "$TESTDIR/test428_err_foreach_index_type.rpgle" "error"
 
 # A warning is not an error: the program compiles and runs (test415 above),
 # and rpgc says why each call is a concern.

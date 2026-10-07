@@ -607,6 +607,16 @@ FOR-EACH name IN names;
 ENDFOR;
 ```
 
+`INDEX(i)` after the array names a numeric field that holds the current
+element's position, from 1 — so the loop can change the element itself. This is
+an OpenRPG extension:
+
+```rpgle
+FOR-EACH score IN scores INDEX(i);
+  scores(i) = score * 10;
+ENDFOR;
+```
+
 ### Searching an Array: %LOOKUP
 
 `%LOOKUP(value : array {: start {: count}})` returns the index of the first
@@ -1867,6 +1877,9 @@ tags(3) = 'gamma';
 // %ELEM(tags) is now 3 automatically
 DSPLY %CHAR(%ELEM(tags));    // 3
 ```
+
+`tags(*NEXT) = value` adds an element after the last. Growing past the maximum
+is status 124.
 
 ### %ELEM(\*ALLOC) and %ELEM(\*KEEP)
 

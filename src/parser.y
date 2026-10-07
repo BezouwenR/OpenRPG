@@ -2468,6 +2468,18 @@ for_each_stmt:
         free($2);
         $$ = node;
     }
+    /* FOR-EACH item IN arr INDEX(i): i is the current element's position,
+       from 1 -- an OpenRPG extension. */
+    | KW_FOR_EACH ident KW_IN expression IDENTIFIER LPAREN ident RPAREN SEMICOLON statement_list KW_ENDFOR SEMICOLON {
+        if (strcasecmp($5, "INDEX") != 0)
+            yyerror("FOR-EACH ... IN array may be followed only by INDEX(name)");
+        auto* node = new rpg::ForEachStmt($2, std::unique_ptr<rpg::Expression>($4));
+        node->index_var = $7;
+        for (auto* s : $10->stmts) node->body.emplace_back(s);
+        delete $10;
+        free($2); free($5); free($7);
+        $$ = node;
+    }
     ;
 
 select_stmt:

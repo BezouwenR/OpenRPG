@@ -3833,6 +3833,15 @@ void CodeGen::visit(ArrayAccess& node) {
                 " begins with TAB, so an index is not allowed; fill a table from "
                 "compile-time data (CTDATA), and search it with %TLOOKUP (IBM: RNF0752)");
     }
+    // arr(*NEXT): the element after the last, which a DIM(*AUTO) array
+    // grows to hold when it is assigned -- as on IBM i.
+    if (auto* nx = dynamic_cast<Identifier*>(node.index.get()); nx && nx->name == "*NEXT") {
+        if (!auto_arrays_.count(node.name))
+            report_semantic_error(cur_stmt_line_, node.name + "(*NEXT): *NEXT is the index of "
+                "a new element, so it is for an array declared DIM(*AUTO : max)");
+        expr_ << elemRef(node.name, "(static_cast<int>(" + node.name + ".size()) + 1)");
+        return;
+    }
     expr_ << elemRef(node.name, subExpr(*node.index));
 }
 
@@ -7365,8 +7374,19 @@ int CodeGen::countRequiredParams(const std::vector<ParamDecl>& params) {
 void CodeGen::visit(ForEachStmt& node) {
     emitIndent();
     std::string coll = emitExpr(*node.collection);
+    if (!node.index_var.empty()) {
+        // INDEX(i): i counts the elements from 1, set before each pass.
+        FieldAttrs ia = attrsOfName(node.index_var);
+        if (!ia.known || (ia.type != RPGType::INT10 && ia.type != RPGType::UNS &&
+                          ia.type != RPGType::PACKED && ia.type != RPGType::ZONED))
+            report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_, "INDEX(" +
+                node.index_var + "): " + node.index_var + " must be a numeric field");
+        out_ << node.index_var << " = 0;\n";
+        emitIndent();
+    }
     out_ << "for (auto& " << node.var << " : " << coll << ") {\n";
     indent_++;
+    if (!node.index_var.empty()) { emitIndent(); out_ << node.index_var << " += 1;\n"; }
     emitStatements(node.body);
     indent_--;
     emitIndent();
