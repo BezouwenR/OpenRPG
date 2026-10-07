@@ -170,7 +170,14 @@ static rpg::DSField* make_ds_field(const char* name, rpg::ParamDecl* type, rpg::
 // Parameter keyword bits collected by param_kws (see param_decl).
 enum { PK_VALUE = 1, PK_CONST = 2, PK_NOPASS = 4, PK_OMIT = 8,
        PK_VARSIZE = 16, PK_STRING = 32, PK_TRIM = 64, PK_UPPER = 128, PK_LOWER = 256 };
+// DEFAULT(value) among a parameter's keywords: kept here by param_kw and
+// taken by apply_param_kws, which runs as that parameter's rule ends.
+static rpg::Expression* g_param_default = nullptr;
 static void apply_param_kws(rpg::ParamDecl* p, int kws) {
+    if (g_param_default) {
+        p->dflt.reset(g_param_default);
+        g_param_default = nullptr;
+    }
     p->by_value   = (kws & PK_VALUE) != 0;
     p->is_const   = (kws & PK_CONST) != 0;
     p->nopass     = (kws & PK_NOPASS) != 0;
@@ -534,7 +541,7 @@ static rpg::DclS* make_dcl_s_list(const char* first, std::vector<std::string>* m
 %token <sval> KW_OPEN_EXT KW_CLOSE_EXT
 %token KW_OPEN KW_CLOSE BIF_OPEN
 %token KW_STATIC KW_TEMPLATE KW_BASED KW_OPTIONS KW_NOPASS KW_OMIT
-%token KW_EXPORT KW_IMPORT KW_EXTPGM KW_EXTPROC KW_CTLOPT KW_OVERLOAD KW_DEPRECATED
+%token KW_EXPORT KW_IMPORT KW_EXTPGM KW_EXTPROC KW_CTLOPT KW_OVERLOAD KW_DEPRECATED KW_DEFAULT
 %token KW_RETURN
 %token KW_ON
 %token KW_BLANKS KW_ZEROS KW_HIVAL KW_LOVAL KW_USER
@@ -1905,6 +1912,11 @@ param_kw:
     KW_VALUE                               { $$ = PK_VALUE; }
     | KW_CONST                             { $$ = PK_CONST; }
     | KW_OPTIONS LPAREN param_opts RPAREN  { $$ = $3; }
+    | KW_DEFAULT LPAREN expression RPAREN  {
+        delete g_param_default;
+        g_param_default = $3;
+        $$ = 0;
+    }
     ;
 
 param_opts:
@@ -2719,6 +2731,7 @@ kw_name:
     | KW_PRINTER { $$ = strdup("PRINTER"); }
     | KW_WORKSTN { $$ = strdup("WORKSTN"); }
     | KW_DEPRECATED { $$ = strdup("DEPRECATED"); }
+    | KW_DEFAULT { $$ = strdup("DEFAULT"); }
     | KW_USAGE { $$ = strdup("USAGE"); }
     | KW_KEYED { $$ = strdup("KEYED"); }
     | KW_EXTDESC { $$ = strdup("EXTDESC"); }

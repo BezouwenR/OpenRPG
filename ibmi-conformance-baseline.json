@@ -5608,6 +5608,76 @@
    "verdict": "accept",
    "verified": "2026-09-25"
   },
+  "test420_param_default.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0313",
+    "RNF0604",
+    "RNF3308",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF3308",
+     "line": 7,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF3308",
+     "line": 8,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF3308",
+     "line": 11,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF3308",
+     "line": 12,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF3308",
+     "line": 16,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    }
+   ],
+   "reason": "RNF3308: Keyword name is not valid; the keyword is ignored.",
+   "reason_detail": "line 7: Keyword name is not valid; the keyword is ignored. \u2014 `width INT(10) VALUE OPTIONS(*NOPASS) DEFAULT(10);`",
+   "sha256": "588b8355f209dddc885ad75252e912006d9cb0384d05b26d4097a39919e113a5",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test421_err_param_default_required.rpgle": {
+   "codes": [
+    "RNF3308"
+   ],
+   "messages": [
+    {
+     "code": "RNF3308",
+     "line": 4,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    },
+    {
+     "code": "RNF3308",
+     "line": 12,
+     "severity": 20,
+     "text": "Keyword name is not valid; the keyword is ignored."
+    }
+   ],
+   "reason": "RNF3308: Keyword name is not valid; the keyword is ignored.",
+   "reason_detail": "line 4: Keyword name is not valid; the keyword is ignored. \u2014 `n INT(10) VALUE DEFAULT(1);`",
+   "sha256": "6930bef82827a97cfb1f6823f99b0fa2cda5a62ace0d6eb6cd9d96761c1c5121",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test42_onexit.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -6140,5 +6210,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T15:54:57+00:00"
+ "generated": "2026-10-07T15:59:24+00:00"
 }

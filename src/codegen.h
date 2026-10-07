@@ -143,6 +143,9 @@ private:
     bool in_procedure_ = false;
     int proc_depth_ = 0;   // > 1 inside a procedure nested in another
     std::set<std::string> nested_proc_names_;   // every procedure inside another
+    // DEFAULT(value) of each prototype's parameters, by procedure name
+    std::map<std::string, std::vector<std::shared_ptr<Expression>>> proto_param_dflt_;
+    std::set<std::string> omit_defaulted_;   // *OMIT parameters with a DEFAULT, in this procedure
     bool uses_indicators_ = false;
     int current_proc_parm_count_ = 0;
     bool has_nopass_params_ = false;

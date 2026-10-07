@@ -1021,6 +1021,8 @@ run_test "416" "%LOOKUP(%KDS(key) : ds(*))" "$TESTDIR/test416_lookup_kds.rpgle" 
 run_test "417" "Reject a %KDS key subfield the array lacks" "$TESTDIR/test417_err_lookup_kds_field.rpgle" "error"
 run_test "418" "%REPEAT" "$TESTDIR/test418_repeat.rpgle" "run"
 run_test "419" "Reject %REPEAT of a figurative constant" "$TESTDIR/test419_err_repeat_fig.rpgle" "error"
+run_test "420" "DEFAULT for a parameter left out" "$TESTDIR/test420_param_default.rpgle" "run"
+run_test "421" "Reject DEFAULT on a required parameter" "$TESTDIR/test421_err_param_default_required.rpgle" "error"
 
 # A warning is not an error: the program compiles and runs (test415 above),
 # and rpgc says why each call is a concern.

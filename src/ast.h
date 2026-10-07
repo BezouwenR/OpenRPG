@@ -489,6 +489,9 @@ struct ParamDecl {
     bool trim_opt = false;   // OPTIONS(*TRIM)
     bool upper_opt = false;  // OPTIONS(*UPPER), an OpenRPG extension
     bool lower_opt = false;  // OPTIONS(*LOWER), an OpenRPG extension
+    // DEFAULT(value), an OpenRPG extension: what a *NOPASS parameter not
+    // passed, or an *OMIT one omitted, holds in the procedure.
+    std::shared_ptr<Expression> dflt;
     bool is_const = false;   // CONST: read-only, passed as a value of the declared type
 };
 

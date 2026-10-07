@@ -679,6 +679,7 @@ static void parse_ctlopt(const char* text) {
 "%GETENV"           { return BIF_GETENV; }
 "%FKEY"             { return BIF_FKEY; }
 "DEPRECATED"        { return KW_DEPRECATED; }
+"DEFAULT"           { return KW_DEFAULT; }
 "%IF"               { return BIF_IF; }
 "%COMPCORR"         { return BIF_COMPCORR; }
 "%KDS"              { return BIF_KDS; }

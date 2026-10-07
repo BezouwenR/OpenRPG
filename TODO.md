@@ -1921,7 +1921,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 35 | ✅ `DEPRECATED` keyword on procedures — done 2026-10-07 (test415; a call to a procedure defined later with no DCL-PR fixed too, test414) | Just a compiler warning. |
 | 34 | ✅ `%LOOKUP` searching more than one subfield: `%LOOKUP(%KDS(key) : ds(*))` — done 2026-10-07 (test416-417) | |
 | 29 | ✅ `%REPEAT` BIF — done 2026-10-07 (test418-419) | |
-| 28 | Default values for `*NOPASS` / `*OMIT` parameters | |
+| 28 | ✅ Default values for `*NOPASS` / `*OMIT` parameters: `DEFAULT(value)` — done 2026-10-07 (test420-421) | |
 | 27 | `%PROGNAME` BIF | |
 | 26 | Binary literals, like the hex form | Hex literals already ship (Test 112). |
 | 22 | Named index of the current `FOR-EACH` iteration | |

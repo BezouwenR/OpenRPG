@@ -873,6 +873,22 @@ Warning at line 12: Procedure OLDTAX is deprecated: use tax() instead
 
 `DEPRECATED` is an OpenRPG extension.
 
+### Default Values for Optional Parameters
+
+`DEFAULT(value)` gives a parameter that can be left out — `OPTIONS(*NOPASS)` or
+`OPTIONS(*OMIT)` — the value it holds in the procedure when it is:
+
+```rpgle
+DCL-PI *N VARCHAR(40);
+  text VARCHAR(20) CONST;
+  width INT(10) VALUE OPTIONS(*NOPASS) DEFAULT(10);
+  name VARCHAR(10) CONST OPTIONS(*OMIT) DEFAULT('world');
+END-PI;
+```
+
+It may be on the `DCL-PI`, or on the `DCL-PR` alone. `%PARMS` and `%OMITTED`
+still say what the caller passed. `DEFAULT` is an OpenRPG extension.
+
 ### Keyword Arguments
 
 An argument may name its parameter, `name => value`, in any order:

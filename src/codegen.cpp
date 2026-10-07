@@ -1075,6 +1075,11 @@ void CodeGen::visit(Program& node) {
         if (auto* pr = dynamic_cast<DclPR*>(s)) {
             // An OVERLOAD prototype's signature is its return type: what a
             // call through it yields.
+            {
+                std::vector<std::shared_ptr<Expression>> d;
+                for (const auto& prm : pr->interface.params) d.push_back(prm.dflt);
+                proto_param_dflt_[pr->name] = d;
+            }
             bool dep = proc_sigs_.count(pr->name) && proc_sigs_[pr->name].deprecated;
             std::string depMsg = dep ? proc_sigs_[pr->name].deprecated_msg : "";
             proc_sigs_[pr->name] = pr->interface;
@@ -1686,11 +1691,41 @@ void CodeGen::visit(DclProc& node) {
     // by-reference parameter is the caller's storage, already its caller's
     // declared shape, and is left alone. (*OMIT parameters are pointers
     // and LIKEDS ones whole structures; neither is a scalar to fit.)
-    for (auto& p : node.interface.params) {
+    // DEFAULT(value): from the DCL-PI, or else from the procedure's DCL-PR.
+    auto paramDefault = [&](size_t i) -> std::shared_ptr<Expression> {
+        if (node.interface.params[i].dflt) return node.interface.params[i].dflt;
+        auto pd = proto_param_dflt_.find(node.name);
+        if (pd != proto_param_dflt_.end() && i < pd->second.size()) return pd->second[i];
+        return nullptr;
+    };
+    auto saved_omit_defaulted = omit_defaulted_;
+    for (size_t pi = 0; pi < node.interface.params.size(); pi++) {
+        auto& p = node.interface.params[pi];
+        std::shared_ptr<Expression> dflt = paramDefault(pi);
+        if (dflt && !p.nopass && !p.omit)
+            report_semantic_error(node.line, "parameter " + p.name + " of " + node.name +
+                ": DEFAULT is for a parameter that can be left out, with OPTIONS(*NOPASS) "
+                "or OPTIONS(*OMIT)");
+        // An *OMIT parameter with a DEFAULT, omitted, points at a local
+        // holding the default; %OMITTED still says it was omitted.
+        if (dflt && p.omit && p.likeds.empty()) {
+            std::string t = typeToString(p.type, p.length, p.digits);
+            emitIndent(); out_ << "bool __omitted_" << p.name << " = (" << p.name << " == nullptr);\n";
+            emitIndent(); out_ << t << " __dflt_" << p.name << " = "
+                               << fitValue(p.type, p.length, p.decimals, t + "(" + emitExpr(*dflt) + ")")
+                               << ";\n";
+            emitIndent(); out_ << "if (" << p.name << " == nullptr) " << p.name << " = &__dflt_"
+                               << p.name << ";\n";
+            omit_defaulted_.insert(p.name);
+        }
         proc_params_.insert(p.name);
         if (!p.likeds.empty()) likeds_params_[p.name] = p.likeds;
         if (!p.likeds.empty() && p.is_const) const_params_.insert(p.name);
         if (p.omit || !p.likeds.empty()) continue;
+        // A *NOPASS parameter not passed has its DEFAULT.
+        std::string given = std::to_string(pi + 1);
+        std::string dfltVal = dflt && p.nopass
+            ? typeToString(p.type, p.length, p.digits) + "(" + emitExpr(*dflt) + ")" : "";
         var_types_[p.name]    = p.type;
         var_lengths_[p.name]  = p.length;
         var_digits_[p.name]   = p.digits;
@@ -1704,14 +1739,23 @@ void CodeGen::visit(DclProc& node) {
             const_params_.insert(p.name);
             FieldAttrs pa = attrsOfName(p.name);
             emitIndent();
+            std::string arg = convertedArg(p, cppParamName(p));
+            if (!dfltVal.empty())
+                arg = "(_rpg_parms >= " + given + " ? " + typeToString(p.type, p.length, p.digits) +
+                      "(" + arg + ") : " + dfltVal + ")";
             out_ << "const " << typeToString(p.type, p.length, p.digits) << " " << p.name << " = "
-                 << fitValue(pa, convertedArg(p, cppParamName(p)), FitMode::Overflow) << ";\n";
+                 << fitValue(pa, arg, FitMode::Overflow) << ";\n";
             continue;
         }
         if (!p.by_value) continue;
         FieldAttrs pa = attrsOfName(p.name);
         std::string fitted = fitValue(pa, convertedArg(p, p.name), FitMode::Overflow);
         if (fitted != p.name) { emitIndent(); out_ << p.name << " = " << fitted << ";\n"; }
+        if (!dfltVal.empty()) {
+            emitIndent();
+            out_ << "if (_rpg_parms < " << given << ") " << p.name << " = "
+                 << fitValue(pa, dfltVal, FitMode::Overflow) << ";\n";
+        }
     }
     // An error that leaves a procedure reaches its caller as status 202,
     // "called program or procedure failed" (IBM i; test239, test310). Fitting
@@ -1883,6 +1927,7 @@ void CodeGen::visit(DclProc& node) {
     emitIndent(); out_ << (nested ? "};\n" : "}\n");
     proc_depth_--;
     proc_sigs_ = std::move(saved_sigs);
+    omit_defaulted_ = std::move(saved_omit_defaulted);
     in_procedure_ = parent.in_procedure;
     void_return_ = parent.void_return;
     has_nopass_params_ = parent.has_nopass;
@@ -6258,7 +6303,9 @@ void CodeGen::visit(BIFCall& node) {
             if (pit != nopass_proc_params_.end()) {
                 for (size_t i = 0; i < pit->second.size(); i++) {
                     if (pit->second[i].name == arg_id->name) {
-                        if (pit->second[i].omit) {
+                        if (pit->second[i].omit && omit_defaulted_.count(arg_id->name)) {
+                            expr_ << "__omitted_" << arg_id->name;
+                        } else if (pit->second[i].omit) {
                             expr_ << "(" << arg_id->name << " == nullptr)";
                         } else {
                             expr_ << "(_rpg_parms < " << (i + 1) << ")";
