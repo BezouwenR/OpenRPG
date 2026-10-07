@@ -5523,6 +5523,84 @@
    "verdict": "reject",
    "verified": "2026-10-07"
   },
+  "test418_repeat.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0313",
+    "RNF0604",
+    "RNF0637",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 7,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 7,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF5377",
+     "line": 7,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    },
+    {
+     "code": "RNF0604",
+     "line": 9,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 9,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 7: The token is not valid; token is ignored. \u2014 `line = %REPEAT('-' : 20);`",
+   "sha256": "b92ddea53022eda9319589b4c10b9d0e2c003672c233ad8eef76be07c4bb0781",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
+  "test419_err_repeat_fig.rpgle": {
+   "codes": [
+    "RNF0312",
+    "RNF0604",
+    "RNF5377"
+   ],
+   "messages": [
+    {
+     "code": "RNF0604",
+     "line": 4,
+     "severity": 20,
+     "text": "The token is not valid; token is ignored."
+    },
+    {
+     "code": "RNF0312",
+     "line": 4,
+     "severity": 20,
+     "text": "A right parenthesis is expected but is not found."
+    },
+    {
+     "code": "RNF5377",
+     "line": 4,
+     "severity": 20,
+     "text": "The end of the expression is expected."
+    }
+   ],
+   "reason": "RNF0604: The token is not valid; token is ignored.",
+   "reason_detail": "line 4: The token is not valid; token is ignored. \u2014 `s = %REPEAT(*BLANKS : 3);`",
+   "sha256": "1c8c2233abe7fa402d77c8e32b7a1ba4bcae861be7835775705b818a759c1090",
+   "verdict": "reject",
+   "verified": "2026-10-07"
+  },
   "test41_string_bifs.rpgle": {
    "codes": [],
    "rpgc": "accept",
@@ -6062,5 +6140,5 @@
    "verified": "2026-09-25"
   }
  },
- "generated": "2026-10-07T15:52:01+00:00"
+ "generated": "2026-10-07T15:54:57+00:00"
 }

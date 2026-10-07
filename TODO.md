@@ -39,7 +39,7 @@
 - **Bitwise:** %BITAND, %BITNOT, %BITOR, %BITXOR (Test 68)
 - **Date/Time:** %DATE, %TIME, %TIMESTAMP, %DIFF, %DAYS, %MONTHS, %YEARS, %HOURS, %MINUTES, %SECONDS, %MSECONDS, %SUBDT
 - **Memory/Pointer:** %ALLOC, %REALLOC, %ADDR, %PADDR, %PROC, %STR
-- **Other:** %PARMS, %STATUS, %ERROR, %FOUND, %EOF, %PASSED, %OMITTED, %MAX, %MIN, %GETENV (Test 85), %FKEY (Test 353), %MATCHES/%FIND/%COUNTMATCHES (Test 362), %IF (Test 386), %COMPCORR (Test 411)
+- **Other:** %PARMS, %STATUS, %ERROR, %FOUND, %EOF, %PASSED, %OMITTED, %MAX, %MIN, %GETENV (Test 85), %FKEY (Test 353), %MATCHES/%FIND/%COUNTMATCHES (Test 362), %IF (Test 386), %COMPCORR (Test 411), %REPEAT (Test 418)
 
 ### %STATUS Code Values
 | Code | Description | Applicable |
@@ -1920,7 +1920,7 @@ The differentiators. Every row is "Not under consideration" at IBM.
 | 38 | ✅ BIF for comparing data structures: `%COMPCORR(ds1 : ds2 {: n})` — done 2026-10-07 (test411-413) | |
 | 35 | ✅ `DEPRECATED` keyword on procedures — done 2026-10-07 (test415; a call to a procedure defined later with no DCL-PR fixed too, test414) | Just a compiler warning. |
 | 34 | ✅ `%LOOKUP` searching more than one subfield: `%LOOKUP(%KDS(key) : ds(*))` — done 2026-10-07 (test416-417) | |
-| 29 | `%REPEAT` BIF | |
+| 29 | ✅ `%REPEAT` BIF — done 2026-10-07 (test418-419) | |
 | 28 | Default values for `*NOPASS` / `*OMIT` parameters | |
 | 27 | `%PROGNAME` BIF | |
 | 26 | Binary literals, like the hex form | Hex literals already ship (Test 112). |

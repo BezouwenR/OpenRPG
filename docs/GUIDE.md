@@ -965,6 +965,19 @@ DSPLY %LOWER('HELLO');  // 'hello'
 DSPLY %UPPER('hello');  // 'HELLO'
 ```
 
+### %REPEAT
+
+`%REPEAT(string : count)` is the string `count` times over, as SQL's `REPEAT`:
+
+```rpgle
+rule = %REPEAT('-' : 40);
+pad = %REPEAT(' ' : width - %LEN(title));
+```
+
+A count of 0 gives an empty string; a negative one is status 100. A figurative
+constant such as `*BLANKS` has no length of its own, so write the character
+itself. `%REPEAT` is an OpenRPG extension.
+
 ### %SCANRPL: Scan and Replace
 
 `%SCANRPL(scan : replacement : source {: start {: length}})` replaces every

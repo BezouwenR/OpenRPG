@@ -264,6 +264,17 @@ inline std::array<T, N> rpg_filled_array(const T& v) {
     return a;
 }
 
+// %REPEAT(string : count): the string count times over. A negative count
+// is status 100, as a bad length is elsewhere.
+inline std::string rpg_repeat(const std::string& s, long long count) {
+    if (count < 0)
+        rpg_raise(100, "RNX0100: Length or start position is out of range for the string operation.");
+    std::string r;
+    r.reserve(s.size() * static_cast<size_t>(count));
+    for (long long i = 0; i < count; i++) r += s;
+    return r;
+}
+
 // %COMPCORR's test of one pair of subfields: as RPG compares them, and an
 // array subfield element by element.
 template<typename A, typename B>

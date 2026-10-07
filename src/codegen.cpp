@@ -4941,7 +4941,8 @@ CodeGen::ArgCat CodeGen::argCategory(const Expression& e) const {
     }
     if (auto* bif = dynamic_cast<const BIFCall*>(&e)) {
         static const std::set<std::string> chr = {"CHAR", "TRIM", "TRIML", "TRIMR", "SUBST", "UPPER",
-            "LOWER", "XLATE", "SCANRPL", "REPLACE", "EDITC", "EDITW", "STR", "EDITFLT", "__DSCHARS", "__INDCHARS"};
+            "LOWER", "XLATE", "SCANRPL", "REPLACE", "EDITC", "EDITW", "STR", "EDITFLT", "__DSCHARS", "__INDCHARS",
+            "REPEAT"};
         static const std::set<std::string> num = {"INT", "INTH", "DEC", "DECH", "FLOAT", "UNS", "UNSH",
             "LEN", "SCAN", "SCANR", "CHECK", "CHECKR", "ELEM", "ABS", "DIV", "REM", "SIZE", "DIFF",
             "SUBDT", "FKEY", "FIND", "COUNTMATCHES", "LOOKUP", "LOOKUPLT", "LOOKUPLE", "LOOKUPGT", "LOOKUPGE", "STATUS", "PARMS",
@@ -5976,6 +5977,32 @@ void CodeGen::visit(BIFCall& node) {
             node.args[i]->accept(*this);
         }
         expr_ << ")";
+    } else if (node.name == "REPEAT") {
+        // %REPEAT(string : count), an OpenRPG extension: the string count
+        // times over, as SQL's REPEAT. A figurative constant has no length
+        // of its own to repeat, so it is not taken, as the request asked.
+        int line = node.line > 0 ? node.line : cur_stmt_line_;
+        if (node.args.size() != 2) {
+            report_semantic_error(line, "%REPEAT takes a string and how many times to repeat it");
+            expr_ << "std::string()";
+            return;
+        }
+        if (auto* id = dynamic_cast<Identifier*>(node.args[0].get());
+            id && (id->name == "RPG_BLANKS" || id->name == "RPG_ZEROS" || id->name == "RPG_HIVAL" ||
+                   id->name == "RPG_LOVAL")) {
+            report_semantic_error(line, "%REPEAT repeats a string; a figurative constant such as "
+                "*BLANKS has no length of its own -- write the character, as in %REPEAT(' ' : n)");
+            expr_ << "std::string()";
+            return;
+        }
+        if (argCategory(*node.args[0]) != ArgCat::Char && argCategory(*node.args[0]) != ArgCat::Unknown)
+            report_semantic_error(line, "The first operand of %REPEAT must be character");
+        dsAsChars(node.args[0]);
+        expr_ << "rpg_repeat(std::string(";
+        node.args[0]->accept(*this);
+        expr_ << "), static_cast<long long>(";
+        node.args[1]->accept(*this);
+        expr_ << "))";
     } else if (node.name == "KDS" || node.name == "__DSALL") {
         report_semantic_error(node.line > 0 ? node.line : cur_stmt_line_, node.name == "KDS"
             ? "%KDS is supported as the search argument of %LOOKUP(%KDS(key) : ds(*))"
