@@ -4662,6 +4662,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 15: The token is not valid; token is ignored. \u2014 `pay = salary + %IF(rating > 3 : bonus : 0);`",
+   "rpgc": "accept",
    "sha256": "b3c29def88e0ba4e1d457dff50ec1a01ea1f15ee532b18755e1baa15fffd3711",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4694,6 +4695,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 5: The token is not valid; token is ignored. \u2014 `c = %IF(n > 0 : 'yes' : 0);`",
+   "rpgc": "reject",
    "sha256": "82d815e9a1c1ab17f557b05563346b73d51163f0c7429eb68a39bf445a516ea8",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4726,12 +4728,14 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 4: The token is not valid; token is ignored. \u2014 `n = %IF(n : 1 : 2);`",
+   "rpgc": "reject",
    "sha256": "b86ef7d2d0eba48982ade7b9def17916a01d53b6c1293581cd9e732b0fb84420",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test389_omit_args.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "9ff9a76e7b2993806c69561740dc46b803b8b3e19f7ad47589bfb858e020acea",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -4782,6 +4786,7 @@
    ],
    "reason": "RNF0637: An operand was expected but was not found; specification is ignored.",
    "reason_detail": "line 11: An operand was expected but was not found; specification is ignored. \u2014 `DSPLY greet(name => 'Ada');`",
+   "rpgc": "accept",
    "sha256": "af9ad1df3f42cea17e9240d3831a2886fdafdda030091c71a23eb845e5982bc7",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4813,6 +4818,7 @@
    ],
    "reason": "RNF0637: An operand was expected but was not found; specification is ignored.",
    "reason_detail": "line 7: An operand was expected but was not found; specification is ignored. \u2014 `DSPLY %CHAR(f(a => 1 : c => 2));`",
+   "rpgc": "reject",
    "sha256": "bc4b9b59fe260b5fa8b1117d640619c1315f3af67fb9965f11a054e0ec70e2da",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4838,6 +4844,7 @@
    ],
    "reason": "RNF0637: An operand was expected but was not found; specification is ignored.",
    "reason_detail": "line 7: An operand was expected but was not found; specification is ignored. \u2014 `DSPLY %CHAR(f(1 : a => 2));`",
+   "rpgc": "reject",
    "sha256": "ef9c66aee7dab429abe7f1bf668f226aed4d39e16874308b9f22ce7fdfad13ab",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4863,6 +4870,7 @@
    ],
    "reason": "RNF0637: An operand was expected but was not found; specification is ignored.",
    "reason_detail": "line 7: An operand was expected but was not found; specification is ignored. \u2014 `DSPLY %CHAR(f(b => 2));`",
+   "rpgc": "reject",
    "sha256": "0b3b8c0d33d5420691707793fdeae2703e6142f5c05f701386427c550946e6aa",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4888,6 +4896,7 @@
    ],
    "reason": "RNF0637: An operand was expected but was not found; specification is ignored.",
    "reason_detail": "line 7: An operand was expected but was not found; specification is ignored. \u2014 `DSPLY %CHAR(f(a => 1 : 2));`",
+   "rpgc": "reject",
    "sha256": "fe772342665b724f3c1ad91e2da9784fce1d17fb2240565a3a83b09d202ebee1",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -4919,12 +4928,14 @@
    ],
    "reason": "RNF3753: OPTIONS(*OMIT), OPTIONS(*VARSIZE), and OPTIONS(*NULLIND) are not valid for a parameter passed by value.",
    "reason_detail": "line 4: OPTIONS(*OMIT), OPTIONS(*VARSIZE), and OPTIONS(*NULLIND) are not valid for a parameter passed by value. \u2014 `n INT(10) VALUE OPTIONS(*OMIT);`",
+   "rpgc": "reject",
    "sha256": "e180af42a73d13870e51d2d9a3921bc52ffb97c93cbd1bfddd80d65d2a0fec45",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test396_scanrpl_portion.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "97050ca2318d9fde2500203726a59a471381080d723a18a1ffe6e8a59d728d50",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -4968,18 +4979,21 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 7: The token is not valid; token is ignored. \u2014 `r = %SCANRPL('{x}' : 'one' : s : *FIRST);`",
+   "rpgc": "accept",
    "sha256": "cc9e6e363a8a2cf56207fc8f8c05c2ded2c81df3f97471dfe510f7e4026a5693",
    "verdict": "reject",
    "verified": "2026-10-06"
   },
   "test398_scanrpl_empty_scan.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "15adf400970aab81cd023106ad55b582514153b5ad15a199a800cf3f612c7bd0",
    "verdict": "accept",
    "verified": "2026-10-06"
   },
   "test399_options_trim.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "2a020f941a0d349ac449ff3d81edc72f50f6aba3d275d3df6ea4bbc0ec0542d6",
    "verdict": "accept",
    "verified": "2026-10-06"
@@ -5031,6 +5045,7 @@
    ],
    "reason": "RNF3744: The parameter for keyword OPTIONS is not valid; the parameter is ignored.",
    "reason_detail": "line 6: The parameter for keyword OPTIONS is not valid; the parameter is ignored. \u2014 `c VARCHAR(10) CONST OPTIONS(*UPPER);`",
+   "rpgc": "accept",
    "sha256": "e90b8b702191e4f9a865c57b0e00cbeada5f61d73433568b12b91cdef466e1ed",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -5055,6 +5070,7 @@
    ],
    "reason": "RNF3744: The parameter for keyword OPTIONS is not valid; the parameter is ignored.",
    "reason_detail": "line 4: The parameter for keyword OPTIONS is not valid; the parameter is ignored. \u2014 `s VARCHAR(10) OPTIONS(*UPPER);`",
+   "rpgc": "reject",
    "sha256": "d705800756b3bb44cd81728a93e401512068781d73f6b1b314306346c7dd9b68",
    "verdict": "reject",
    "verified": "2026-10-06"
@@ -5100,6 +5116,7 @@
    ],
    "reason": "RNF0603: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored.",
    "reason_detail": "line 4: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored. \u2014 `DCL-S text CHAR;`",
+   "rpgc": "accept",
    "sha256": "985a027825ca01da937dcb3d0d19dc74b1963854fc2b691f966023138186419c",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5118,6 +5135,7 @@
    ],
    "reason": "RNF0603: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored.",
    "reason_detail": "line 4: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored. \u2014 `f CHAR;`",
+   "rpgc": "reject",
    "sha256": "cb95860f716d3f387806db30ea169a704c042247e32456a4dec31d16609993f8",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5142,6 +5160,7 @@
    ],
    "reason": "RNF0603: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored.",
    "reason_detail": "line 4: Keyword CHAR requires at least one parameter, but none were specified; keyword is ignored. \u2014 `s CHAR;`",
+   "rpgc": "reject",
    "sha256": "ec826f1fa34d56bba91cae1465e65975778c5c1782aebb1cbee6325058b9b570",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5178,6 +5197,7 @@
    ],
    "reason": "RNF0314: Built-in function %LIST(n:n:n:n) does not have a value known at compile-time; built-in function is ignored.",
    "reason_detail": "line 5: Built-in function %LIST(1:2:3:4) does not have a value known at compile-time; built-in function is ignored. \u2014 `DCL-S allowed INT(10) DIM(4) INZ(%LIST(1 : 2 : 3 : 4));`",
+   "rpgc": "accept",
    "sha256": "d387b70bc72e582a46c1c1d0d2a2b0f2f4c7c0edcd31243b02b0e0bebdd1ca25",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5196,6 +5216,7 @@
    ],
    "reason": "RNF0314: Built-in function %LIST(n:n:n) does not have a value known at compile-time; built-in function is ignored.",
    "reason_detail": "line 3: Built-in function %LIST(1:2:3) does not have a value known at compile-time; built-in function is ignored. \u2014 `DCL-S a INT(10) DIM(2) INZ(%LIST(1 : 2 : 3));`",
+   "rpgc": "reject",
    "sha256": "88cdda6929cc4b855b20e71c42d1201ac91df9692f24efa540c1c93718d35833",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5214,12 +5235,14 @@
    ],
    "reason": "RNF0314: Built-in function %LIST('ok':'long') does not have a value known at compile-time; built-in function is ignored.",
    "reason_detail": "line 3: Built-in function %LIST('ok':'long') does not have a value known at compile-time; built-in function is ignored. \u2014 `DCL-S a CHAR(2) DIM(2) INZ(%LIST('ok' : 'long'));`",
+   "rpgc": "reject",
    "sha256": "726f4009ad567c8211bb04d4d4b905ade7dfb745f7cbacc799447a44c6a54ddb",
    "verdict": "reject",
    "verified": "2026-10-07"
   },
   "test408_ds_column.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "d765a2291d85eaa232e1fd9dde014727691070b0c98b85a46c5f01310711721d",
    "verdict": "accept",
    "verified": "2026-10-07"
@@ -5259,6 +5282,7 @@
    ],
    "reason": "RNF7591: An operand of a qualified name expression is not valid.",
    "reason_detail": "line 9: An operand of a qualified name expression is not valid. \u2014 `DSPLY %CHAR(%XFOOT(ord(*).amt));`",
+   "rpgc": "accept",
    "sha256": "8f0c65d5b5c191773c5ca2b722b5351149a0d9aa48ccf1cbb2d0947cb81f6dec",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5291,6 +5315,7 @@
    ],
    "reason": "RNF0528: Index is not allowed for name D that is not an array; index is ignored.",
    "reason_detail": "line 6: Index is not allowed for name D that is not an array; index is ignored. \u2014 `DSPLY %CHAR(%LOOKUP(1 : d(*).a));`",
+   "rpgc": "reject",
    "sha256": "441fa5d7b9a3f651d0f5849e224d3350f16ae679e445823404ed5fc07f0b9650",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5336,6 +5361,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 27: The token is not valid; token is ignored. \u2014 `IF %COMPCORR(key1 : key2);`",
+   "rpgc": "accept",
    "sha256": "51463f6e972b64ce81080e76474a25eb975c71a8008f370da8c7cd01da060bef",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5368,6 +5394,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 9: The token is not valid; token is ignored. \u2014 `IF %COMPCORR(a : b);`",
+   "rpgc": "reject",
    "sha256": "b120ed0c7f6f94a823aeec41c1c2f6d0b5ff3fafbcec4d840ab4d8980609edb9",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5400,12 +5427,14 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 10: The token is not valid; token is ignored. \u2014 `IF %COMPCORR(a : b : 2);`",
+   "rpgc": "reject",
    "sha256": "aa109a3cb3da56f67fd5734deba501344cdc8cb696854be6d76eb965385c7a1f",
    "verdict": "reject",
    "verified": "2026-10-07"
   },
   "test414_proc_forward.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "d3c00814cbf3508de4249b5469d38eb5b5dee4b54cffc54e4f828879249662bf",
    "verdict": "accept",
    "verified": "2026-10-07"
@@ -5456,6 +5485,7 @@
    ],
    "reason": "RNF3308: Keyword name is not valid; the keyword is ignored.",
    "reason_detail": "line 5: Keyword name is not valid; the keyword is ignored. \u2014 `DCL-PR oldTax PACKED(7:2) DEPRECATED('use tax() instead');`",
+   "rpgc": "accept",
    "sha256": "6938bdef3204e41dae2f721e090bc617e7ccf1e50cbe60b81a54a68c6488c6ae",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5501,6 +5531,7 @@
    ],
    "reason": "RNF0637: An operand was expected but was not found; specification is ignored.",
    "reason_detail": "line 28: An operand was expected but was not found; specification is ignored. \u2014 `DSPLY %CHAR(%LOOKUP(%KDS(key) : line(*)));`",
+   "rpgc": "accept",
    "sha256": "7da2a2e2aae79143d82b417f65e22d6f9ddf3cabddb72d5929e5313b1d277095",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5519,6 +5550,7 @@
    ],
    "reason": "RNF0637: An operand was expected but was not found; specification is ignored.",
    "reason_detail": "line 9: An operand was expected but was not found; specification is ignored. \u2014 `DSPLY %CHAR(%LOOKUP(%KDS(k) : a(*)));`",
+   "rpgc": "reject",
    "sha256": "7567e9cf8610ec7c19df73931a2d70247ef52b0a8751b464b75d0aa26d02dd6d",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5565,6 +5597,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 7: The token is not valid; token is ignored. \u2014 `line = %REPEAT('-' : 20);`",
+   "rpgc": "accept",
    "sha256": "b92ddea53022eda9319589b4c10b9d0e2c003672c233ad8eef76be07c4bb0781",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5597,6 +5630,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 4: The token is not valid; token is ignored. \u2014 `s = %REPEAT(*BLANKS : 3);`",
+   "rpgc": "reject",
    "sha256": "1c8c2233abe7fa402d77c8e32b7a1ba4bcae861be7835775705b818a759c1090",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5650,6 +5684,7 @@
    ],
    "reason": "RNF3308: Keyword name is not valid; the keyword is ignored.",
    "reason_detail": "line 7: Keyword name is not valid; the keyword is ignored. \u2014 `width INT(10) VALUE OPTIONS(*NOPASS) DEFAULT(10);`",
+   "rpgc": "accept",
    "sha256": "588b8355f209dddc885ad75252e912006d9cb0384d05b26d4097a39919e113a5",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5674,6 +5709,7 @@
    ],
    "reason": "RNF3308: Keyword name is not valid; the keyword is ignored.",
    "reason_detail": "line 4: Keyword name is not valid; the keyword is ignored. \u2014 `n INT(10) VALUE DEFAULT(1);`",
+   "rpgc": "reject",
    "sha256": "6930bef82827a97cfb1f6823f99b0fa2cda5a62ace0d6eb6cd9d96761c1c5121",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5718,12 +5754,14 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 4: The token is not valid; token is ignored. \u2014 `DSPLY %PROGNAME;`",
+   "rpgc": "accept",
    "sha256": "a6f2051e823d4f08c9bb0290521af662ac80b254941bb0f55d9f712d3b818e66",
    "verdict": "reject",
    "verified": "2026-10-07"
   },
   "test423_bit_chars.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "0c12c27ffaba62ebb4d473ef77d2f63c822953e84ceebedf79cd06cc74c5dd1e",
    "verdict": "accept",
    "verified": "2026-10-07"
@@ -5769,6 +5807,7 @@
    ],
    "reason": "RNF5377: The end of the expression is expected.",
    "reason_detail": "line 6: The end of the expression is expected. \u2014 `IF B'10100001' = X'A1';`",
+   "rpgc": "accept",
    "sha256": "8ebfce37e3bb7bed26db4c124ddbc3a0fc7bdd341ba01f6b9cc401b5992cc578",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5794,12 +5833,14 @@
    ],
    "reason": "RNF5377: The end of the expression is expected.",
    "reason_detail": "line 4: The end of the expression is expected. \u2014 `c = B'1010';`",
+   "rpgc": "reject",
    "sha256": "95282675c6c4b933fb659bc3b4b167a6100e12a457f7fb12ccb0ae03fcff9426",
    "verdict": "reject",
    "verified": "2026-10-07"
   },
   "test426_auto_next.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "5e5a358b6d4a7a1950f3aac2668807ef938f77c6f937aae87dbfd74eb6b54839",
    "verdict": "accept",
    "verified": "2026-10-07"
@@ -5838,6 +5879,7 @@
    ],
    "reason": "RNF0314: Built-in function %LIST(n:n:n) does not have a value known at compile-time; built-in function is ignored.",
    "reason_detail": "line 7: Built-in function %LIST(5:7:9) does not have a value known at compile-time; built-in function is ignored. \u2014 `DCL-S scores INT(10) DIM(3) INZ(%LIST(5 : 7 : 9));`",
+   "rpgc": "accept",
    "sha256": "d773b97416ebf1e7aadbb7418d9fb8be56d3c40499befbb3bf68d76e6d1d151f",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5863,6 +5905,7 @@
    ],
    "reason": "RNF5377: The end of the expression is expected.",
    "reason_detail": "line 6: The end of the expression is expected. \u2014 `FOR-EACH x IN a INDEX(c);`",
+   "rpgc": "reject",
    "sha256": "5e6f65b067e894a9e1ccef47d9828aaf2b4c407c5a6dfdcf83aa123c3149294f",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5908,6 +5951,7 @@
    ],
    "reason": "RNF5377: The end of the expression is expected.",
    "reason_detail": "line 21: The end of the expression is expected. \u2014 `SORTA items %PADDR(byQty);`",
+   "rpgc": "accept",
    "sha256": "e0a7307e1d67f9f88a45ec2793dc3873085d7ce2c5434bc581340c56c61cd76d",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -5947,12 +5991,14 @@
    ],
    "reason": "RNF5377: The end of the expression is expected.",
    "reason_detail": "line 4: The end of the expression is expected. \u2014 `SORTA a %PADDR(nosuch);`",
+   "rpgc": "reject",
    "sha256": "0158757f000ad9ced80998066c5cfded1323c484dd04481407b0cdb5cbf37965",
    "verdict": "reject",
    "verified": "2026-10-07"
   },
   "test431_select_when_is.rpgle": {
    "codes": [],
+   "rpgc": "accept",
    "sha256": "fe55b9b1b58530b78415625ef2a35f327095f3417d3d80b04006bf32ce4fc781",
    "verdict": "accept",
    "verified": "2026-10-07"
@@ -5984,6 +6030,7 @@
    ],
    "reason": "RNF5347: An assignment operator is expected with the EVAL operation.",
    "reason_detail": "line 12: An assignment operator is expected with the EVAL operation. \u2014 `WHEN-NOT-IN %LIST('X' : 'Y');`",
+   "rpgc": "accept",
    "sha256": "94d4270ff86f4eca960ddeb17efcc0b39a7c45871d6990d1598dd19b11eb9e69",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -6023,6 +6070,7 @@
    ],
    "reason": "RNF0203: SELECT WITH AN OPERAND MUST BE FOLLOWED BY WHEN-IS, WHEN-IN, OTHER, OR ENDSL.",
    "reason_detail": "line 4: SELECT WITH AN OPERAND MUST BE FOLLOWED BY WHEN-IS, WHEN-IN, OTHER, OR ENDSL. \u2014 `SELECT n;`",
+   "rpgc": "reject",
    "sha256": "d476c70ebd896e2b44acfa61613cb961f46a56e12b8748e11a91e5d62d1d7590",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -6071,6 +6119,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 7: The token is not valid; token is ignored. \u2014 `v = *EMPTY;`",
+   "rpgc": "accept",
    "sha256": "26fb60429fde8b3d6da77361463f969c4b22e66d6f8624d51fccf003ab36128e",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -6113,6 +6162,7 @@
    ],
    "reason": "RNF0604: The token is not valid; token is ignored.",
    "reason_detail": "line 8: The token is not valid; token is ignored. \u2014 `h = %TOHEX(s);`",
+   "rpgc": "accept",
    "sha256": "c8b753ae4020360f9fe2d210564d3c0800358424c06991d9c6b7cb9c6f63bd03",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -6143,6 +6193,7 @@
    ],
    "reason": "RNF0274: Compiler directive not recognized; directive ignored.",
    "reason_detail": "line 5: Compiler directive not recognized; directive ignored. \u2014 `/MESSAGE 'Built with the test settings'`",
+   "rpgc": "accept",
    "sha256": "12e67ac79b97c01e4f3d05be03ecc12b9704e730c8e595bd46e46b70eee54bd1",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -6161,6 +6212,7 @@
    ],
    "reason": "RNF0274: Compiler directive not recognized; directive ignored.",
    "reason_detail": "line 4: Compiler directive not recognized; directive ignored. \u2014 `/MESSAGE *ERROR 'define PLATFORM to build this'`",
+   "rpgc": "reject",
    "sha256": "b7988da0d0e8c7258b0bd911dff41dac1ae6cb5e27fba7dcc1aef249fada3cef",
    "verdict": "reject",
    "verified": "2026-10-07"
@@ -6179,6 +6231,7 @@
    ],
    "reason": "RNF0274: Compiler directive not recognized; directive ignored.",
    "reason_detail": "line 2: Compiler directive not recognized; directive ignored. \u2014 `/MESSAGE 'fixed warning'`",
+   "rpgc": "accept",
    "sha256": "583259ef02f1df7502b4da91a76110b5e699fd3e18dcdb59f259929813a790b5",
    "verdict": "reject",
    "verified": "2026-10-07"
