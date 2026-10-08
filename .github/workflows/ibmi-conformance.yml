@@ -71,6 +71,9 @@ jobs:
     # free machine should not be reachable from untrusted branch contents.
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode != 'execute'
     runs-on: ubuntu-latest
+    # A run takes under 10 minutes. One stalled for 6 hours (2026-10-07)
+    # until GitHub's own limit ended it; nothing in it hangs when re-run.
+    timeout-minutes: 60
     # Write access for the wiki push only (the results page, below); every
     # other job keeps the read-only default above.
     permissions:
@@ -239,6 +242,7 @@ jobs:
     name: run on IBM i
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'execute'
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     permissions:
       contents: write
     steps:
